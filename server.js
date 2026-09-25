@@ -133,7 +133,7 @@ app.use(function (_req, res, next) {
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 /* Clean marketing URLs: /how → how.html; /how.html → 301 /how */
-const CLEAN_PAGES = ["how", "product", "access", "privacy", "faq", "changelog"];
+const CLEAN_PAGES = ["how", "product", "access", "privacy", "faq", "changelog", "tour"];
 const CLEAN_SET = new Set(CLEAN_PAGES);
 
 /* Trailing slash → canonical (must run before page routes; Express non-strict
@@ -141,7 +141,7 @@ const CLEAN_SET = new Set(CLEAN_PAGES);
 app.use(function (req, res, next) {
   if (req.method !== "GET" && req.method !== "HEAD") return next();
   const pathOnly = (req.path || "").split("?")[0];
-  const m = pathOnly.match(/^\/(how|product|access|privacy|faq|changelog)\/$/);
+  const m = pathOnly.match(/^\/(how|product|access|privacy|faq|changelog|tour)\/$/);
   if (m && CLEAN_SET.has(m[1])) {
     return res.redirect(301, "/" + m[1]);
   }

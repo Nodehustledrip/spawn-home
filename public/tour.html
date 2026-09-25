@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Tour Spawn: Build with chat, run a local preview, then ship a public URL — from idea to live in three steps." />
+  <meta name="theme-color" content="#0a0a0b" />
+  <meta property="og:title" content="Tour — Spawn" />
+  <meta property="og:description" content="From idea to live URL: Build, Run, Ship — the Spawn product path in three visual steps." />
+  <meta property="og:url" content="https://spawnapp.org/tour" />
+  <meta property="og:type" content="website" />
+  <title>Tour — Spawn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important;
+      white-space: nowrap !important; border: 0 !important;
+    }
+    .skip:focus, .skip:focus-visible {
+      position: fixed !important; width: auto !important; height: auto !important;
+      margin: 0 !important; padding: 0.5rem 0.85rem !important; overflow: visible !important;
+      clip: auto !important; clip-path: none !important; white-space: normal !important;
+      z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
+      background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
+    }
+  </style>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/how">How it works</a>
+      <a class="nav-link is-active" href="/tour" aria-current="page">Tour</a>
+      <a class="nav-link" href="/product">Product</a>
+      <a class="nav-link" href="/faq">FAQ</a>
+      <a class="nav-link" href="/changelog">Changelog</a>
+      <a class="nav-link nav-cta" href="/access">Early access</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/">Home</a>
+    <a href="/how">How it works</a>
+    <a href="/tour">Tour</a>
+    <a href="/product">Product</a>
+    <a href="/faq">FAQ</a>
+    <a href="/changelog">Changelog</a>
+    <a href="/access">Get early access</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+
+  <main id="main" class="page-tour">
+    <header class="tour-hero">
+      <p class="kicker">Product tour</p>
+      <h1>From idea to live URL</h1>
+      <p class="lead">
+        Three moves inside Spawn: build the app, run it locally, ship a public link.
+        No cloud sandbox. Real files on your machine.
+      </p>
+    </header>
+
+    <ol class="tour-steps">
+      <!-- 1. Build -->
+      <li class="tour-step">
+        <div class="tour-copy">
+          <span class="tour-n" aria-hidden="true">01</span>
+          <h2>Build</h2>
+          <p>
+            Describe what you want. Spawn scaffolds a real project and opens Build chat —
+            ask for a change and it edits the file, then refreshes the preview.
+          </p>
+          <p>
+            You’re looking at structure and diffs, not a throwaway demo.
+          </p>
+        </div>
+        <div class="tour-frame" aria-hidden="true">
+          <div class="tf-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <div class="tf-title">Build · billing-app</div>
+            <div class="tf-badge">Chat</div>
+          </div>
+          <div class="tf-body tf-build">
+            <aside class="tf-tree">
+              <div class="tf-tree-h">Files</div>
+              <ul>
+                <li class="on">page.tsx</li>
+                <li>layout.tsx</li>
+                <li>pricing.tsx</li>
+                <li class="dim">package.json</li>
+              </ul>
+            </aside>
+            <div class="tf-chat">
+              <div class="tf-msg you">
+                <span class="tf-role">You</span>
+                Add a pricing table with Free, Pro, and Team.
+              </div>
+              <div class="tf-msg bot">
+                <span class="tf-role">Spawn</span>
+                Updated <code>pricing.tsx</code> — three tiers. Preview refreshed.
+              </div>
+              <div class="tf-diff">
+                <span class="tf-diff-h">+ pricing.tsx</span>
+                <pre><code><span class="add">+ export function Pricing() {'{'}</span>
+<span class="add">+   return &lt;Tiers free pro team /&gt;</span>
+<span class="add">+ {'}'}</span></code></pre>
+              </div>
+              <div class="tf-compose">
+                <span>Ask for a change…</span>
+                <em>Send</em>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- 2. Run -->
+      <li class="tour-step tour-step-flip">
+        <div class="tour-copy">
+          <span class="tour-n" aria-hidden="true">02</span>
+          <h2>Run</h2>
+          <p>
+            Hit Run and the app starts on localhost. You’re looking at the real thing —
+            same process you’ll ship, not a mock render.
+          </p>
+          <p>
+            Iterate in the preview until it feels right. Deploy is optional until you’re ready.
+          </p>
+        </div>
+        <div class="tour-frame" aria-hidden="true">
+          <div class="tf-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <div class="tf-title">localhost:5173</div>
+            <div class="tf-badge tf-badge-ok">Running</div>
+          </div>
+          <div class="tf-body tf-run">
+            <div class="tf-preview">
+              <div class="tf-pnav">
+                <span class="tf-logo"></span>
+                <span class="tf-links"><i></i><i></i><i></i></span>
+                <span class="tf-cta-pill"></span>
+              </div>
+              <div class="tf-phero">
+                <div class="tf-phero-line w70"></div>
+                <div class="tf-phero-line w45"></div>
+              </div>
+              <div class="tf-ptiers">
+                <div class="tf-tier">
+                  <em>Free</em>
+                  <strong>$0</strong>
+                </div>
+                <div class="tf-tier on">
+                  <em>Pro</em>
+                  <strong>$29</strong>
+                </div>
+                <div class="tf-tier">
+                  <em>Team</em>
+                  <strong>$99</strong>
+                </div>
+              </div>
+            </div>
+            <div class="tf-status-bar">
+              <span class="tf-dot"></span>
+              Preview · hot reload
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- 3. Ship -->
+      <li class="tour-step">
+        <div class="tour-copy">
+          <span class="tour-n" aria-hidden="true">03</span>
+          <h2>Ship</h2>
+          <p>
+            Go Live publishes a public HTTPS URL. Attach your domain, wire secrets and plugins
+            without leaving the builder.
+          </p>
+          <p>
+            Private until you press it. Then it’s on the internet.
+          </p>
+          <a class="btn-solid tour-inline-cta" href="/access">Get early access</a>
+        </div>
+        <div class="tour-frame" aria-hidden="true">
+          <div class="tf-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <div class="tf-title">Go Live</div>
+            <div class="tf-badge tf-badge-live">Live</div>
+          </div>
+          <div class="tf-body tf-ship">
+            <div class="tf-live-card">
+              <div class="tf-live-row">
+                <em>Public URL</em>
+                <strong>https://billing.spawnapp.org</strong>
+              </div>
+              <div class="tf-live-meta">
+                <span><i class="ok"></i> HTTPS</span>
+                <span><i class="ok"></i> Domain attached</span>
+                <span><i class="ok"></i> Secrets loaded</span>
+              </div>
+              <div class="tf-live-actions">
+                <span class="tf-btn-mock primary">Open live site</span>
+                <span class="tf-btn-mock">Copy URL</span>
+              </div>
+            </div>
+            <div class="tf-domain-row">
+              <span class="tf-mono">billing.yourdomain.com</span>
+              <span class="tf-chip">DNS verified</span>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <section class="tour-get" aria-labelledby="tour-get-h">
+      <div class="tour-get-head">
+        <h2 id="tour-get-h">What you get</h2>
+        <a class="link-quiet" href="/product">Full product →</a>
+      </div>
+      <ul class="tour-get-grid">
+        <li>
+          <strong>Private builder</strong>
+          <span>Runs on your machine. Code and secrets stay local until you publish.</span>
+        </li>
+        <li>
+          <strong>Real preview</strong>
+          <span>Localhost process you can click — same app you’ll ship.</span>
+        </li>
+        <li>
+          <strong>Public URL</strong>
+          <span>Go Live with domains, secrets, and plugins inside Spawn.</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="tour-cta how-cta">
+      <h2>Ready when you are</h2>
+      <p>Private beta — invite-only. Join the waitlist and we’ll email when it’s your turn.</p>
+      <div class="product-hero-links product-cta-links">
+        <a class="btn-solid" href="/access">Get early access</a>
+        <a class="link-quiet" href="/how">How it works</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/how">How it works</a>
+      <a href="/tour">Tour</a>
+      <a href="/product">Product</a>
+      <a href="/faq">FAQ</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/access">Early access</a>
+      <a href="/privacy">Privacy</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
