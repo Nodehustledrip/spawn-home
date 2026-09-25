@@ -1,2 +1,174 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Spawn Home</title><link rel="stylesheet" href="/styles.css"/></head><body><main style="font-family:system-ui;max-width:720px;margin:40px auto;padding:0 16px;color:#e8eef7;background:#0b0f14"><h1>Spawn Home</h1><p>Blank Spawn project. Edit files and hit Run.</p></main><p style="text-align:center;margin:2rem"><a href="/privacy.html">Privacy</a></p><script src="/ai-widget.js"></script>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Spawn — the private app builder. Create, Run, Build with AI, Go Live. Ship to the internet from Spawn." />
+  <meta name="theme-color" content="#07080c" />
+  <title>Spawn — Ship apps that feel expensive</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="wordmark" href="/" aria-label="Spawn home">
+      <span class="mark" aria-hidden="true"></span>
+      Spawn
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a class="btn btn-sm btn-ghost" href="#access">Get early access</a>
+    </nav>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" data-nav-toggle>
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <div class="mobile-nav" data-mobile-nav hidden>
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#access">Get early access</a>
+  </div>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow reveal">Private app builder · spawnapp.org</p>
+      <h1 class="reveal reveal-delay-1">Ship apps that feel expensive.</h1>
+      <p class="lede reveal reveal-delay-2">
+        From idea to public URL inside Spawn. Create, edit, Run, Build with chat,
+        then Go Live — domains, secrets, and plugins included.
+      </p>
+      <div class="hero-cta reveal reveal-delay-3">
+        <a class="btn btn-primary" href="#features">Explore Spawn</a>
+        <a class="btn btn-ghost" href="#access">Get early access</a>
+      </div>
+      <div class="hero-stage reveal reveal-delay-4" aria-hidden="true">
+        <div class="stage-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="stage-path">spawn · workspace</span>
+        </div>
+        <div class="stage-body">
+          <div class="stage-sidebar">
+            <span class="pill active">App</span>
+            <span class="pill">Build</span>
+            <span class="pill">Live</span>
+          </div>
+          <div class="stage-main">
+            <div class="code-line"><span class="k">const</span> app = <span class="f">spawn</span>.create()</div>
+            <div class="code-line">app.<span class="f">run</span>()</div>
+            <div class="code-line">app.<span class="f">goLive</span>({ domain: <span class="s">"yours"</span> })</div>
+            <div class="live-badge">● Live · public URL ready</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust" aria-label="Trust">
+      <p class="trust-label">Built for founders who ship</p>
+      <ul class="trust-list">
+        <li>Private by default</li>
+        <li>Run on your machine</li>
+        <li>Public URL in one click</li>
+        <li>Secrets &amp; domains</li>
+      </ul>
+    </section>
+
+    <section id="features" class="section features">
+      <div class="section-head reveal">
+        <h2>Everything between idea and internet.</h2>
+        <p>Four surfaces. One continuous flow. No filler tooling.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card reveal">
+          <div class="feature-icon" aria-hidden="true">✦</div>
+          <h3>Build with AI</h3>
+          <p>Chat that edits your app. Describe the change; Spawn writes the files. Stay in flow.</p>
+        </article>
+        <article class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon" aria-hidden="true">▷</div>
+          <h3>Run locally</h3>
+          <p>Hit Run. Instant feedback on your machine. Iterate before anything goes public.</p>
+        </article>
+        <article class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon" aria-hidden="true">◎</div>
+          <h3>Go Live</h3>
+          <p>Ship a public URL from Spawn. Domains, secrets, and plugins — production without the ceremony.</p>
+        </article>
+        <article class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon" aria-hidden="true">↻</div>
+          <h3>Evolve continuously</h3>
+          <p>Keep building after launch. Same workspace, same chat, same Run — ship again tonight.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="how" class="section how">
+      <div class="section-head reveal">
+        <h2>How it works</h2>
+        <p>Three steps. Then you’re live.</p>
+      </div>
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="step-num">01</span>
+          <div>
+            <h3>Create</h3>
+            <p>Spin up a private app. Edit files, structure routes, wire data — your workspace, locked down.</p>
+          </div>
+        </li>
+        <li class="step reveal reveal-delay-1">
+          <span class="step-num">02</span>
+          <div>
+            <h3>Build &amp; Run</h3>
+            <p>Use Build chat to shape the product. Run locally until it feels right.</p>
+          </div>
+        </li>
+        <li class="step reveal reveal-delay-2">
+          <span class="step-num">03</span>
+          <div>
+            <h3>Go Live</h3>
+            <p>Publish a public URL. Attach a domain. Manage secrets. Keep shipping.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="access" class="section cta-band">
+      <div class="cta-card reveal">
+        <h2>Get early access</h2>
+        <p>Spawn is private by design. Leave your email — we’ll open the door when it’s your turn.</p>
+        <form class="access-form" data-access-form novalidate>
+          <label class="sr-only" for="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            placeholder="you@company.com"
+            inputmode="email"
+          />
+          <button class="btn btn-primary" type="submit">Request access</button>
+        </form>
+        <p class="form-note" data-form-note role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <a class="wordmark wordmark-sm" href="/">
+        <span class="mark" aria-hidden="true"></span>
+        Spawn
+      </a>
+      <p class="footer-meta">© <span data-year></span> Spawn · spawnapp.org</p>
+      <a href="/privacy.html">Privacy</a>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+  <script src="/ai-widget.js"></script>
+</body>
+</html>
