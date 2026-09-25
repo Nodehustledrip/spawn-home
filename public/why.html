@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Why Spawn exists: build on your machine, run it locally, and ship a real URL. Your code and secrets stay yours." />
+  <meta name="theme-color" content="#0a0a0b" />
+  <meta property="og:title" content="Why Spawn — Spawn" />
+  <meta property="og:description" content="Spawn exists so you build on your machine, run locally, and ship a real URL — code and secrets stay yours." />
+  <meta property="og:url" content="https://spawnapp.org/why" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Spawn" />
+  <meta property="og:image" content="https://spawnapp.org/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why Spawn — Spawn" />
+  <meta name="twitter:description" content="Spawn exists so you build on your machine, run locally, and ship a real URL — code and secrets stay yours." />
+  <meta name="twitter:image" content="https://spawnapp.org/og.png" />
+  <title>Why Spawn — Spawn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important;
+      white-space: nowrap !important; border: 0 !important;
+    }
+    .skip:focus, .skip:focus-visible {
+      position: fixed !important; width: auto !important; height: auto !important;
+      margin: 0 !important; padding: 0.5rem 0.85rem !important; overflow: visible !important;
+      clip: auto !important; clip-path: none !important; white-space: normal !important;
+      z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
+      background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
+    }
+  </style>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link is-active" href="/why" aria-current="page">Why</a>
+      <a class="nav-link" href="/how">How it works</a>
+      <a class="nav-link" href="/tour">Tour</a>
+      <a class="nav-link" href="/product">Product</a>
+      <a class="nav-link" href="/showcase">Showcase</a>
+      <a class="nav-link" href="/faq">FAQ</a>
+      <a class="nav-link" href="/changelog">Changelog</a>
+      <a class="nav-link nav-cta" href="/access">Early access</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/">Home</a>
+    <a href="/why">Why</a>
+    <a href="/how">How it works</a>
+    <a href="/tour">Tour</a>
+    <a href="/product">Product</a>
+    <a href="/showcase">Showcase</a>
+    <a href="/faq">FAQ</a>
+    <a href="/changelog">Changelog</a>
+    <a href="/access">Get early access</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+
+  <main id="main" class="page-why">
+    <header class="why-hero">
+      <p class="kicker">Why Spawn</p>
+      <h1>Build on your machine. Ship a real URL.</h1>
+      <p class="lead">
+        Spawn exists so the app is yours — files on your computer, a local preview,
+        then a public link — and you keep evolving it after the first publish.
+      </p>
+      <div class="product-hero-links">
+        <a class="btn-solid" href="/access">Get early access</a>
+        <a class="link-quiet" href="/tour">Take the tour</a>
+      </div>
+    </header>
+
+    <ol class="why-principles">
+      <li class="why-card">
+        <span class="why-n" aria-hidden="true">01</span>
+        <h2>Build on your machine</h2>
+        <p class="why-contrast">Local-first, not cloud-only.</p>
+        <p>The project is files. Open them, read the diff, keep the repo. Nothing important lives only inside a browser tab.</p>
+      </li>
+      <li class="why-card">
+        <span class="why-n" aria-hidden="true">02</span>
+        <h2>Run it locally</h2>
+        <p class="why-contrast">The real process, not a mock.</p>
+        <p>Hit Run. The preview is localhost — the same app you’ll ship. Iterate until it feels right. Deploy stays optional.</p>
+      </li>
+      <li class="why-card">
+        <span class="why-n" aria-hidden="true">03</span>
+        <h2>Ship a real URL</h2>
+        <p class="why-contrast">On the internet, not a session.</p>
+        <p>Go Live publishes HTTPS. Attach your domain. Share a link that stays up — not a preview that vanishes when the tab closes.</p>
+      </li>
+      <li class="why-card">
+        <span class="why-n" aria-hidden="true">04</span>
+        <h2>Code and secrets stay yours</h2>
+        <p class="why-contrast">You own the machine.</p>
+        <p>Source stays local until you publish. Keys live in Secrets and are injected at run and deploy — not left in a workspace you don’t control.</p>
+      </li>
+      <li class="why-card">
+        <span class="why-n" aria-hidden="true">05</span>
+        <h2>Evolve continuously</h2>
+        <p class="why-contrast">v1 is not the finish.</p>
+        <p>Chat a change, re-run, republish. The same loop keeps moving after the first URL is live.</p>
+      </li>
+      <li class="why-card">
+        <span class="why-n" aria-hidden="true">06</span>
+        <h2>A premium bar, not a demo</h2>
+        <p class="why-contrast">Software you’d put your name on.</p>
+        <p>Structure, diffs, a live site. Spawn is for products you’d ship — not a throwaway mock.</p>
+      </li>
+    </ol>
+
+    <section class="why-for" aria-labelledby="why-for-h">
+      <h2 id="why-for-h">Who it’s for</h2>
+      <ul class="why-for-grid">
+        <li>
+          <strong>You want the files</strong>
+          <span>A project on your computer. Open it, diff it, keep it.</span>
+        </li>
+        <li>
+          <strong>You’re putting a name on it</strong>
+          <span>A public URL and a domain — work you’d actually share.</span>
+        </li>
+        <li>
+          <strong>You’ll keep going</strong>
+          <span>Change, run, and publish again after the first link is live.</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="why-cta how-cta">
+      <h2>See the loop, then get in</h2>
+      <p>Private beta — invite-only. Tour the product, look at what ships, or join the list.</p>
+      <div class="product-hero-links product-cta-links">
+        <a class="btn-solid" href="/access">Get early access</a>
+        <a class="link-quiet" href="/tour">Tour</a>
+        <a class="link-quiet" href="/showcase">Showcase</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/why">Why</a>
+      <a href="/how">How it works</a>
+      <a href="/tour">Tour</a>
+      <a href="/product">Product</a>
+      <a href="/showcase">Showcase</a>
+      <a href="/faq">FAQ</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/access">Early access</a>
+      <a href="/privacy">Privacy</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
