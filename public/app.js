@@ -6,96 +6,123 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* Header border on scroll */
+  /* Topbar scroll */
   var nav = document.querySelector("[data-nav]");
   if (nav) {
     var onScroll = function () {
-      nav.classList.toggle("is-scrolled", window.scrollY > 12);
+      nav.classList.toggle("is-scrolled", window.scrollY > 8);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
-  /* Mobile nav */
-  var toggle = document.querySelector("[data-nav-toggle]");
-  var mobileNav = document.querySelector("[data-mobile-nav]");
-  if (toggle && mobileNav) {
-    var closeNav = function () {
-      toggle.setAttribute("aria-expanded", "false");
-      toggle.setAttribute("aria-label", "Open menu");
-      mobileNav.setAttribute("hidden", "");
-    };
-    toggle.addEventListener("click", function () {
-      var open = toggle.getAttribute("aria-expanded") === "true";
-      if (open) closeNav();
-      else {
-        toggle.setAttribute("aria-expanded", "true");
-        toggle.setAttribute("aria-label", "Close menu");
-        mobileNav.removeAttribute("hidden");
-      }
-    });
-    mobileNav.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", closeNav);
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeNav();
-    });
+  /* ——— Command palette / early access ——— */
+  var palette = document.querySelector("[data-palette]");
+  var openBtns = document.querySelectorAll("[data-open-access]");
+  var accessInput = document.querySelector("[data-access-input]");
+
+  function openPalette() {
+    if (!palette) return;
+    palette.removeAttribute("hidden");
+    document.body.style.overflow = "hidden";
+    if (accessInput) {
+      setTimeout(function () { accessInput.focus(); }, 40);
+    }
+  }
+  function closePalette() {
+    if (!palette) return;
+    palette.setAttribute("hidden", "");
+    document.body.style.overflow = "";
   }
 
-  /* ——— Product stage ——— */
-  var stage = document.querySelector("[data-stage]");
-  if (stage) {
-    var tabs = stage.querySelectorAll("[data-tab]");
-    var panels = stage.querySelectorAll("[data-panel]");
-    var railItems = stage.querySelectorAll("[data-rail]");
-    var statusDot = stage.querySelector("[data-status-dot]");
-    var statusLabel = stage.querySelector("[data-status-label]");
-    var runPill = stage.querySelector("[data-run-pill]");
-    var typedEl = stage.querySelector("[data-typed]");
-    var caretEl = stage.querySelector("[data-caret]");
-    var replyEl = stage.querySelector("[data-reply]");
-    var replyText = stage.querySelector("[data-reply-text]");
-    var liveUrl = stage.querySelector("[data-live-url]");
-    var goLiveBtn = stage.querySelector("[data-go-live]");
-    var liveNote = stage.querySelector("[data-live-note]");
+  openBtns.forEach(function (btn) {
+    btn.addEventListener("click", openPalette);
+  });
+  if (palette) {
+    palette.querySelectorAll("[data-palette-close]").forEach(function (el) {
+      el.addEventListener("click", closePalette);
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    var meta = e.metaKey || e.ctrlKey;
+    if (meta && (e.key === "k" || e.key === "K")) {
+      e.preventDefault();
+      if (palette && palette.hasAttribute("hidden")) openPalette();
+      else closePalette();
+    }
+    if (e.key === "Escape") closePalette();
+  });
+
+  /* ——— IDE surfaces ——— */
+  var ide = document.querySelector("[data-ide]");
+  if (ide) {
+    var tabs = ide.querySelectorAll("[data-surface]");
+    var panes = ide.querySelectorAll("[data-pane]");
+    var loopBtns = ide.querySelectorAll("[data-loop]");
+    var dot = ide.querySelector("[data-dot]");
+    var statusEl = ide.querySelector("[data-status]");
+    var runEl = ide.querySelector("[data-run]");
+    var typedEl = ide.querySelector("[data-typed]");
+    var caretEl = ide.querySelector("[data-caret]");
+    var replyEl = ide.querySelector("[data-reply]");
+    var replyText = ide.querySelector("[data-reply-text]");
+    var diffEl = ide.querySelector("[data-diff]");
+    var liveUrl = ide.querySelector("[data-live-url]");
+    var urlBadge = ide.querySelector("[data-url-badge]");
+    var goLiveBtn = ide.querySelector("[data-go-live]");
+    var liveHint = ide.querySelector("[data-live-hint]");
 
     var PROMPT = "Add a pricing table with three tiers and a monthly toggle.";
-    var REPLY = "Added PricingSection with Free, Pro, and Team. Toggle wired to billingInterval.";
+    var REPLY = "Updated Pricing.tsx — Free, Pro, Team with billingInterval toggle. Preview refreshed.";
     var typingTimer = null;
     var buildPlayed = false;
+    var published = false;
 
     function setStatus(kind, label) {
-      if (statusDot) {
-        statusDot.classList.remove("is-live", "is-busy");
-        if (kind) statusDot.classList.add(kind);
+      if (dot) {
+        dot.classList.remove("is-live", "is-busy");
+        if (kind) dot.classList.add(kind);
       }
-      if (statusLabel) statusLabel.textContent = label;
+      if (statusEl) statusEl.textContent = label;
     }
 
-    function showPanel(name) {
-      panels.forEach(function (p) {
-        var match = p.getAttribute("data-panel") === name;
-        p.classList.toggle("is-active", match);
+    function syncTabs(name) {
+      tabs.forEach(function (t) {
+        var on = t.getAttribute("data-surface") === name;
+        t.classList.toggle("is-on", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+    }
+
+    function syncLoop(name) {
+      loopBtns.forEach(function (b) {
+        var key = b.getAttribute("data-loop");
+        var on =
+          (name === "home" && key === "create") ||
+          (name === "run" && key === "run") ||
+          (name === "build" && key === "build") ||
+          (name === "live" && key === "live");
+        b.classList.toggle("is-on", on);
+      });
+    }
+
+    function showPane(name) {
+      panes.forEach(function (p) {
+        var match = p.getAttribute("data-pane") === name;
+        p.classList.toggle("is-on", match);
         if (match) p.removeAttribute("hidden");
         else p.setAttribute("hidden", "");
       });
-      tabs.forEach(function (t) {
-        var on = t.getAttribute("data-tab") === name;
-        t.classList.toggle("is-active", on);
-        t.setAttribute("aria-selected", on ? "true" : "false");
-      });
-      railItems.forEach(function (r) {
-        var key = r.getAttribute("data-rail");
-        var on =
-          (name === "home" && (key === "create" || key === "run")) ||
-          (name === "build" && key === "build") ||
-          (name === "live" && key === "live");
-        if (name === "home") {
-          r.classList.toggle("is-active", key === "create");
-        } else {
-          r.classList.toggle("is-active", key === name || (name === "live" && key === "live"));
-        }
-      });
+      if (name === "home") {
+        syncTabs("home");
+        syncLoop("home");
+      } else if (name === "build") {
+        syncTabs("build");
+        syncLoop("build");
+      } else if (name === "live") {
+        syncTabs("live");
+        syncLoop("live");
+      }
     }
 
     function typePrompt(done) {
@@ -107,6 +134,7 @@
       typedEl.textContent = "";
       if (caretEl) caretEl.classList.remove("is-hidden");
       if (replyEl) replyEl.setAttribute("hidden", "");
+      if (diffEl) diffEl.setAttribute("hidden", "");
       if (reduceMotion) {
         typedEl.textContent = PROMPT;
         if (caretEl) caretEl.classList.add("is-hidden");
@@ -124,11 +152,11 @@
           if (caretEl) caretEl.classList.add("is-hidden");
           if (done) done();
         }
-      }, 22);
+      }, 18);
     }
 
-    function playBuildSequence() {
-      showPanel("build");
+    function playBuild() {
+      showPane("build");
       setStatus("is-busy", "Building");
       typePrompt(function () {
         if (replyEl && replyText) {
@@ -136,7 +164,8 @@
           replyText.textContent = "";
           if (reduceMotion) {
             replyText.textContent = REPLY;
-            setStatus("is-busy", "Synced");
+            if (diffEl) diffEl.removeAttribute("hidden");
+            setStatus("", "Synced");
             return;
           }
           var j = 0;
@@ -145,9 +174,10 @@
             replyText.textContent = REPLY.slice(0, j);
             if (j >= REPLY.length) {
               clearInterval(t2);
+              if (diffEl) diffEl.removeAttribute("hidden");
               setStatus("", "Synced");
             }
-          }, 12);
+          }, 10);
         } else {
           setStatus("", "Synced");
         }
@@ -157,67 +187,57 @@
 
     tabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
-        var name = tab.getAttribute("data-tab");
-        if (name === "build") {
-          playBuildSequence();
-        } else if (name === "live") {
-          showPanel("live");
-          setStatus(liveUrl && liveUrl.textContent.indexOf("spawn") !== -1 ? "is-live" : "", liveUrl && liveUrl.textContent.indexOf("spawn") !== -1 ? "Live" : "Ready");
+        var name = tab.getAttribute("data-surface");
+        if (name === "build") playBuild();
+        else if (name === "live") {
+          showPane("live");
+          setStatus(published ? "is-live" : "", published ? "Live" : "Ready");
         } else {
-          showPanel("home");
+          showPane("home");
+          syncLoop("create");
           setStatus("", "Ready");
-          if (runPill) {
-            runPill.textContent = "Idle";
-            runPill.classList.remove("is-running", "is-live");
+          if (runEl) {
+            runEl.textContent = "Idle";
+            runEl.classList.remove("is-running", "is-live");
           }
         }
       });
     });
 
-    railItems.forEach(function (item) {
-      item.addEventListener("click", function () {
-        var key = item.getAttribute("data-rail");
+    loopBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var key = btn.getAttribute("data-loop");
         if (key === "build") {
-          playBuildSequence();
+          playBuild();
         } else if (key === "live") {
-          showPanel("live");
-          tabs.forEach(function (t) {
-            var on = t.getAttribute("data-tab") === "live";
-            t.classList.toggle("is-active", on);
-            t.setAttribute("aria-selected", on ? "true" : "false");
-          });
-          setStatus("", "Ready");
+          showPane("live");
+          setStatus(published ? "is-live" : "", published ? "Live" : "Ready");
         } else if (key === "run") {
-          showPanel("home");
-          tabs.forEach(function (t) {
-            var on = t.getAttribute("data-tab") === "home";
-            t.classList.toggle("is-active", on);
-            t.setAttribute("aria-selected", on ? "true" : "false");
-          });
-          railItems.forEach(function (r) {
-            r.classList.toggle("is-active", r.getAttribute("data-rail") === "run");
-          });
-          if (runPill) {
-            runPill.textContent = "Running";
-            runPill.classList.add("is-running");
-            runPill.classList.remove("is-live");
+          showPane("home");
+          syncTabs("home");
+          syncLoop("run");
+          if (runEl) {
+            runEl.textContent = "Running";
+            runEl.classList.add("is-running");
+            runEl.classList.remove("is-live");
           }
           setStatus("is-busy", "Running");
           setTimeout(function () {
-            if (runPill) {
-              runPill.textContent = "Ready";
-              runPill.classList.remove("is-running");
+            if (runEl) {
+              runEl.textContent = "Ready";
+              runEl.classList.remove("is-running");
             }
             setStatus("", "Ready");
-          }, reduceMotion ? 0 : 1400);
+          }, reduceMotion ? 0 : 1200);
         } else {
-          showPanel("home");
-          tabs.forEach(function (t) {
-            var on = t.getAttribute("data-tab") === "home";
-            t.classList.toggle("is-active", on);
-            t.setAttribute("aria-selected", on ? "true" : "false");
-          });
+          showPane("home");
+          syncTabs("home");
+          syncLoop("create");
           setStatus("", "Ready");
+          if (runEl) {
+            runEl.textContent = "Idle";
+            runEl.classList.remove("is-running", "is-live");
+          }
         }
       });
     });
@@ -229,26 +249,31 @@
         goLiveBtn.textContent = "Publishing…";
         setStatus("is-busy", "Publishing");
         setTimeout(function () {
+          published = true;
           if (liveUrl) liveUrl.textContent = "your-app.spawnapp.org";
-          if (liveNote) {
-            liveNote.textContent = "Live. Public URL is ready.";
-            liveNote.classList.add("is-done");
+          if (urlBadge) {
+            urlBadge.textContent = "Live";
+            urlBadge.classList.add("is-live");
+          }
+          if (liveHint) {
+            liveHint.textContent = "Live on the edge. HTTPS ready.";
+            liveHint.classList.add("is-done");
           }
           goLiveBtn.textContent = "Live";
           setStatus("is-live", "Live");
-          if (runPill) {
-            runPill.textContent = "Live";
-            runPill.classList.add("is-live");
+          if (runEl) {
+            runEl.textContent = "Live";
+            runEl.classList.add("is-live");
           }
           setTimeout(function () {
             goLiveBtn.disabled = false;
             goLiveBtn.textContent = label;
-          }, 2200);
-        }, reduceMotion ? 0 : 900);
+          }, 2000);
+        }, reduceMotion ? 0 : 850);
       });
     }
 
-    /* Auto-demo once when stage enters view */
+    /* Auto-demo when IDE enters view */
     if ("IntersectionObserver" in window && !reduceMotion) {
       var demoOnce = false;
       var io = new IntersectionObserver(
@@ -257,28 +282,28 @@
             if (entry.isIntersecting && !demoOnce) {
               demoOnce = true;
               setTimeout(function () {
-                if (!buildPlayed) playBuildSequence();
-              }, 900);
+                if (!buildPlayed) playBuild();
+              }, 1100);
               io.disconnect();
             }
           });
         },
-        { threshold: 0.45 }
+        { threshold: 0.35 }
       );
-      io.observe(stage);
+      io.observe(ide);
     }
   }
 
   /* Early access form */
   var form = document.querySelector("[data-access-form]");
   var note = document.querySelector("[data-form-note]");
-  var successSvg =
-    '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+  var okIcon =
+    '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="vertical-align:-2px;margin-right:4px">' +
     '<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/>' +
     '<path d="M4.8 8.2l2.1 2.1 4.3-4.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>' +
     "</svg>";
-  var errorSvg =
-    '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+  var errIcon =
+    '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="vertical-align:-2px;margin-right:4px">' +
     '<circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/>' +
     '<path d="M8 4.8v4M8 11.2h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
     "</svg>";
@@ -308,11 +333,10 @@
       var valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
       input.classList.toggle("is-invalid", !valid);
       if (!valid) {
-        showNote("error", "Enter a valid email to request access.", errorSvg);
+        showNote("error", "Enter a valid work email.", errIcon);
         input.focus();
         return;
       }
-      input.classList.remove("is-invalid");
       try {
         var list = JSON.parse(localStorage.getItem("spawn_early_access") || "[]");
         if (list.indexOf(value.toLowerCase()) === -1) {
@@ -322,9 +346,7 @@
       } catch (_) { /* ignore */ }
 
       form.reset();
-      form.classList.add("is-success");
-      showNote("success", "You're on the list. We'll be in touch.", successSvg);
-
+      showNote("success", "You're on the list. We'll be in touch.", okIcon);
       var btn = form.querySelector("[data-submit]");
       var label = form.querySelector("[data-submit-label]");
       if (btn && label) {
@@ -334,8 +356,7 @@
         setTimeout(function () {
           label.textContent = prev;
           btn.disabled = false;
-          form.classList.remove("is-success");
-        }, 3200);
+        }, 2800);
       }
     });
   }
