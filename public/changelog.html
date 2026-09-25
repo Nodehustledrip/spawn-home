@@ -19,6 +19,7 @@
   <meta name="twitter:description" content="What shipped recently on spawnapp.org — product pages, waitlist, analytics, and social share cards." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Changelog — Spawn</title>
+  <link rel="canonical" href="https://spawnapp.org/changelog" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -39,6 +40,14 @@
     }
   </style>
   <link rel="stylesheet" href="/styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Spawn",
+    "url": "https://spawnapp.org"
+  }
+  </script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -90,6 +99,16 @@
           <time datetime="2026-09-25">September 25, 2026</time>
         </h2>
         <ol class="changelog-entries">
+          <li class="changelog-entry">
+            <h3>Sitemap, robots, structured data</h3>
+            <p>
+              Public <a href="/robots.txt">robots.txt</a> and
+              <a href="/sitemap.xml">sitemap.xml</a> for all clean marketing
+              URLs, plus JSON-LD (WebSite + Organization) on home and
+              Organization on other pages — accurate only, no invented profiles.
+              Canonical link tags sitewide.
+            </p>
+          </li>
           <li class="changelog-entry">
             <h3>Home + nav tighten</h3>
             <p>
