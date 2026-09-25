@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Showcase — examples of the kind of apps you can ship with Spawn: live boards, social tools, money flows, games, and launch kits." />
+  <meta name="theme-color" content="#0a0a0b" />
+  <meta property="og:title" content="Showcase — Spawn" />
+  <meta property="og:description" content="High-wow example apps — live boards, social tools, money flows, games. What you can ship with Spawn." />
+  <meta property="og:url" content="https://spawnapp.org/showcase" />
+  <meta property="og:type" content="website" />
+  <title>Showcase — Spawn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important;
+      white-space: nowrap !important; border: 0 !important;
+    }
+    .skip:focus, .skip:focus-visible {
+      position: fixed !important; width: auto !important; height: auto !important;
+      margin: 0 !important; padding: 0.5rem 0.85rem !important; overflow: visible !important;
+      clip: auto !important; clip-path: none !important; white-space: normal !important;
+      z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
+      background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
+    }
+  </style>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/how">How it works</a>
+      <a class="nav-link" href="/tour">Tour</a>
+      <a class="nav-link" href="/product">Product</a>
+      <a class="nav-link is-active" href="/showcase" aria-current="page">Showcase</a>
+      <a class="nav-link" href="/faq">FAQ</a>
+      <a class="nav-link" href="/changelog">Changelog</a>
+      <a class="nav-link nav-cta" href="/access">Early access</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/">Home</a>
+    <a href="/how">How it works</a>
+    <a href="/tour">Tour</a>
+    <a href="/product">Product</a>
+    <a href="/showcase">Showcase</a>
+    <a href="/faq">FAQ</a>
+    <a href="/changelog">Changelog</a>
+    <a href="/access">Get early access</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+
+  <main id="main" class="page-showcase">
+    <header class="sc-hero">
+      <p class="kicker">Showcase</p>
+      <h1>Ship something people brag about</h1>
+      <p class="lead">
+        Example UIs for the kind of apps Spawn is built for — live boards,
+        social tools, money flows, games. Invented for this page; not live products.
+      </p>
+    </header>
+
+    <ul class="sc-grid" aria-label="Example apps">
+      <!-- 1. Live hire / bidding board -->
+      <li class="sc-card">
+        <div class="sc-meta">
+          <span class="sc-tag">Marketplace</span>
+          <h2>Floor</h2>
+          <p>Live hire board — specialists bid in real time, clients pick a winner before the clock hits zero.</p>
+        </div>
+        <div class="sc-preview" aria-hidden="true">
+          <div class="sc-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <span class="sc-chrome-t">floor.app / open</span>
+            <span class="sc-live">Live</span>
+          </div>
+          <div class="sc-body sc-floor">
+            <div class="sc-floor-head">
+              <strong>Brand identity · 48h</strong>
+              <span class="sc-timer">02:14</span>
+            </div>
+            <ul class="sc-bids">
+              <li class="on"><span>Maya R.</span><em>$1,850</em><b>Lead</b></li>
+              <li><span>Jun K.</span><em>$2,100</em></li>
+              <li><span>Studio North</span><em>$2,400</em></li>
+            </ul>
+            <div class="sc-chips">
+              <span>12 watching</span>
+              <span>Auto-rank</span>
+              <span>Escrow</span>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- 2. Social / community feed -->
+      <li class="sc-card">
+        <div class="sc-meta">
+          <span class="sc-tag">Social</span>
+          <h2>Harbor</h2>
+          <p>Private community feed with rooms, reactions, and a quiet signal for who’s online right now.</p>
+        </div>
+        <div class="sc-preview" aria-hidden="true">
+          <div class="sc-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <span class="sc-chrome-t">harbor · #builders</span>
+            <span class="sc-badge-soft">24 online</span>
+          </div>
+          <div class="sc-body sc-harbor">
+            <div class="sc-post">
+              <div class="sc-avatar">A</div>
+              <div>
+                <strong>Alex · 2m</strong>
+                <p>Shipped the waitlist overnight. 340 on board.</p>
+                <div class="sc-react"><span>🔥 18</span><span>👏 9</span></div>
+              </div>
+            </div>
+            <div class="sc-post dim">
+              <div class="sc-avatar">R</div>
+              <div>
+                <strong>Rina · 11m</strong>
+                <p>Anyone tried local AI for build chat?</p>
+              </div>
+            </div>
+            <div class="sc-chips">
+              <span>#builders</span>
+              <span>#ship</span>
+              <span>DM</span>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- 3. Real-time ops board -->
+      <li class="sc-card">
+        <div class="sc-meta">
+          <span class="sc-tag">Ops</span>
+          <h2>Nightshift</h2>
+          <p>Real-time status board for services, deploys, and on-call — one screen the whole team trusts at 2am.</p>
+        </div>
+        <div class="sc-preview" aria-hidden="true">
+          <div class="sc-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <span class="sc-chrome-t">nightshift · prod</span>
+            <span class="sc-badge-ok">All clear</span>
+          </div>
+          <div class="sc-body sc-ops">
+            <div class="sc-ops-row"><span class="dot ok"></span><strong>api</strong><em>99.98%</em><b>healthy</b></div>
+            <div class="sc-ops-row"><span class="dot ok"></span><strong>edge</strong><em>42ms</em><b>healthy</b></div>
+            <div class="sc-ops-row warn"><span class="dot warn"></span><strong>queue</strong><em>1.2k</em><b>elevated</b></div>
+            <div class="sc-ops-row"><span class="dot ok"></span><strong>billing</strong><em>ok</em><b>healthy</b></div>
+            <div class="sc-chips">
+              <span>Pager</span>
+              <span>Deploys</span>
+              <span>SLOs</span>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- 4. Money / tips flow -->
+      <li class="sc-card">
+        <div class="sc-meta">
+          <span class="sc-tag">Payments</span>
+          <h2>Tiprail</h2>
+          <p>Tips and split payouts for creators — clean checkout, instant share link, no spreadsheet math.</p>
+        </div>
+        <div class="sc-preview" aria-hidden="true">
+          <div class="sc-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <span class="sc-chrome-t">tiprail · checkout</span>
+            <span class="sc-badge-soft">USD</span>
+          </div>
+          <div class="sc-body sc-tip">
+            <div class="sc-tip-amt">$12</div>
+            <div class="sc-tip-tiers">
+              <button type="button" tabindex="-1">$5</button>
+              <button type="button" class="on" tabindex="-1">$12</button>
+              <button type="button" tabindex="-1">$25</button>
+            </div>
+            <div class="sc-tip-split">
+              <span>You 70%</span>
+              <span>Collab 30%</span>
+            </div>
+            <div class="sc-chips">
+              <span>Instant</span>
+              <span>Split</span>
+              <span>Share link</span>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- 5. Small game -->
+      <li class="sc-card">
+        <div class="sc-meta">
+          <span class="sc-tag">Game</span>
+          <h2>Vaultfall</h2>
+          <p>Fast puzzle arcade with polish — beat your best run, drop a shareable score card, play again.</p>
+        </div>
+        <div class="sc-preview" aria-hidden="true">
+          <div class="sc-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <span class="sc-chrome-t">vaultfall · run #847</span>
+            <span class="sc-badge-soft">Best 12,480</span>
+          </div>
+          <div class="sc-body sc-game">
+            <div class="sc-game-hud">
+              <span>Score <b>9,240</b></span>
+              <span>Combo <b>×4</b></span>
+            </div>
+            <div class="sc-game-board">
+              <i class="c1"></i><i class="c2"></i><i class="c3"></i>
+              <i class="c2"></i><i class="c1 on"></i><i class="c3"></i>
+              <i class="c3"></i><i class="c2"></i><i class="c1"></i>
+            </div>
+            <div class="sc-chips">
+              <span>Leaderboard</span>
+              <span>Replay</span>
+              <span>Share card</span>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <!-- 6. Creator / waitlist / launch -->
+      <li class="sc-card">
+        <div class="sc-meta">
+          <span class="sc-tag">Launch</span>
+          <h2>Firstlight</h2>
+          <p>Creator waitlist and launch toolkit — landing, referrals, drip emails, and a day-one dashboard.</p>
+        </div>
+        <div class="sc-preview" aria-hidden="true">
+          <div class="sc-chrome">
+            <div class="tf-traffic"><i></i><i></i><i></i></div>
+            <span class="sc-chrome-t">firstlight · launch</span>
+            <span class="sc-live">Day 0</span>
+          </div>
+          <div class="sc-body sc-launch">
+            <div class="sc-launch-stat">
+              <strong>1,284</strong>
+              <span>on the list</span>
+            </div>
+            <div class="sc-launch-bar"><i style="width:68%"></i></div>
+            <div class="sc-launch-row">
+              <span>Referral rate</span><em>34%</em>
+            </div>
+            <div class="sc-launch-row">
+              <span>Open rate</span><em>61%</em>
+            </div>
+            <div class="sc-chips">
+              <span>Waitlist</span>
+              <span>Referrals</span>
+              <span>Drip</span>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <p class="sc-note">
+      These are illustrative mocks — the shape of apps people ship with Spawn,
+      not products we host or claim as live demos.
+    </p>
+
+    <section class="sc-cta how-cta">
+      <h2>Build yours next</h2>
+      <p>Private beta — invite-only. Join the waitlist, or walk the product path first.</p>
+      <div class="product-hero-links product-cta-links">
+        <a class="btn-solid" href="/access">Get early access</a>
+        <a class="link-quiet" href="/tour">See the tour</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/how">How it works</a>
+      <a href="/tour">Tour</a>
+      <a href="/product">Product</a>
+      <a href="/showcase">Showcase</a>
+      <a href="/faq">FAQ</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/access">Early access</a>
+      <a href="/privacy">Privacy</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
