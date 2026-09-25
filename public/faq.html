@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="FAQ about Spawn — what it is, local vs cloud, early access, custom domains, secrets, and how publishing works." />
+  <meta name="theme-color" content="#0a0a0b" />
+  <meta property="og:title" content="FAQ — Spawn" />
+  <meta property="og:description" content="Straight answers: what Spawn is, local vs cloud, early access, custom domains, and more." />
+  <meta property="og:url" content="https://spawnapp.org/faq.html" />
+  <meta property="og:type" content="website" />
+  <title>FAQ — Spawn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important;
+      white-space: nowrap !important; border: 0 !important;
+    }
+    .skip:focus, .skip:focus-visible {
+      position: fixed !important; width: auto !important; height: auto !important;
+      margin: 0 !important; padding: 0.5rem 0.85rem !important; overflow: visible !important;
+      clip: auto !important; clip-path: none !important; white-space: normal !important;
+      z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
+      background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
+    }
+  </style>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/how.html">How it works</a>
+      <a class="nav-link" href="/product.html">Product</a>
+      <a class="nav-link is-active" href="/faq.html" aria-current="page">FAQ</a>
+      <a class="nav-link nav-cta" href="/access.html">Early access</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/">Home</a>
+    <a href="/how.html">How it works</a>
+    <a href="/product.html">Product</a>
+    <a href="/faq.html">FAQ</a>
+    <a href="/access.html">Get early access</a>
+    <a href="/privacy.html">Privacy</a>
+  </div>
+
+  <main id="main" class="page-faq">
+    <header class="faq-hero">
+      <p class="kicker">FAQ</p>
+      <h1>Questions, answered plainly.</h1>
+      <p class="lead">
+        What Spawn is, where it runs, how early access works, and what happens
+        when you put an app on the internet.
+      </p>
+    </header>
+
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary>What is Spawn?</summary>
+        <div class="faq-body">
+          <p>
+            Spawn is a private app builder that runs on your machine. You create a
+            real app, run a local preview, change it in Build chat, then Go Live
+            for a public HTTPS URL — with domains, secrets, and plugins in the same place.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>Is Spawn local or cloud?</summary>
+        <div class="faq-body">
+          <p>
+            Building stays local. Your project files, preview, and secrets live on
+            your machine until you choose to publish. Go Live puts a public site on
+            the internet; the builder itself is not a browser-only sandbox that holds your code.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>How does early access work?</summary>
+        <div class="faq-body">
+          <p>
+            Spawn is in private beta. Join the waitlist with your email on the
+            <a href="/access.html">early access</a> page. We invite people in waves
+            and email when it’s your turn — no spam, no pitch deck drip.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>Can I use a custom domain?</summary>
+        <div class="faq-body">
+          <p>
+            Yes. After Go Live you can attach your own hostname from inside Spawn —
+            apex and www — without bouncing to a separate hosting console. Domains
+            stay wired to the app you’re shipping.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>Where do my code and secrets live?</summary>
+        <div class="faq-body">
+          <p>
+            Code stays on your machine until you publish. Secrets (API keys, env
+            vars) are stored in Spawn’s Secrets and injected at run and deploy time —
+            they don’t belong in your source tree. See
+            <a href="/privacy.html">Privacy</a> for how this site handles waitlist email.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>What do I need to get started?</summary>
+        <div class="faq-body">
+          <p>
+            A machine that can run Spawn, and (when invited) access to the private
+            beta. You describe an app or open existing files, hit Run for a localhost
+            preview, then iterate in chat. No separate deploy dance just to try a change.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>How is this different from chat-only builders?</summary>
+        <div class="faq-body">
+          <p>
+            Spawn edits real project files, shows the preview on your machine, and
+            ships a public URL with domains and secrets included. It’s a builder loop —
+            create → run → build → live — not a one-shot chat that dumps disposable code.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>Is there pricing yet?</summary>
+        <div class="faq-body">
+          <p>
+            Not publicly. Private beta first. Join early access and we’ll share plans
+            when seats open — building in public on spawnapp.org.
+          </p>
+        </div>
+      </details>
+    </div>
+
+    <section class="faq-cta how-cta">
+      <h2>Still deciding?</h2>
+      <p>See the product, walk through the loop, or join the waitlist.</p>
+      <div class="product-hero-links product-cta-links">
+        <a class="btn-solid" href="/access.html">Get early access</a>
+        <a class="link-quiet" href="/product.html">See the product</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/how.html">How it works</a>
+      <a href="/product.html">Product</a>
+      <a href="/faq.html">FAQ</a>
+      <a href="/access.html">Early access</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
