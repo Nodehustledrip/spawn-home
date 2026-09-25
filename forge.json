@@ -1,0 +1,188 @@
+{
+  "name": "Spawn Home",
+  "slug": "spawn-home",
+  "template": "blank",
+  "monetization": "none",
+  "createdAt": "2026-09-11T23:55:47.342Z",
+  "generator": "Spawn",
+  "domains": [
+    {
+      "domain": "spawnapp.org",
+      "status": "live",
+      "hostIp": "173.16.234.84",
+      "publicUrl": null,
+      "records": [
+        {
+          "type": "A",
+          "host": "@",
+          "value": "173.16.234.84",
+          "ttl": "600",
+          "purpose": "Apex / root â†’ this PC's public IP (or Forge Host target)"
+        },
+        {
+          "type": "CNAME",
+          "host": "www",
+          "value": "spawnapp.org",
+          "ttl": "600",
+          "purpose": "www â†’ apex"
+        },
+        {
+          "type": "TXT",
+          "host": "@",
+          "value": "af-verify=c3Bhd25hcHAub3Jn",
+          "ttl": "600",
+          "purpose": "Optional ownership verify"
+        }
+      ],
+      "serveMode": "spawn",
+      "hostedPath": "/hosted/spawn-home/",
+      "at": "2026-09-11T23:56:35.862Z",
+      "lastVerifiedAt": "2026-09-17T17:49:36.059Z"
+    }
+  ],
+  "primaryDomain": "spawnapp.org",
+  "production": {
+    "autoscale": {
+      "vcpu": 2,
+      "ramGiB": 4,
+      "maxInstances": 3,
+      "enabled": true
+    },
+    "visibility": "public",
+    "geography": "North America",
+    "live": true,
+    "promotedAt": "2026-09-12T23:34:35.785Z",
+    "publishedBy": "You"
+  },
+  "host": {
+    "autoStart": true,
+    "provisionedAt": "2026-09-12T23:34:31.545Z",
+    "ready": true,
+    "updatedAt": "2026-09-12T23:34:35.785Z"
+  },
+  "deploy": {
+    "logs": [
+      "[2026-09-12T23:34:35.353Z] Provision · Provision started for spawn-home",
+      "[2026-09-12T23:34:35.353Z] Provision · hosted/spawn-home ready · C:\\Users\\reinh\\OneDrive\\Desktop\\AppForge\\hosted\\spawn-home",
+      "[2026-09-12T23:34:35.353Z] Provision · host.autoStart defaulted to true (server.js present)",
+      "[2026-09-12T23:34:35.353Z] Provision · npm install via npm_bin…",
+      "[2026-09-12T23:34:35.353Z] Provision · npm install complete",
+      "[2026-09-12T23:34:35.353Z] Provision · Port pool ready · sample free port 8802 (range 8801–8899)",
+      "[2026-09-12T23:34:35.353Z] Provision · Secrets inject plan · 2 key(s): STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY",
+      "[2026-09-12T23:34:35.360Z] Build · Build started for spawn-home",
+      "[2026-09-12T23:34:35.360Z] Build · No scripts.build — synthesizing static/public readiness",
+      "[2026-09-12T23:34:35.360Z] Build · Static entry ready · public=true index=true",
+      "[2026-09-12T23:34:35.360Z] Build · Lint-free prepare written",
+      "[2026-09-12T23:34:35.465Z] Security · Security started for spawn-home",
+      "[2026-09-12T23:34:35.465Z] Security · Build OK · proceeding with security scan",
+      "[2026-09-12T23:34:35.465Z] Security · Scan complete · files=8 · high=0 medium=2 low=0 info=15",
+      "[2026-09-12T23:34:35.465Z] Security · Auto-fix · Added security headers (nosniff, frame, referrer, Permissions-Policy, CSP)",
+      "[2026-09-12T23:34:35.465Z] Security · Auto-fix · Added privacy page",
+      "[2026-09-12T23:34:35.465Z] Security · Re-scan after fixes · high=0 medium=0",
+      "[2026-09-12T23:34:35.754Z] Bundle · Bundle started for spawn-home",
+      "[2026-09-12T23:34:35.754Z] Bundle · ZIP ready · spawn-home-1789256075469.zip (12481 bytes)",
+      "[2026-09-12T23:34:35.754Z] Bundle · Copied into hosted/spawn-home · 9 files",
+      "[2026-09-12T23:34:53.845Z] Promote · Promote started for spawn-home",
+      "[2026-09-12T23:34:53.845Z] Promote · Hosted snapshot refreshed · 9 files",
+      "[2026-09-12T23:34:53.845Z] Promote · Hosted manifest · production=true autoStart=true",
+      "[2026-09-12T23:34:53.845Z] Promote · Backend running · port 8802",
+      "[2026-09-12T23:34:53.845Z] Promote · Sticky autoTunnel enabled (forge.host.autoTunnel)",
+      "[2026-09-12T23:34:53.845Z] Promote · Public URL already active",
+      "[2026-09-12T23:34:53.845Z] Promote · Production public URL · https://free-animals-tap.loca.lt/hosted/spawn-home/",
+      "[2026-09-13T18:01:34.491Z] Bundle · Bundle started for spawn-home",
+      "[2026-09-13T18:01:34.491Z] Bundle · ZIP ready · spawn-home-1789322494408.zip (13595 bytes)",
+      "[2026-09-13T18:01:34.491Z] Bundle · Copied into hosted/spawn-home · 9 files"
+    ],
+    "pipeline": {
+      "provision": {
+        "at": "2026-09-12T23:34:35.353Z",
+        "ok": true,
+        "autoStart": true,
+        "deps": {
+          "installed": true,
+          "skipped": false
+        },
+        "portReady": {
+          "ok": true,
+          "sample": 8802,
+          "range": "8801–8899"
+        },
+        "secrets": {
+          "count": 2,
+          "keys": [
+            "STRIPE_PUBLISHABLE_KEY",
+            "STRIPE_SECRET_KEY"
+          ]
+        }
+      },
+      "build": {
+        "at": "2026-09-12T23:34:35.360Z",
+        "ok": true,
+        "mode": "static-prepare",
+        "log": ".forge-deploy/build.log"
+      },
+      "security": {
+        "at": "2026-09-12T23:34:35.463Z",
+        "ok": true,
+        "findingsSummary": {
+          "high": 0,
+          "medium": 0,
+          "low": 0,
+          "info": 17,
+          "total": 17,
+          "blocking": 0
+        },
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "info": 17,
+        "reportPath": ".forge-deploy/security-report.json",
+        "forced": true,
+        "autoFix": true,
+        "fixesApplied": [
+          "add-security-headers",
+          "add-privacy-page"
+        ]
+      },
+      "bundle": {
+        "at": "2026-09-13T18:01:34.490Z",
+        "ok": true,
+        "path": ".forge-deploy/spawn-home-1789322494408.zip",
+        "bytes": 13595,
+        "hostedPath": "/hosted/spawn-home/",
+        "files": 9
+      },
+      "promote": {
+        "at": "2026-09-12T23:34:35.785Z",
+        "ok": true,
+        "path": "/hosted/spawn-home/",
+        "publicUrl": "https://free-animals-tap.loca.lt/hosted/spawn-home/",
+        "autoStart": true
+      }
+    },
+    "packagePath": ".forge-deploy/spawn-home-1789322494408.zip",
+    "bundlePath": ".forge-deploy/spawn-home-1789322494408.zip",
+    "bundleBytes": 13595,
+    "bundleAt": "2026-09-13T18:01:34.490Z",
+    "hostedPath": "/hosted/spawn-home/",
+    "lastAt": "2026-09-12T23:34:35.787Z",
+    "target": "hosted",
+    "hostedAt": "2026-09-12T23:34:35.776Z",
+    "url": "https://free-animals-tap.loca.lt/hosted/spawn-home/",
+    "production": true,
+    "publicUrl": "https://free-animals-tap.loca.lt/hosted/spawn-home/"
+  },
+  "plugins": {
+    "ai-widget": {
+      "installed": true,
+      "at": "2026-09-24T14:30:06.155Z",
+      "config": {},
+      "written": [
+        "ai.js",
+        "public/ai-widget.js",
+        "server.js",
+        "public/index.html"
+      ]
+    }
+  }
+}

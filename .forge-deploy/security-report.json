@@ -1,0 +1,215 @@
+{
+  "at": "2026-09-12T23:34:35.463Z",
+  "slug": "spawn-home",
+  "summary": {
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "info": 17,
+    "total": 17,
+    "blocking": 0
+  },
+  "categories": {
+    "secrets": 1,
+    "headers": 1,
+    "cookies": 1,
+    "rate-limit": 1,
+    "cors": 1,
+    "xss": 2,
+    "path-traversal": 1,
+    "fs-write": 1,
+    "proxy": 1,
+    "deps": 3,
+    "privacy": 2,
+    "static": 2
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "category": "secrets",
+      "id": "env-absent",
+      "title": "No .env file present",
+      "file": ".env",
+      "pass": true,
+      "suggestion": "Use vault / .env for runtime secrets when needed"
+    },
+    {
+      "severity": "info",
+      "category": "headers",
+      "id": "security-headers",
+      "title": "Security headers (nosniff / frame / referrer)",
+      "file": "server.js",
+      "pass": true,
+      "fixId": null,
+      "suggestion": "Present (CSP + Permissions-Policy too)"
+    },
+    {
+      "severity": "info",
+      "category": "cookies",
+      "id": "cookie-flags",
+      "title": "No cookie/session usage detected",
+      "file": "server.js",
+      "pass": true,
+      "suggestion": "N/A"
+    },
+    {
+      "severity": "info",
+      "category": "rate-limit",
+      "id": "auth-rate-limit",
+      "title": "No auth/payment route patterns detected",
+      "file": "server.js",
+      "pass": true,
+      "suggestion": "N/A"
+    },
+    {
+      "severity": "info",
+      "category": "cors",
+      "id": "cors-wildcard",
+      "title": "No wildcard CORS detected",
+      "file": "server.js",
+      "pass": true,
+      "suggestion": "OK"
+    },
+    {
+      "severity": "info",
+      "category": "xss",
+      "id": "eval-usage",
+      "title": "eval / new Function usage",
+      "file": "server.js",
+      "pass": true,
+      "fixId": null,
+      "suggestion": "No eval/new Function in server entrypoints"
+    },
+    {
+      "severity": "info",
+      "category": "xss",
+      "id": "xss-req-body",
+      "title": "Request data reflected unsafely (innerHTML/send)",
+      "file": "server.js",
+      "pass": true,
+      "fixId": null,
+      "suggestion": "No obvious req→HTML reflection in server entrypoints"
+    },
+    {
+      "severity": "info",
+      "category": "path-traversal",
+      "id": "path-join-req",
+      "title": "No unsafe path.join(req…) heuristic hit",
+      "file": "server.js",
+      "pass": true,
+      "suggestion": "OK"
+    },
+    {
+      "severity": "info",
+      "category": "fs-write",
+      "id": "fs-write-user",
+      "title": "Filesystem write from request input",
+      "file": "server.js",
+      "pass": true,
+      "fixId": null,
+      "suggestion": "No direct fs write from req.* detected"
+    },
+    {
+      "severity": "info",
+      "category": "proxy",
+      "id": "trust-proxy",
+      "title": "trust proxy not set (note for tunnels)",
+      "file": "server.js",
+      "pass": true,
+      "suggestion": "When behind a tunnel or reverse proxy, set app.set('trust proxy', 1) so secure cookies / rate limits see real client IPs"
+    },
+    {
+      "severity": "info",
+      "category": "deps",
+      "id": "deps-listed",
+      "title": "Dependencies: express",
+      "file": "package.json",
+      "pass": true,
+      "suggestion": "Review packages before production"
+    },
+    {
+      "severity": "info",
+      "category": "deps",
+      "id": "risky-install-script",
+      "title": "No curl|bash install scripts in package.json",
+      "file": "package.json",
+      "pass": true,
+      "suggestion": "OK"
+    },
+    {
+      "severity": "info",
+      "category": "deps",
+      "id": "npm-audit",
+      "title": "npm audit skipped (spawn npm ENOENT)",
+      "file": "package.json",
+      "pass": true,
+      "suggestion": "Soft-fail — install npm or run audit locally when available"
+    },
+    {
+      "severity": "info",
+      "category": "privacy",
+      "id": "privacy-page",
+      "title": "Privacy page for lead/email collection",
+      "file": "public/privacy.html",
+      "pass": true,
+      "fixId": null,
+      "suggestion": "Privacy page present"
+    },
+    {
+      "severity": "info",
+      "category": "privacy",
+      "id": "form-privacy-link",
+      "title": "Lead forms privacy link check",
+      "file": "public/",
+      "pass": true,
+      "suggestion": "Privacy page present"
+    },
+    {
+      "severity": "info",
+      "category": "static",
+      "id": "secret-in-public",
+      "title": "No secret patterns in public/ assets",
+      "file": "public/",
+      "pass": true,
+      "suggestion": "OK"
+    },
+    {
+      "severity": "info",
+      "category": "static",
+      "id": "sensitive-filename-public",
+      "title": "No sensitive filenames in public/",
+      "file": "public/",
+      "pass": true,
+      "suggestion": "OK"
+    }
+  ],
+  "scannedFiles": 9,
+  "fixes": {
+    "ok": true,
+    "applied": [
+      {
+        "ok": true,
+        "fixId": "add-security-headers",
+        "written": [
+          "server.js"
+        ],
+        "message": "Added security headers (nosniff, frame, referrer, Permissions-Policy, CSP)"
+      },
+      {
+        "ok": true,
+        "fixId": "add-privacy-page",
+        "written": [
+          "public/privacy.html"
+        ],
+        "message": "Added privacy page"
+      }
+    ],
+    "skipped": [],
+    "fixIds": [
+      "add-security-headers",
+      "add-privacy-page"
+    ]
+  },
+  "buildNote": "Build OK · proceeding with security scan",
+  "forced": true
+}

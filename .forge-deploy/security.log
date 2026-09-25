@@ -1,0 +1,8 @@
+[2026-09-12T23:34:35.464Z] Security started for spawn-home
+[2026-09-12T23:34:35.464Z] Build OK · proceeding with security scan
+[2026-09-12T23:34:35.464Z] Scan complete · files=8 · high=0 medium=2 low=0 info=15
+[2026-09-12T23:34:35.464Z] Auto-fix · Added security headers (nosniff, frame, referrer, Permissions-Policy, CSP)
+[2026-09-12T23:34:35.464Z] Auto-fix · Added privacy page
+[2026-09-12T23:34:35.464Z] Re-scan after fixes · high=0 medium=0
+[2026-09-12T23:34:35.464Z] Report · .forge-deploy/security-report.json
+[2026-09-12T23:34:35.464Z] Findings summary · high=0 medium=0 low=0 info=17
