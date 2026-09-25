@@ -130,7 +130,35 @@ app.use(function (_req, res, next) {
   next();
 });
 
-app.use(express.static(path.join(__dirname, "public")));
+const PUBLIC_DIR = path.join(__dirname, "public");
+
+/* Clean marketing URLs: /how → how.html; /how.html → 301 /how */
+const CLEAN_PAGES = ["how", "product", "access", "privacy", "faq"];
+const CLEAN_SET = new Set(CLEAN_PAGES);
+
+/* Trailing slash → canonical (must run before page routes; Express non-strict
+   routing would otherwise treat /how/ as /how and skip a separate slash route). */
+app.use(function (req, res, next) {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const pathOnly = (req.path || "").split("?")[0];
+  const m = pathOnly.match(/^\/(how|product|access|privacy|faq)\/$/);
+  if (m && CLEAN_SET.has(m[1])) {
+    return res.redirect(301, "/" + m[1]);
+  }
+  next();
+});
+
+CLEAN_PAGES.forEach(function (slug) {
+  const file = path.join(PUBLIC_DIR, slug + ".html");
+  app.get("/" + slug, function (_req, res) {
+    res.sendFile(file);
+  });
+  app.get("/" + slug + ".html", function (_req, res) {
+    res.redirect(301, "/" + slug);
+  });
+});
+
+app.use(express.static(PUBLIC_DIR));
 ai.mount(app);
 
 app.get("/api/health", (_req, res) =>

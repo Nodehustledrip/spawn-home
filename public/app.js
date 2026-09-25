@@ -35,7 +35,7 @@
 
   function openPalette() {
     if (!palette) {
-      window.location.href = "/access.html";
+      window.location.href = "/access";
       return;
     }
     palette.removeAttribute("hidden");
@@ -66,7 +66,7 @@
         if (palette.hasAttribute("hidden")) openPalette();
         else closePalette();
       } else {
-        window.location.href = "/access.html";
+        window.location.href = "/access";
       }
     }
     if (e.key === "Escape") {
@@ -337,7 +337,7 @@
     }
   }
 
-  /* Early access form (palette and /access.html) */
+  /* Early access form (palette and /access) */
   var form = document.querySelector("[data-access-form]");
   var note = document.querySelector("[data-form-note]");
   var okIcon =
