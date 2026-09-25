@@ -72,6 +72,15 @@
     var goLiveBtn = ide.querySelector("[data-go-live]");
     var liveHint = ide.querySelector("[data-live-hint]");
 
+    /* Phone: open on Build — one compelling panel, not explorer dump */
+    if (window.matchMedia("(max-width: 720px)").matches) {
+      var buildTab = ide.querySelector('[data-surface="build"]');
+      if (buildTab) {
+        /* defer to showSurface once defined — flag for later */
+        ide.setAttribute("data-prefer-build", "");
+      }
+    }
+
     var PROMPT = "Add a pricing table with three tiers and a monthly toggle.";
     var REPLY = "Updated Pricing.tsx — Free, Pro, Team with billingInterval toggle. Preview refreshed.";
     var typingTimer = null;
@@ -273,8 +282,11 @@
       });
     }
 
-    /* Auto-demo when IDE enters view */
-    if ("IntersectionObserver" in window && !reduceMotion) {
+    /* Phone: land on Build chat immediately (one panel, not explorer dump) */
+    if (ide.hasAttribute("data-prefer-build")) {
+      playBuild();
+    } else if ("IntersectionObserver" in window && !reduceMotion) {
+      /* Desktop: auto-demo when IDE enters view */
       var demoOnce = false;
       var io = new IntersectionObserver(
         function (entries) {
