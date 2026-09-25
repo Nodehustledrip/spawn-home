@@ -384,8 +384,22 @@
       var btn = form.querySelector("[data-submit]");
       var label = form.querySelector("[data-submit-label]");
       var prevLabel = label ? label.textContent : "";
-      if (btn) btn.disabled = true;
+
+      function setLoading(on) {
+        if (btn) {
+          btn.disabled = on;
+          btn.classList.toggle("is-loading", on);
+          btn.setAttribute("aria-busy", on ? "true" : "false");
+        }
+        if (input) input.disabled = on;
+      }
+
+      setLoading(true);
       if (label) label.textContent = "Joining…";
+      if (note) {
+        note.className = "form-note";
+        note.innerHTML = "";
+      }
 
       var honeypot = form.querySelector('[name="company"]');
       var payload = {
@@ -414,7 +428,7 @@
                 ? "Too many requests. Try again shortly."
                 : "Something went wrong. Try again.");
             showNote("error", msg, errIcon);
-            if (btn) btn.disabled = false;
+            setLoading(false);
             if (label) label.textContent = prevLabel;
             return;
           }
@@ -438,18 +452,24 @@
 
           form.reset();
           var successMsg = result.data && result.data.duplicate
-            ? "You're already on the list. We'll be in touch."
-            : "You're on the list. We'll be in touch.";
+            ? "You're already on the list. We'll email when it's your turn."
+            : "You're on the list. We'll email when it's your turn.";
           showNote("success", successMsg, okIcon);
-          if (label) label.textContent = "Requested";
+          if (label) label.textContent = "You're in";
+          setLoading(false);
+          if (btn) btn.disabled = true;
           setTimeout(function () {
             if (label) label.textContent = prevLabel;
-            if (btn) btn.disabled = false;
-          }, 2800);
+            if (btn) {
+              btn.disabled = false;
+              btn.classList.remove("is-loading");
+              btn.setAttribute("aria-busy", "false");
+            }
+          }, 3200);
         })
         .catch(function () {
           showNote("error", "Network error. Check your connection and try again.", errIcon);
-          if (btn) btn.disabled = false;
+          setLoading(false);
           if (label) label.textContent = prevLabel;
         });
     });

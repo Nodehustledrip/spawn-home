@@ -1461,41 +1461,94 @@ a.btn-solid:hover { color: var(--accent-ink); }
   color: var(--muted);
 }
 
-/* ——— Access page ——— */
+/* ——— Access page (conversion) ——— */
 .page-access {
   position: relative;
   z-index: 1;
-  max-width: 480px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: clamp(2rem, 6vw, 4rem) 1.15rem 3.5rem;
+  padding: clamp(1.75rem, 5vw, 3.25rem) 1.15rem 3.5rem;
 }
-.access-card h1 {
-  margin: 0 0 0.75rem;
-  font-size: clamp(1.65rem, 4vw, 2.1rem);
+.access-hero {
+  margin-bottom: 1.5rem;
+}
+.access-hero h1 {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.75rem, 5vw, 2.35rem);
   font-weight: 650;
-  letter-spacing: -0.04em;
-  line-height: 1.15;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
 }
-.access-card .lead { margin-bottom: 1.35rem; }
+.page-access .lead,
+.access-hero .lead {
+  margin: 0 0 1.15rem;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 36rem;
+}
+.access-proof {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.35rem;
+}
+.access-proof li {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+.access-proof li:first-child {
+  color: var(--accent);
+  border-color: rgba(212, 165, 116, 0.35);
+  background: var(--accent-dim);
+}
+
+.access-card {
+  padding: 1.25rem 1.2rem 1.15rem;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-elev);
+  box-shadow: var(--inset), 0 20px 40px -24px rgba(0, 0, 0, 0.7);
+  margin-bottom: 2rem;
+}
+.access-card-title {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
 .access-form {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.75rem;
+  position: relative;
 }
-@media (min-width: 420px) {
-  .access-form {
-    flex-direction: row;
-    align-items: stretch;
-  }
-  .access-form input { flex: 1; }
+.access-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
-.access-form input {
+.access-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: -0.01em;
+}
+.access-form input[type="email"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  padding: 0.75rem 0.95rem;
+  padding: 0.8rem 0.95rem;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text);
   background: #0e0e10;
   border: 1px solid var(--line-strong);
@@ -1503,12 +1556,152 @@ a.btn-solid:hover { color: var(--accent-ink); }
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.access-form input::placeholder { color: var(--dim); }
-.access-form input:focus {
+.access-form input[type="email"]::placeholder { color: var(--dim); }
+.access-form input[type="email"]:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
-.access-form input.is-invalid { border-color: var(--danger); }
+.access-form input[type="email"].is-invalid { border-color: var(--danger); }
+.access-form .btn-solid {
+  min-height: 2.75rem;
+  font-size: 0.92rem;
+}
+.access-form .btn-solid.is-loading {
+  opacity: 0.7;
+  cursor: wait;
+}
+.page-access .form-note {
+  margin-top: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: 1.35rem;
+}
+.page-access .form-note.is-success,
+.page-access .form-note.is-error {
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  opacity: 1;
+}
+.page-access .form-note.is-success {
+  background: var(--ok-dim);
+  color: var(--ok);
+}
+.page-access .form-note.is-error {
+  background: rgba(224, 122, 106, 0.12);
+  color: var(--danger);
+}
+.access-trust {
+  margin: 0.9rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--dim);
+}
+.access-trust a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.access-trust a:hover { color: var(--accent); }
+
+.access-section-title {
+  margin: 0 0 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.access-perk-grid {
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+@media (min-width: 560px) {
+  .access-perk-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+.access-perk-grid li {
+  padding: 0.95rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.015);
+}
+.access-perk-grid strong {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
+}
+.access-perk-grid span {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.access-explore {
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--line);
+}
+.access-explore-label {
+  margin: 1.35rem 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--dim);
+}
+.access-explore-links {
+  display: grid;
+  gap: 0.65rem;
+}
+@media (min-width: 480px) {
+  .access-explore-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.access-explore-card {
+  display: block;
+  padding: 0.95rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.015);
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+  color: inherit;
+  text-decoration: none;
+}
+.access-explore-card:hover {
+  border-color: rgba(212, 165, 116, 0.4);
+  background: rgba(212, 165, 116, 0.05);
+  color: inherit;
+}
+.access-explore-card strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+}
+.access-explore-card span {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.access-alt {
+  margin: 1.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+.access-alt a { color: var(--muted); }
+.access-alt a:hover { color: var(--accent); }
+
+/* Legacy bullets kept for palette/home reuse if present */
 .access-bullets {
   list-style: none;
   margin: 1.5rem 0 0;
@@ -1534,13 +1727,6 @@ a.btn-solid:hover { color: var(--accent-ink); }
   border-radius: 50%;
   background: var(--accent);
 }
-.access-alt {
-  margin: 1.5rem 0 0;
-  font-size: 0.8rem;
-  color: var(--dim);
-}
-.access-alt a { color: var(--muted); }
-.access-alt a:hover { color: var(--accent); }
 
 /* ——— Footer ——— */
 .foot {

@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Get early access to Spawn — private app builder. Private beta, building in public on spawnapp.org." />
+  <meta name="description" content="Join the Spawn waitlist — private app builder on your machine. Create, preview, chat to change, publish a URL. Private beta, building in public." />
   <meta name="theme-color" content="#0a0a0b" />
+  <meta property="og:title" content="Early access — Spawn" />
+  <meta property="og:description" content="Join the waitlist for Spawn — private app builder. Invite waves, building in public on spawnapp.org." />
+  <meta property="og:url" content="https://spawnapp.org/access" />
+  <meta property="og:type" content="website" />
   <title>Early access — Spawn</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -65,25 +69,37 @@
   </div>
 
   <main id="main" class="page-access">
-    <div class="access-card">
-      <p class="kicker">Early access</p>
-      <h1>Get early access to Spawn</h1>
+    <header class="access-hero">
+      <p class="kicker">Private beta</p>
+      <h1>Ship apps on your machine. Join early access.</h1>
       <p class="lead">
-        Private beta — we're building in public on spawnapp.org.
-        Leave your email and we'll invite you in waves.
+        Spawn is a private app builder — create, preview, chat to change, publish a URL.
+        Leave your email; we invite in waves.
       </p>
+      <ul class="access-proof" aria-label="Waitlist context">
+        <li>Join the waitlist</li>
+        <li>Building in public on spawnapp.org</li>
+        <li>Invite waves — no spam</li>
+      </ul>
+    </header>
+
+    <section class="access-card" aria-labelledby="access-form-heading">
+      <h2 id="access-form-heading" class="access-card-title">Request early access</h2>
       <form class="access-form" data-access-form novalidate>
-        <label class="sr-only" for="email">Work email</label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          autocomplete="email"
-          required
-          placeholder="you@company.com"
-          inputmode="email"
-          data-access-input
-        />
+        <div class="access-field">
+          <label class="access-label" for="email">Work email</label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            autocomplete="email"
+            required
+            placeholder="you@company.com"
+            inputmode="email"
+            data-access-input
+            aria-describedby="access-trust"
+          />
+        </div>
         <input
           type="text"
           name="company"
@@ -92,18 +108,54 @@
           autocomplete="off"
           aria-hidden="true"
         />
-        <button type="submit" class="btn-solid" data-submit>
+        <button type="submit" class="btn-solid btn-wide" data-submit>
           <span data-submit-label>Join waitlist</span>
         </button>
       </form>
       <div class="form-note" data-form-note role="status" aria-live="polite"></div>
-      <ul class="access-bullets">
-        <li>Private app builder on your machine</li>
-        <li>Create → preview → chat to change → publish a URL</li>
-        <li>Domains, secrets, and plugins included</li>
+      <p class="access-trust" id="access-trust">
+        We only use your email for invite updates.
+        <a href="/privacy">Privacy</a>
+      </p>
+    </section>
+
+    <section class="access-perks" aria-labelledby="access-perks-heading">
+      <h2 id="access-perks-heading" class="access-section-title">What early access gets you</h2>
+      <ul class="access-perk-grid">
+        <li>
+          <strong>Private builder</strong>
+          <span>Apps stay on your machine until you choose to publish.</span>
+        </li>
+        <li>
+          <strong>Create → change → ship</strong>
+          <span>Describe an app, chat to edit, preview live, Go Live with a URL.</span>
+        </li>
+        <li>
+          <strong>Domains, secrets, plugins</strong>
+          <span>Production pieces in one place — not a throwaway prototype toy.</span>
+        </li>
       </ul>
-      <p class="access-alt"><a href="/product">See the product</a> · <a href="/how">How it works</a> · <a href="/">Home</a></p>
-    </div>
+    </section>
+
+    <aside class="access-explore" aria-label="Explore before joining">
+      <p class="access-explore-label">Not ready yet?</p>
+      <div class="access-explore-links">
+        <a class="access-explore-card" href="/tour">
+          <strong>Tour</strong>
+          <span>Build → Run → Ship in frames</span>
+        </a>
+        <a class="access-explore-card" href="/showcase">
+          <strong>Showcase</strong>
+          <span>Example apps you can ship</span>
+        </a>
+      </div>
+      <p class="access-alt">
+        <a href="/product">Product</a>
+        · <a href="/how">How it works</a>
+        · <a href="/faq">FAQ</a>
+        · <a href="/">Home</a>
+      </p>
+    </aside>
   </main>
 
   <footer class="foot">
