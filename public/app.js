@@ -4,11 +4,13 @@
   var yearEl = document.querySelector("[data-year]");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
-  /* Sticky nav elevation on scroll */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Header border on scroll */
   var nav = document.querySelector("[data-nav]");
   if (nav) {
     var onScroll = function () {
-      nav.classList.toggle("is-scrolled", window.scrollY > 8);
+      nav.classList.toggle("is-scrolled", window.scrollY > 12);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -40,29 +42,234 @@
     });
   }
 
-  /* Scroll reveal */
-  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var reveals = document.querySelectorAll(".reveal");
-  if (reduceMotion) {
-    reveals.forEach(function (el) { el.classList.add("is-visible"); });
-  } else if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            io.unobserve(entry.target);
+  /* ——— Product stage ——— */
+  var stage = document.querySelector("[data-stage]");
+  if (stage) {
+    var tabs = stage.querySelectorAll("[data-tab]");
+    var panels = stage.querySelectorAll("[data-panel]");
+    var railItems = stage.querySelectorAll("[data-rail]");
+    var statusDot = stage.querySelector("[data-status-dot]");
+    var statusLabel = stage.querySelector("[data-status-label]");
+    var runPill = stage.querySelector("[data-run-pill]");
+    var typedEl = stage.querySelector("[data-typed]");
+    var caretEl = stage.querySelector("[data-caret]");
+    var replyEl = stage.querySelector("[data-reply]");
+    var replyText = stage.querySelector("[data-reply-text]");
+    var liveUrl = stage.querySelector("[data-live-url]");
+    var goLiveBtn = stage.querySelector("[data-go-live]");
+    var liveNote = stage.querySelector("[data-live-note]");
+
+    var PROMPT = "Add a pricing table with three tiers and a monthly toggle.";
+    var REPLY = "Added PricingSection with Free, Pro, and Team. Toggle wired to billingInterval.";
+    var typingTimer = null;
+    var buildPlayed = false;
+
+    function setStatus(kind, label) {
+      if (statusDot) {
+        statusDot.classList.remove("is-live", "is-busy");
+        if (kind) statusDot.classList.add(kind);
+      }
+      if (statusLabel) statusLabel.textContent = label;
+    }
+
+    function showPanel(name) {
+      panels.forEach(function (p) {
+        var match = p.getAttribute("data-panel") === name;
+        p.classList.toggle("is-active", match);
+        if (match) p.removeAttribute("hidden");
+        else p.setAttribute("hidden", "");
+      });
+      tabs.forEach(function (t) {
+        var on = t.getAttribute("data-tab") === name;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      railItems.forEach(function (r) {
+        var key = r.getAttribute("data-rail");
+        var on =
+          (name === "home" && (key === "create" || key === "run")) ||
+          (name === "build" && key === "build") ||
+          (name === "live" && key === "live");
+        if (name === "home") {
+          r.classList.toggle("is-active", key === "create");
+        } else {
+          r.classList.toggle("is-active", key === name || (name === "live" && key === "live"));
+        }
+      });
+    }
+
+    function typePrompt(done) {
+      if (!typedEl) {
+        if (done) done();
+        return;
+      }
+      if (typingTimer) clearInterval(typingTimer);
+      typedEl.textContent = "";
+      if (caretEl) caretEl.classList.remove("is-hidden");
+      if (replyEl) replyEl.setAttribute("hidden", "");
+      if (reduceMotion) {
+        typedEl.textContent = PROMPT;
+        if (caretEl) caretEl.classList.add("is-hidden");
+        if (done) done();
+        return;
+      }
+      var i = 0;
+      setStatus("is-busy", "Building");
+      typingTimer = setInterval(function () {
+        i += 1;
+        typedEl.textContent = PROMPT.slice(0, i);
+        if (i >= PROMPT.length) {
+          clearInterval(typingTimer);
+          typingTimer = null;
+          if (caretEl) caretEl.classList.add("is-hidden");
+          if (done) done();
+        }
+      }, 22);
+    }
+
+    function playBuildSequence() {
+      showPanel("build");
+      setStatus("is-busy", "Building");
+      typePrompt(function () {
+        if (replyEl && replyText) {
+          replyEl.removeAttribute("hidden");
+          replyText.textContent = "";
+          if (reduceMotion) {
+            replyText.textContent = REPLY;
+            setStatus("is-busy", "Synced");
+            return;
           }
-        });
-      },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.1 }
-    );
-    reveals.forEach(function (el) { io.observe(el); });
-  } else {
-    reveals.forEach(function (el) { el.classList.add("is-visible"); });
+          var j = 0;
+          var t2 = setInterval(function () {
+            j += 1;
+            replyText.textContent = REPLY.slice(0, j);
+            if (j >= REPLY.length) {
+              clearInterval(t2);
+              setStatus("", "Synced");
+            }
+          }, 12);
+        } else {
+          setStatus("", "Synced");
+        }
+      });
+      buildPlayed = true;
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var name = tab.getAttribute("data-tab");
+        if (name === "build") {
+          playBuildSequence();
+        } else if (name === "live") {
+          showPanel("live");
+          setStatus(liveUrl && liveUrl.textContent.indexOf("spawn") !== -1 ? "is-live" : "", liveUrl && liveUrl.textContent.indexOf("spawn") !== -1 ? "Live" : "Ready");
+        } else {
+          showPanel("home");
+          setStatus("", "Ready");
+          if (runPill) {
+            runPill.textContent = "Idle";
+            runPill.classList.remove("is-running", "is-live");
+          }
+        }
+      });
+    });
+
+    railItems.forEach(function (item) {
+      item.addEventListener("click", function () {
+        var key = item.getAttribute("data-rail");
+        if (key === "build") {
+          playBuildSequence();
+        } else if (key === "live") {
+          showPanel("live");
+          tabs.forEach(function (t) {
+            var on = t.getAttribute("data-tab") === "live";
+            t.classList.toggle("is-active", on);
+            t.setAttribute("aria-selected", on ? "true" : "false");
+          });
+          setStatus("", "Ready");
+        } else if (key === "run") {
+          showPanel("home");
+          tabs.forEach(function (t) {
+            var on = t.getAttribute("data-tab") === "home";
+            t.classList.toggle("is-active", on);
+            t.setAttribute("aria-selected", on ? "true" : "false");
+          });
+          railItems.forEach(function (r) {
+            r.classList.toggle("is-active", r.getAttribute("data-rail") === "run");
+          });
+          if (runPill) {
+            runPill.textContent = "Running";
+            runPill.classList.add("is-running");
+            runPill.classList.remove("is-live");
+          }
+          setStatus("is-busy", "Running");
+          setTimeout(function () {
+            if (runPill) {
+              runPill.textContent = "Ready";
+              runPill.classList.remove("is-running");
+            }
+            setStatus("", "Ready");
+          }, reduceMotion ? 0 : 1400);
+        } else {
+          showPanel("home");
+          tabs.forEach(function (t) {
+            var on = t.getAttribute("data-tab") === "home";
+            t.classList.toggle("is-active", on);
+            t.setAttribute("aria-selected", on ? "true" : "false");
+          });
+          setStatus("", "Ready");
+        }
+      });
+    });
+
+    if (goLiveBtn) {
+      goLiveBtn.addEventListener("click", function () {
+        goLiveBtn.disabled = true;
+        var label = goLiveBtn.textContent;
+        goLiveBtn.textContent = "Publishing…";
+        setStatus("is-busy", "Publishing");
+        setTimeout(function () {
+          if (liveUrl) liveUrl.textContent = "your-app.spawnapp.org";
+          if (liveNote) {
+            liveNote.textContent = "Live. Public URL is ready.";
+            liveNote.classList.add("is-done");
+          }
+          goLiveBtn.textContent = "Live";
+          setStatus("is-live", "Live");
+          if (runPill) {
+            runPill.textContent = "Live";
+            runPill.classList.add("is-live");
+          }
+          setTimeout(function () {
+            goLiveBtn.disabled = false;
+            goLiveBtn.textContent = label;
+          }, 2200);
+        }, reduceMotion ? 0 : 900);
+      });
+    }
+
+    /* Auto-demo once when stage enters view */
+    if ("IntersectionObserver" in window && !reduceMotion) {
+      var demoOnce = false;
+      var io = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting && !demoOnce) {
+              demoOnce = true;
+              setTimeout(function () {
+                if (!buildPlayed) playBuildSequence();
+              }, 900);
+              io.disconnect();
+            }
+          });
+        },
+        { threshold: 0.45 }
+      );
+      io.observe(stage);
+    }
   }
 
-  /* Early access form — polished success / error */
+  /* Early access form */
   var form = document.querySelector("[data-access-form]");
   var note = document.querySelector("[data-form-note]");
   var successSvg =
@@ -112,7 +319,7 @@
           list.push(value.toLowerCase());
           localStorage.setItem("spawn_early_access", JSON.stringify(list));
         }
-      } catch (_) { /* ignore quota / private mode */ }
+      } catch (_) { /* ignore */ }
 
       form.reset();
       form.classList.add("is-success");

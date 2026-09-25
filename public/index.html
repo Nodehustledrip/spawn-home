@@ -3,174 +3,267 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn — the private app builder. Create, Run, Build with AI, Go Live. Ship to the internet from Spawn." />
-  <meta name="theme-color" content="#07080c" />
-  <title>Spawn — Ship apps that feel expensive</title>
+  <meta name="description" content="Spawn — private app builder. Create, Run, Build with AI chat, Go Live with a public URL, domains, secrets, and plugins." />
+  <meta name="theme-color" content="#060606" />
+  <meta property="og:title" content="Spawn" />
+  <meta property="og:description" content="Private app builder. Create → Run → Build → Go Live — all inside Spawn." />
+  <meta property="og:url" content="https://spawnapp.org" />
+  <meta property="og:type" content="website" />
+  <title>Spawn — Private app builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="aurora" aria-hidden="true"></div>
-  <div class="mesh" aria-hidden="true"></div>
-  <div class="noise" aria-hidden="true"></div>
+  <a class="skip" href="#main">Skip to content</a>
 
-  <header class="nav" data-nav>
-    <a class="wordmark" href="/" aria-label="Spawn home">
-      <span class="mark" aria-hidden="true"></span>
-      Spawn
-    </a>
-    <nav class="nav-links" aria-label="Primary">
-      <a href="#features">Features</a>
-      <a href="#how">How it works</a>
-      <a class="btn btn-sm btn-ghost" href="#access">Get early access</a>
-    </nav>
-    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" data-nav-toggle>
-      <span></span><span></span>
-    </button>
+  <header class="site-header" data-nav>
+    <div class="header-inner">
+      <a class="logo" href="/" aria-label="Spawn home">
+        <svg class="logo-mark" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M5.5 9.5L8 12l4.5-5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Spawn</span>
+      </a>
+      <nav class="primary-nav" aria-label="Primary">
+        <a href="#product">Product</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#access" class="nav-cta">Early access</a>
+      </nav>
+      <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" data-nav-toggle>
+        <span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-panel" data-mobile-nav hidden>
+      <a href="#product">Product</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#access">Early access</a>
+    </div>
   </header>
 
-  <div class="mobile-nav" data-mobile-nav hidden>
-    <a href="#features">Features</a>
-    <a href="#how">How it works</a>
-    <a class="btn btn-primary" href="#access">Get early access</a>
-  </div>
-
-  <main>
+  <main id="main">
     <section class="hero">
-      <p class="eyebrow reveal">Private by default · spawnapp.org</p>
-      <h1 class="reveal reveal-delay-1">Ship apps that<br /><em>feel expensive.</em></h1>
-      <p class="lede reveal reveal-delay-2">
-        Idea to public URL inside Spawn. Create, Run, Build with chat, then Go Live —
-        domains, secrets, and plugins included.
-      </p>
-      <div class="hero-cta reveal reveal-delay-3">
-        <a class="btn btn-primary btn-glow" href="#access">Get early access</a>
-        <a class="btn btn-ghost" href="#features">See how it works</a>
+      <div class="hero-copy">
+        <p class="eyebrow">Private app builder · spawnapp.org</p>
+        <h1>From blank workspace to public URL — without leaving Spawn.</h1>
+        <p class="lede">
+          Create an app, Run it locally, Build with AI chat, then Go Live.
+          Domains, secrets, and plugins stay in the same place.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-accent" href="#access">Request early access</a>
+          <a class="btn btn-quiet" href="#product">See the product</a>
+        </div>
       </div>
 
-      <div class="hero-stage reveal reveal-delay-4" aria-hidden="true">
-        <div class="stage-glow"></div>
-        <div class="stage-chrome">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          <span class="stage-path">spawn · workspace / app</span>
-          <span class="stage-status">synced</span>
-        </div>
-        <div class="stage-body">
-          <div class="stage-sidebar">
-            <span class="pill active">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.2"/></svg>
-              App
-            </span>
-            <span class="pill">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6h8M6 2v8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              Build
-            </span>
-            <span class="pill">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg>
-              Live
-            </span>
+      <div class="hero-stage" id="product" aria-label="Spawn product preview">
+        <div class="stage" data-stage>
+          <div class="stage-titlebar">
+            <div class="traffic" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="stage-tabs" role="tablist" aria-label="Spawn surfaces">
+              <button type="button" role="tab" class="stage-tab is-active" data-tab="home" aria-selected="true">Home</button>
+              <button type="button" role="tab" class="stage-tab" data-tab="build" aria-selected="false">Build</button>
+              <button type="button" role="tab" class="stage-tab" data-tab="live" aria-selected="false">Go Live</button>
+            </div>
+            <div class="stage-meta">
+              <span class="status-dot" data-status-dot></span>
+              <span data-status-label>Ready</span>
+            </div>
           </div>
-          <div class="stage-main">
-            <div class="code-line"><span class="k">const</span> app = <span class="f">spawn</span>.create()</div>
-            <div class="code-line">app.<span class="f">run</span>()</div>
-            <div class="code-line">app.<span class="f">goLive</span>({ domain: <span class="s">"yours"</span> })</div>
-            <div class="code-line code-cursor"><span class="cursor"></span></div>
-            <div class="live-badge"><span class="live-dot"></span> Live · public URL ready</div>
+
+          <div class="stage-body">
+            <aside class="stage-rail" aria-hidden="true">
+              <button type="button" class="rail-item is-active" data-rail="create">
+                <span class="rail-ico">+</span>
+                <span>Create</span>
+              </button>
+              <button type="button" class="rail-item" data-rail="run">
+                <span class="rail-ico">▷</span>
+                <span>Run</span>
+              </button>
+              <button type="button" class="rail-item" data-rail="build">
+                <span class="rail-ico">◈</span>
+                <span>Build</span>
+              </button>
+              <button type="button" class="rail-item" data-rail="live">
+                <span class="rail-ico">●</span>
+                <span>Go Live</span>
+              </button>
+            </aside>
+
+            <div class="stage-panels">
+              <!-- Home / Create -->
+              <div class="panel is-active" data-panel="home" role="tabpanel">
+                <div class="panel-head">
+                  <h2>Workspace</h2>
+                  <span class="chip">Private</span>
+                </div>
+                <div class="file-tree">
+                  <div class="file-row is-folder">app/</div>
+                  <div class="file-row indent">routes/</div>
+                  <div class="file-row indent is-selected">page.tsx</div>
+                  <div class="file-row indent">api/</div>
+                  <div class="file-row">spawn.json</div>
+                  <div class="file-row">.env.local</div>
+                </div>
+                <div class="preview-card">
+                  <div class="preview-bar">
+                    <span class="url-pill">localhost:5173</span>
+                    <span class="run-pill" data-run-pill>Idle</span>
+                  </div>
+                  <div class="preview-canvas">
+                    <div class="fake-ui">
+                      <div class="fake-nav"></div>
+                      <div class="fake-hero-line"></div>
+                      <div class="fake-hero-line short"></div>
+                      <div class="fake-cards">
+                        <span></span><span></span><span></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Build chat -->
+              <div class="panel" data-panel="build" role="tabpanel" hidden>
+                <div class="panel-head">
+                  <h2>Build</h2>
+                  <span class="chip chip-accent">AI chat</span>
+                </div>
+                <div class="chat" data-chat>
+                  <div class="chat-msg assistant">
+                    <span class="who">Spawn</span>
+                    <p>What should we change?</p>
+                  </div>
+                  <div class="chat-msg user" data-user-msg>
+                    <span class="who">You</span>
+                    <p><span data-typed></span><span class="caret" data-caret></span></p>
+                  </div>
+                  <div class="chat-msg assistant is-pending" data-reply hidden>
+                    <span class="who">Spawn</span>
+                    <p data-reply-text></p>
+                  </div>
+                </div>
+                <div class="chat-compose">
+                  <span class="compose-placeholder">Describe a change…</span>
+                  <span class="compose-send">Send</span>
+                </div>
+              </div>
+
+              <!-- Go Live -->
+              <div class="panel" data-panel="live" role="tabpanel" hidden>
+                <div class="panel-head">
+                  <h2>Go Live</h2>
+                  <span class="chip">Production</span>
+                </div>
+                <div class="live-grid">
+                  <div class="live-row">
+                    <span class="live-label">Public URL</span>
+                    <span class="live-value" data-live-url>—</span>
+                  </div>
+                  <div class="live-row">
+                    <span class="live-label">Domain</span>
+                    <span class="live-value">app.yoursite.com</span>
+                  </div>
+                  <div class="live-row">
+                    <span class="live-label">Secrets</span>
+                    <span class="live-value">3 configured</span>
+                  </div>
+                  <div class="live-row">
+                    <span class="live-label">Plugins</span>
+                    <span class="live-value">auth · storage</span>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-accent btn-block" data-go-live>Publish</button>
+                <p class="live-note" data-live-note>Ship when you’re ready. Nothing leaves Spawn until you say so.</p>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="stage-bar">
-          <span>Run</span>
-          <span class="bar-sep">·</span>
-          <span>Build</span>
-          <span class="bar-sep">·</span>
-          <span class="bar-accent">Go Live</span>
-        </div>
+        <p class="stage-caption">Interactive preview — click Home, Build, or Go Live.</p>
       </div>
     </section>
 
-    <section class="trust" aria-label="Trust">
-      <p class="trust-label">Built for founders who ship</p>
-      <ul class="trust-list">
+    <section class="strip" aria-label="Capabilities">
+      <ul>
         <li>Private by default</li>
-        <li>Run on your machine</li>
-        <li>Public URL in one click</li>
-        <li>Secrets &amp; domains</li>
+        <li>Local Run</li>
+        <li>Build chat</li>
+        <li>Public URL</li>
+        <li>Custom domains</li>
+        <li>Secrets &amp; plugins</li>
       </ul>
     </section>
 
-    <section id="features" class="section features">
-      <div class="section-head reveal">
-        <p class="section-kicker">Features</p>
-        <h2>Everything between idea and internet.</h2>
-        <p>Four surfaces. One continuous flow.</p>
+    <section class="section workflow" id="workflow">
+      <div class="section-intro">
+        <p class="eyebrow">Workflow</p>
+        <h2>Four surfaces. One continuous loop.</h2>
       </div>
-      <div class="feature-grid">
-        <article class="feature-card reveal">
-          <div class="feature-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2.5l1.6 4.4 4.6.2-3.6 2.9 1.3 4.5L10 11.8 6.1 14.5l1.3-4.5-3.6-2.9 4.6-.2L10 2.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-          </div>
-          <h3>Build with AI</h3>
-          <p>Chat that edits your app. Describe the change; Spawn writes the files.</p>
+      <div class="bento">
+        <article class="bento-card bento-wide">
+          <span class="bento-num">01</span>
+          <h3>Create</h3>
+          <p>Spin up a private app. Files, routes, and config live in your workspace — not a disposable sandbox.</p>
         </article>
-        <article class="feature-card reveal reveal-delay-1">
-          <div class="feature-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6.5 4.5l9 5.5-9 5.5V4.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-          </div>
-          <h3>Run locally</h3>
-          <p>Hit Run. Instant feedback on your machine before anything goes public.</p>
+        <article class="bento-card">
+          <span class="bento-num">02</span>
+          <h3>Run</h3>
+          <p>Instant local preview. See the product before anything is public.</p>
         </article>
-        <article class="feature-card reveal reveal-delay-2">
-          <div class="feature-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6.5" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10" r="2.2" fill="currentColor"/></svg>
-          </div>
+        <article class="bento-card">
+          <span class="bento-num">03</span>
+          <h3>Build</h3>
+          <p>Chat that edits the app. Describe the change; Spawn writes the files.</p>
+        </article>
+        <article class="bento-card bento-accent">
+          <span class="bento-num">04</span>
           <h3>Go Live</h3>
-          <p>Ship a public URL. Domains, secrets, plugins — production without ceremony.</p>
-        </article>
-        <article class="feature-card reveal reveal-delay-3">
-          <div class="feature-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15.5 10a5.5 5.5 0 11-1.3-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M15.5 4v3.5H12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <h3>Evolve continuously</h3>
-          <p>Keep building after launch. Same workspace, same chat, same Run.</p>
+          <p>Publish a URL. Attach a domain. Wire secrets and plugins — still inside Spawn.</p>
         </article>
       </div>
     </section>
 
-    <section id="how" class="section how">
-      <div class="section-head reveal">
-        <p class="section-kicker">Workflow</p>
-        <h2>How it works</h2>
-        <p>Three steps. Then you’re live.</p>
+    <section class="section detail">
+      <div class="detail-grid">
+        <div class="detail-copy">
+          <p class="eyebrow">Inside Spawn</p>
+          <h2>Everything between idea and internet stays put.</h2>
+          <p>
+            No hopscotch across repos, host dashboards, and secret managers.
+            Create, iterate, and ship from one private builder.
+          </p>
+        </div>
+        <dl class="detail-list">
+          <div>
+            <dt>Public URL</dt>
+            <dd>One click from Go Live to a shareable address.</dd>
+          </div>
+          <div>
+            <dt>Domains</dt>
+            <dd>Point your name at the app without leaving the workspace.</dd>
+          </div>
+          <div>
+            <dt>Secrets</dt>
+            <dd>Env values stay scoped to the app — not pasted into chat logs.</dd>
+          </div>
+          <div>
+            <dt>Plugins</dt>
+            <dd>Auth, storage, and more as first-class pieces of the same surface.</dd>
+          </div>
+        </dl>
       </div>
-      <ol class="steps">
-        <li class="step reveal">
-          <span class="step-num">01</span>
-          <div>
-            <h3>Create</h3>
-            <p>Spin up a private app. Edit files, structure routes, wire data.</p>
-          </div>
-        </li>
-        <li class="step reveal reveal-delay-1">
-          <span class="step-num">02</span>
-          <div>
-            <h3>Build &amp; Run</h3>
-            <p>Shape the product with Build chat. Run locally until it feels right.</p>
-          </div>
-        </li>
-        <li class="step reveal reveal-delay-2">
-          <span class="step-num">03</span>
-          <div>
-            <h3>Go Live</h3>
-            <p>Publish a URL. Attach a domain. Manage secrets. Keep shipping.</p>
-          </div>
-        </li>
-      </ol>
     </section>
 
-    <section id="access" class="section cta-band">
-      <div class="cta-card reveal">
-        <p class="section-kicker">Early access</p>
-        <h2>Get in early.</h2>
-        <p>Spawn is private by design. Leave your email — we’ll open the door when it’s your turn.</p>
+    <section class="section access" id="access">
+      <div class="access-inner">
+        <p class="eyebrow">Early access</p>
+        <h2>Request a seat.</h2>
+        <p class="access-lede">Spawn opens in waves. Leave an email — we’ll invite you when it’s your turn.</p>
         <form class="access-form" data-access-form novalidate>
           <label class="sr-only" for="email">Email</label>
           <input
@@ -182,7 +275,7 @@
             placeholder="you@company.com"
             inputmode="email"
           />
-          <button class="btn btn-primary btn-glow" type="submit" data-submit>
+          <button class="btn btn-accent" type="submit" data-submit>
             <span data-submit-label>Request access</span>
           </button>
         </form>
@@ -191,11 +284,14 @@
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="site-footer">
     <div class="footer-inner">
-      <a class="wordmark wordmark-sm" href="/">
-        <span class="mark" aria-hidden="true"></span>
-        Spawn
+      <a class="logo logo-sm" href="/">
+        <svg class="logo-mark" width="14" height="14" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M5.5 9.5L8 12l4.5-5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Spawn</span>
       </a>
       <p class="footer-meta">© <span data-year></span> Spawn · spawnapp.org</p>
       <a href="/privacy.html">Privacy</a>
@@ -203,6 +299,5 @@
   </footer>
 
   <script src="/app.js"></script>
-  <script src="/ai-widget.js"></script>
 </body>
 </html>
