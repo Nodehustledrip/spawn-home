@@ -9,6 +9,12 @@ const PORT = process.env.PORT || 3000;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const WAITLIST_FILE = path.join(DATA_DIR, "waitlist.json");
 
+/* Same project write key as public/analytics.js — durable dual-write for ephemeral disk */
+const POSTHOG_KEY =
+  process.env.POSTHOG_KEY || "phc_nqATxCRsk9kKbZCNF3LHqdGzQYK97WzTn8n7Ntmi8QzJ";
+const POSTHOG_HOST = process.env.POSTHOG_HOST || "https://us.i.posthog.com";
+const WAITLIST_ADMIN_TOKEN = process.env.WAITLIST_ADMIN_TOKEN || "";
+
 function ensureDataDir() {
   try {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -41,6 +47,48 @@ function normalizeEmail(email) {
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
+}
+
+/** Fire-and-forget durable copy via PostHog Capture API (survives redeploys). */
+function dualWritePostHog(entry) {
+  if (!POSTHOG_KEY || !entry || !entry.email) return;
+  const body = JSON.stringify({
+    api_key: POSTHOG_KEY,
+    event: "waitlist_signup",
+    distinct_id: entry.email,
+    properties: {
+      email: entry.email,
+      source: entry.source || "web",
+      createdAt: entry.createdAt || new Date().toISOString(),
+      $lib: "spawn-home-server",
+    },
+  });
+  fetch(POSTHOG_HOST.replace(/\/$/, "") + "/capture/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body,
+  })
+    .then(function (r) {
+      if (!r.ok) {
+        console.error("[waitlist] posthog capture status", r.status);
+      } else {
+        console.log("[waitlist] posthog dual-write ok", entry.email);
+      }
+    })
+    .catch(function (err) {
+      console.error("[waitlist] posthog dual-write failed", err && err.message);
+    });
+}
+
+function checkWaitlistAdmin(req) {
+  if (!WAITLIST_ADMIN_TOKEN) return false;
+  const header = req.headers["x-waitlist-token"];
+  const query = req.query && req.query.token;
+  const provided =
+    (typeof header === "string" && header) ||
+    (typeof query === "string" && query) ||
+    "";
+  return provided.length > 0 && provided === WAITLIST_ADMIN_TOKEN;
 }
 
 /** Simple in-memory rate limit: max N posts per IP per window. */
@@ -89,6 +137,25 @@ app.get("/api/health", (_req, res) =>
   res.json({ ok: true, app: "Spawn Home", waitlist: true })
 );
 
+app.get("/api/waitlist", function (req, res) {
+  if (!checkWaitlistAdmin(req)) {
+    return res.status(401).json({ ok: false, error: "Unauthorized" });
+  }
+  let entries = [];
+  try {
+    entries = readWaitlist();
+  } catch (err) {
+    console.error("[waitlist] export read failed", err && err.message);
+  }
+  return res.json({
+    ok: true,
+    count: entries.length,
+    emails: entries,
+    note:
+      "Local JSON is best-effort cache (ephemeral on free Render). Durable copy is PostHog event waitlist_signup (distinct_id=email).",
+  });
+});
+
 app.post("/api/waitlist", function (req, res) {
   const ip =
     (req.headers["x-forwarded-for"] &&
@@ -127,12 +194,13 @@ app.post("/api/waitlist", function (req, res) {
     return res.json({ ok: true, duplicate: true });
   }
 
-  entries.push({
+  const entry = {
     email: email,
     createdAt: new Date().toISOString(),
     ip: ip,
     source: typeof body.source === "string" ? body.source.slice(0, 64) : "web",
-  });
+  };
+  entries.push(entry);
 
   try {
     writeWaitlist(entries);
@@ -140,6 +208,9 @@ app.post("/api/waitlist", function (req, res) {
     console.error("[waitlist] write failed", err && err.message);
     return res.status(500).json({ ok: false, error: "Could not save. Try again." });
   }
+
+  /* Durable dual-write (non-blocking); local JSON remains fast-path cache */
+  dualWritePostHog(entry);
 
   console.log("[waitlist] new signup", email, "total=", entries.length);
   return res.status(201).json({ ok: true, duplicate: false });
