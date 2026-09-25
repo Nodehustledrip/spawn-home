@@ -2265,3 +2265,123 @@ a.btn-solid:hover { color: var(--accent-ink); }
 @media (min-width: 860px) {
   .nav-link { padding: 0.4rem 0.7rem; }
 }
+
+/* ——— Changelog page ——— */
+.page-changelog {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(1.75rem, 4vw, 3rem) 1.15rem 3.5rem;
+}
+.changelog-hero {
+  margin-bottom: 2.25rem;
+}
+.changelog-hero h1 {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+.changelog-hero .lead {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 36rem;
+}
+
+.changelog-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  margin-bottom: 2.75rem;
+}
+
+.changelog-day {
+  position: relative;
+  padding-left: 1.35rem;
+  border-left: 1px solid var(--line);
+}
+
+.changelog-date {
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-family: var(--mono);
+}
+
+.changelog-date time {
+  position: relative;
+}
+.changelog-date time::before {
+  content: "";
+  position: absolute;
+  left: -1.35rem;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+
+.changelog-entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.changelog-entry {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: var(--inset);
+  padding: 1.05rem 1.15rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.changelog-entry:hover {
+  border-color: rgba(212, 165, 116, 0.22);
+  background: rgba(212, 165, 116, 0.03);
+}
+.changelog-entry h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+.changelog-entry p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.changelog-entry code {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+}
+.changelog-entry a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.changelog-entry a:hover { color: #e0b584; }
+
+.changelog-cta {
+  margin-top: 0.25rem;
+}

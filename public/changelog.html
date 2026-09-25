@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Spawn changelog — what shipped recently on spawnapp.org and the product site." />
+  <meta name="theme-color" content="#0a0a0b" />
+  <meta property="og:title" content="Changelog — Spawn" />
+  <meta property="og:description" content="What shipped recently: clean URLs, FAQ, Product, waitlist, analytics, and the multi-page site." />
+  <meta property="og:url" content="https://spawnapp.org/changelog" />
+  <meta property="og:type" content="website" />
+  <title>Changelog — Spawn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important;
+      white-space: nowrap !important; border: 0 !important;
+    }
+    .skip:focus, .skip:focus-visible {
+      position: fixed !important; width: auto !important; height: auto !important;
+      margin: 0 !important; padding: 0.5rem 0.85rem !important; overflow: visible !important;
+      clip: auto !important; clip-path: none !important; white-space: normal !important;
+      z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
+      background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
+    }
+  </style>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/how">How it works</a>
+      <a class="nav-link" href="/product">Product</a>
+      <a class="nav-link" href="/faq">FAQ</a>
+      <a class="nav-link is-active" href="/changelog" aria-current="page">Changelog</a>
+      <a class="nav-link nav-cta" href="/access">Early access</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/">Home</a>
+    <a href="/how">How it works</a>
+    <a href="/product">Product</a>
+    <a href="/faq">FAQ</a>
+    <a href="/changelog">Changelog</a>
+    <a href="/access">Get early access</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+
+  <main id="main" class="page-changelog">
+    <header class="changelog-hero">
+      <p class="kicker">Changelog</p>
+      <h1>What we shipped</h1>
+      <p class="lead">
+        Recent work on spawnapp.org — product pages, clean URLs, waitlist,
+        and the analytics that keep shipping honest.
+      </p>
+    </header>
+
+    <div class="changelog-timeline">
+      <section class="changelog-day" aria-labelledby="day-2026-09-25">
+        <h2 id="day-2026-09-25" class="changelog-date">
+          <time datetime="2026-09-25">September 25, 2026</time>
+        </h2>
+        <ol class="changelog-entries">
+          <li class="changelog-entry">
+            <h3>Clean marketing URLs</h3>
+            <p>
+              Public paths are now <code>/how</code>, <code>/product</code>,
+              <code>/access</code>, <code>/privacy</code>, and <code>/faq</code>.
+              Old <code>.html</code> links 301 to the clean form.
+            </p>
+          </li>
+          <li class="changelog-entry">
+            <h3>FAQ</h3>
+            <p>
+              Straight answers on what Spawn is, local vs cloud, early access,
+              domains, secrets, and how publishing works —
+              <a href="/faq">read the FAQ</a>.
+            </p>
+          </li>
+          <li class="changelog-entry">
+            <h3>Product page</h3>
+            <p>
+              A clear rundown of Create, Run, Build chat, Go Live, Domains,
+              Secrets, Evolve, and local AI —
+              <a href="/product">see the product</a>.
+            </p>
+          </li>
+          <li class="changelog-entry">
+            <h3>Waitlist API + durable capture</h3>
+            <p>
+              Real signup endpoint with rate limits and honeypot. Signups
+              dual-write to PostHog so the list survives redeploys; export
+              stays token-gated.
+            </p>
+          </li>
+          <li class="changelog-entry">
+            <h3>PostHog + Sentry live</h3>
+            <p>
+              Product analytics and error monitoring wired on the marketing
+              site so we can see what actually happens.
+            </p>
+          </li>
+          <li class="changelog-entry">
+            <h3>Multi-page site</h3>
+            <p>
+              Home, <a href="/how">How it works</a>, Product, and
+              <a href="/access">Early access</a> — one design system, shared
+              nav and footer.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="changelog-day" aria-labelledby="day-2026-09-24">
+        <h2 id="day-2026-09-24" class="changelog-date">
+          <time datetime="2026-09-24">September 24, 2026</time>
+        </h2>
+        <ol class="changelog-entries">
+          <li class="changelog-entry">
+            <h3>Premium landing rewrite</h3>
+            <p>
+              Product-first IDE hero, denser copy, mobile polish — framed
+              preview card, quieter chrome, no brochure filler.
+            </p>
+          </li>
+          <li class="changelog-entry">
+            <h3>Site live on spawnapp.org</h3>
+            <p>
+              Marketing home deployed and serving. Building in public from day one.
+            </p>
+          </li>
+        </ol>
+      </section>
+    </div>
+
+    <section class="changelog-cta how-cta">
+      <h2>Want in?</h2>
+      <p>Private beta is invite-only. Join the waitlist and we’ll email when it’s your turn.</p>
+      <div class="product-hero-links product-cta-links">
+        <a class="btn-solid" href="/access">Get early access</a>
+        <a class="link-quiet" href="/product">See the product</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/how">How it works</a>
+      <a href="/product">Product</a>
+      <a href="/faq">FAQ</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/access">Early access</a>
+      <a href="/privacy">Privacy</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
