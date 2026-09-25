@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="How Spawn works: create an app, run a preview, change it in chat, publish a public URL — all on your machine." />
+  <meta name="theme-color" content="#0a0a0b" />
+  <title>How it works — Spawn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important;
+      white-space: nowrap !important; border: 0 !important;
+    }
+    .skip:focus, .skip:focus-visible {
+      position: fixed !important; width: auto !important; height: auto !important;
+      margin: 0 !important; padding: 0.5rem 0.85rem !important; overflow: visible !important;
+      clip: auto !important; clip-path: none !important; white-space: normal !important;
+      z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
+      background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
+    }
+  </style>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link is-active" href="/how.html" aria-current="page">How it works</a>
+      <a class="nav-link nav-cta" href="/access.html">Early access</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/">Home</a>
+    <a href="/how.html">How it works</a>
+    <a href="/access.html">Get early access</a>
+    <a href="/privacy.html">Privacy</a>
+  </div>
+
+  <main id="main" class="page-how">
+    <header class="how-hero">
+      <p class="kicker">How it works</p>
+      <h1>From idea to a live URL — without leaving Spawn.</h1>
+      <p class="lead">
+        Spawn is a private app builder that runs on your machine.
+        You create a real app, see it run, change it by chatting, then publish a public link.
+      </p>
+    </header>
+
+    <ol class="how-steps">
+      <li class="how-card">
+        <div class="how-visual" aria-hidden="true">
+          <div class="hv-frame">
+            <div class="hv-bar"><i></i><i></i><i></i><span>Create</span></div>
+            <div class="hv-body hv-create">
+              <div class="hv-line w80"></div>
+              <div class="hv-line w55"></div>
+              <div class="hv-chip">Describe your app…</div>
+            </div>
+          </div>
+        </div>
+        <div class="how-copy">
+          <span class="how-n">1</span>
+          <h2>Create your app</h2>
+          <p>
+            Start from a blank workspace or your own files. Tell Spawn what you’re building —
+            a landing page, a dashboard, a billing flow — and it scaffolds a real project on your machine.
+          </p>
+        </div>
+      </li>
+
+      <li class="how-card how-card-flip">
+        <div class="how-visual" aria-hidden="true">
+          <div class="hv-frame">
+            <div class="hv-bar"><i></i><i></i><i></i><span>localhost:5173</span></div>
+            <div class="hv-body hv-run">
+              <div class="hv-mock-nav"></div>
+              <div class="hv-mock-hero"></div>
+              <div class="hv-mock-tiers"><span></span><span class="on"></span><span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="how-copy">
+          <span class="how-n">2</span>
+          <h2>Run a preview</h2>
+          <p>
+            Hit Run and see your app live in a local preview. No deploy required to try it —
+            you’re looking at the real thing running on your machine.
+          </p>
+        </div>
+      </li>
+
+      <li class="how-card">
+        <div class="how-visual" aria-hidden="true">
+          <div class="hv-frame">
+            <div class="hv-bar"><i></i><i></i><i></i><span>Build chat</span></div>
+            <div class="hv-body hv-build">
+              <div class="hv-bubble you">Add a pricing table with three tiers</div>
+              <div class="hv-bubble bot">Updated Pricing — Free, Pro, Team. Preview refreshed.</div>
+            </div>
+          </div>
+        </div>
+        <div class="how-copy">
+          <span class="how-n">3</span>
+          <h2>Change it in chat</h2>
+          <p>
+            Open Build and ask for a change in plain English. Spawn edits the files,
+            shows you what changed, and refreshes the preview. No need to hunt through code first.
+          </p>
+        </div>
+      </li>
+
+      <li class="how-card how-card-flip">
+        <div class="how-visual" aria-hidden="true">
+          <div class="hv-frame hv-live">
+            <div class="hv-bar"><i></i><i></i><i></i><span>Go Live</span></div>
+            <div class="hv-body">
+              <div class="hv-url-card">
+                <em>Public URL</em>
+                <strong>https://your-app.spawnapp.org</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="how-copy">
+          <span class="how-n">4</span>
+          <h2>Publish a public URL</h2>
+          <p>
+            Go Live puts your app on the internet. Custom domains, secrets, and plugins
+            stay inside Spawn — you don’t leave the builder to ship.
+          </p>
+        </div>
+      </li>
+    </ol>
+
+    <section class="how-what">
+      <h2>What you get</h2>
+      <ul class="what-grid">
+        <li>
+          <strong>A private builder</strong>
+          <span>Runs on your machine — your code and secrets don’t leave until you publish.</span>
+        </li>
+        <li>
+          <strong>A live site or app</strong>
+          <span>A real public URL with HTTPS, not a temporary preview link.</span>
+        </li>
+        <li>
+          <strong>Domains, secrets, plugins</strong>
+          <span>Wire your domain, API keys, and plugins without leaving Spawn.</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="how-cta">
+      <h2>Ready to try it?</h2>
+      <p>Private beta — building in public on spawnapp.org.</p>
+      <a class="btn-solid" href="/access.html">Get early access</a>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/how.html">How it works</a>
+      <a href="/access.html">Early access</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

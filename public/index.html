@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn — private app builder. Create, Run, Build with AI, Go Live." />
+  <meta name="description" content="Spawn is a private app builder on your machine. Build real apps and put them on the internet — create, preview, chat to change, publish a public URL." />
   <meta name="theme-color" content="#0a0a0b" />
-  <meta property="og:title" content="Spawn" />
-  <meta property="og:description" content="Private app builder. Create → Run → Build → Go Live." />
+  <meta property="og:title" content="Spawn — Build an app. Put it on the internet." />
+  <meta property="og:description" content="Private app builder on your machine. Create, preview, chat to change it, then publish a public URL." />
   <meta property="og:url" content="https://spawnapp.org" />
   <meta property="og:type" content="website" />
-  <title>Spawn</title>
+  <title>Spawn — Build an app. Put it on the internet.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -59,85 +59,119 @@
       </svg>
       <span class="mark-word">Spawn</span>
     </a>
-    <div class="topbar-actions">
-      <button type="button" class="ghost-btn" data-open-access>
-        Early access
-        <kbd>⌘K</kbd>
-      </button>
-    </div>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link is-active" href="/" aria-current="page">Home</a>
+      <a class="nav-link" href="/how.html">How it works</a>
+      <a class="nav-link nav-cta" href="/access.html">Early access</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
   </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/">Home</a>
+    <a href="/how.html">How it works</a>
+    <a href="/access.html">Get early access</a>
+    <a href="/privacy.html">Privacy</a>
+  </div>
 
   <main id="main" class="shell">
-    <!-- Product IS the page -->
     <section class="viewport" aria-label="Spawn product">
       <div class="copy-rail">
         <p class="kicker">Private app builder</p>
-        <h1>Create. Run.<br />Build. Go Live.</h1>
+        <h1>Build an app.<br />Put it on the internet.</h1>
         <p class="sub">
-          One workspace from blank files to a public URL —
-          domains, secrets, and plugins included.
+          Create in Spawn, run a preview, change it with Build chat, then Go Live for a public link.
+          Domains, secrets, and plugins stay inside.
         </p>
-        <button type="button" class="btn-solid" data-open-access>Request access</button>
+
+        <ol class="clarity" aria-label="How Spawn works">
+          <li>
+            <span class="clarity-n" aria-hidden="true">1</span>
+            <div>
+              <strong>Create your app</strong>
+              <span>Describe it or start from files on your machine</span>
+            </div>
+          </li>
+          <li>
+            <span class="clarity-n" aria-hidden="true">2</span>
+            <div>
+              <strong>Change it in chat</strong>
+              <span>Ask for a change — Spawn edits the file and refreshes the preview</span>
+            </div>
+          </li>
+          <li>
+            <span class="clarity-n" aria-hidden="true">3</span>
+            <div>
+              <strong>Publish a public URL</strong>
+              <span>Go Live with your domain, secrets, and plugins</span>
+            </div>
+          </li>
+        </ol>
+
+        <a class="btn-solid" href="/access.html">Get early access</a>
+        <p class="access-why">Private beta — building in public on spawnapp.org</p>
       </div>
 
-      <div class="ide" data-ide>
-        <div class="ide-chrome">
-          <div class="traffic" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div class="ide-crumbs" aria-hidden="true">
-            <span>billing-app</span>
-            <span class="sep">/</span>
-            <span class="file">page.tsx</span>
+      <div class="ide-stage">
+        <div class="ide" data-ide>
+          <div class="ide-chrome">
+            <div class="traffic" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="ide-crumbs" aria-hidden="true">
+              <span>billing-app</span>
+              <span class="sep">/</span>
+              <span class="file">page.tsx</span>
+            </div>
+            <div class="ide-tabs" role="tablist" aria-label="Surfaces">
+              <button type="button" role="tab" class="ide-tab" data-surface="home" aria-selected="false" title="Your files">Home</button>
+              <button type="button" role="tab" class="ide-tab" data-surface="build" aria-selected="false" title="Ask for a change">Build</button>
+              <button type="button" role="tab" class="ide-tab is-on" data-surface="live" aria-selected="true" title="Your live link">Go Live</button>
+            </div>
+            <div class="ide-status">
+              <span class="dot is-live" data-dot></span>
+              <span data-status>Live</span>
+            </div>
           </div>
-          <div class="ide-tabs" role="tablist" aria-label="Surfaces">
-            <button type="button" role="tab" class="ide-tab is-on" data-surface="home" aria-selected="true">Home</button>
-            <button type="button" role="tab" class="ide-tab" data-surface="build" aria-selected="false">Build</button>
-            <button type="button" role="tab" class="ide-tab" data-surface="live" aria-selected="false">Go Live</button>
-          </div>
-          <div class="ide-status">
-            <span class="dot" data-dot></span>
-            <span data-status>Ready</span>
-          </div>
-        </div>
 
-        <div class="ide-body">
-          <nav class="ide-rail" aria-label="Loop">
-            <button type="button" class="rail-btn is-on" data-loop="create" title="Create">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 2.5v10M2.5 7.5h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              <span>Create</span>
-            </button>
-            <button type="button" class="rail-btn" data-loop="run" title="Run">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2.8v9.4L12.2 7.5 4.5 2.8z" fill="currentColor"/></svg>
-              <span>Run</span>
-            </button>
-            <button type="button" class="rail-btn" data-loop="build" title="Build">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 4h10M2.5 7.5h7M2.5 11h10" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg>
-              <span>Build</span>
-            </button>
-            <button type="button" class="rail-btn" data-loop="live" title="Go Live">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="4.6" stroke="currentColor" stroke-width="1.35"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg>
-              <span>Go Live</span>
-            </button>
-          </nav>
+          <div class="ide-body">
+            <nav class="ide-rail" aria-label="Loop">
+              <button type="button" class="rail-btn" data-loop="create" title="Create">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 2.5v10M2.5 7.5h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <span>Create</span>
+              </button>
+              <button type="button" class="rail-btn" data-loop="run" title="Run">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M4.5 2.8v9.4L12.2 7.5 4.5 2.8z" fill="currentColor"/></svg>
+                <span>Run</span>
+              </button>
+              <button type="button" class="rail-btn" data-loop="build" title="Build">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M2.5 4h10M2.5 7.5h7M2.5 11h10" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg>
+                <span>Build</span>
+              </button>
+              <button type="button" class="rail-btn is-on" data-loop="live" title="Go Live">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="4.6" stroke="currentColor" stroke-width="1.35"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg>
+                <span>Go Live</span>
+              </button>
+            </nav>
 
-          <div class="ide-main">
-            <!-- HOME: files + editor + preview -->
-            <div class="surface is-on" data-pane="home">
-              <aside class="files">
-                <div class="pane-label">Explorer</div>
-                <ul class="tree">
-                  <li class="folder open"><span class="twisty">▾</span> app</li>
-                  <li class="folder open nest"><span class="twisty">▾</span> (marketing)</li>
-                  <li class="file nest2 is-active"><span class="badge">tsx</span> page.tsx</li>
-                  <li class="file nest2"><span class="badge">tsx</span> layout.tsx</li>
-                  <li class="file nest2"><span class="badge">tsx</span> Pricing.tsx</li>
-                  <li class="folder nest"><span class="twisty">▸</span> api</li>
-                  <li class="file"><span class="badge">json</span> spawn.json</li>
-                  <li class="file"><span class="badge">env</span> .env.local</li>
-                </ul>
-              </aside>
-              <div class="editor">
-                <div class="pane-label">page.tsx</div>
-                <pre class="code" aria-hidden="true"><code><span class="ln"> 1</span><span class="k">import</span> { Pricing } <span class="k">from</span> <span class="s">"./Pricing"</span>
+            <div class="ide-main">
+              <!-- HOME: files + editor + preview -->
+              <div class="surface" data-pane="home" hidden>
+                <aside class="files">
+                  <div class="pane-label">Your files</div>
+                  <ul class="tree">
+                    <li class="folder open"><span class="twisty">▾</span> app</li>
+                    <li class="folder open nest"><span class="twisty">▾</span> (marketing)</li>
+                    <li class="file nest2 is-active"><span class="badge">tsx</span> page.tsx</li>
+                    <li class="file nest2"><span class="badge">tsx</span> layout.tsx</li>
+                    <li class="file nest2"><span class="badge">tsx</span> Pricing.tsx</li>
+                    <li class="folder nest"><span class="twisty">▸</span> api</li>
+                    <li class="file"><span class="badge">json</span> spawn.json</li>
+                    <li class="file"><span class="badge">env</span> .env.local</li>
+                  </ul>
+                </aside>
+                <div class="editor">
+                  <div class="pane-label">page.tsx</div>
+                  <pre class="code" aria-hidden="true"><code><span class="ln"> 1</span><span class="k">import</span> { Pricing } <span class="k">from</span> <span class="s">"./Pricing"</span>
 <span class="ln"> 2</span>
 <span class="ln"> 3</span><span class="k">export default function</span> <span class="fn">Page</span>() {
 <span class="ln"> 4</span>  <span class="k">return</span> (
@@ -146,119 +180,122 @@
 <span class="ln"> 7</span>    &lt;/<span class="t">main</span>&gt;
 <span class="ln"> 8</span>  )
 <span class="ln"> 9</span>}</code></pre>
-              </div>
-              <div class="preview">
-                <div class="preview-bar">
-                  <span class="url">
-                    <i class="lock"></i>
-                    localhost:5173
-                  </span>
-                  <span class="run-state" data-run>Idle</span>
                 </div>
-                <div class="preview-frame">
-                  <div class="app-mock">
-                    <header class="am-nav">
-                      <span class="am-logo"></span>
-                      <span class="am-links"><i></i><i></i><i></i></span>
-                      <span class="am-cta"></span>
-                    </header>
-                    <div class="am-hero">
-                      <div class="am-h1"></div>
-                      <div class="am-h2"></div>
-                    </div>
-                    <div class="am-tiers">
-                      <article><b>Free</b><em>$0</em><i></i><i></i></article>
-                      <article class="feat"><b>Pro</b><em>$29</em><i></i><i></i></article>
-                      <article><b>Team</b><em>$79</em><i></i><i></i></article>
-                    </div>
+                <div class="preview">
+                  <div class="preview-bar">
+                    <span class="url">
+                      <i class="lock"></i>
+                      localhost:5173
+                    </span>
+                    <span class="run-state" data-run>Idle</span>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- BUILD: dense chat + diff -->
-            <div class="surface" data-pane="build" hidden>
-              <div class="chat-col">
-                <div class="pane-label">Build · AI</div>
-                <div class="thread" data-thread>
-                  <div class="bubble bot">
-                    <span class="who">Spawn</span>
-                    <p>Workspace synced. What should we change?</p>
-                  </div>
-                  <div class="bubble you">
-                    <span class="who">You</span>
-                    <p><span data-typed></span><span class="caret" data-caret></span></p>
-                  </div>
-                  <div class="bubble bot" data-reply hidden>
-                    <span class="who">Spawn</span>
-                    <p data-reply-text></p>
-                    <div class="diff" data-diff hidden>
-                      <div class="diff-h">
-                        <span>app/(marketing)/Pricing.tsx</span>
-                        <span class="plus">+48 −2</span>
+                  <div class="preview-frame">
+                    <div class="app-mock">
+                      <header class="am-nav">
+                        <span class="am-logo"></span>
+                        <span class="am-links"><i></i><i></i><i></i></span>
+                        <span class="am-cta"></span>
+                      </header>
+                      <div class="am-hero">
+                        <div class="am-h1"></div>
+                        <div class="am-h2"></div>
                       </div>
-                      <pre class="diff-b"><span class="add">+ export function Pricing({ interval }) {'{'}</span>
-<span class="add">+   const tiers = ["Free","Pro","Team"]</span>
-<span class="add">+   return &lt;TierGrid tiers={tiers} /&gt;</span>
-<span class="add">+ }</span></pre>
+                      <div class="am-tiers">
+                        <article><b>Free</b><em>$0</em><i></i><i></i></article>
+                        <article class="feat"><b>Pro</b><em>$29</em><i></i><i></i></article>
+                        <article><b>Team</b><em>$79</em><i></i><i></i></article>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div class="composer">
-                  <span class="ph">Describe a change…</span>
-                  <span class="send">Send <kbd>↵</kbd></span>
-                </div>
               </div>
-              <div class="build-side">
-                <div class="pane-label">Changes</div>
-                <ul class="change-list">
-                  <li class="on"><span class="m">M</span> Pricing.tsx</li>
-                  <li><span class="a">A</span> TierCard.tsx</li>
-                  <li><span class="m">M</span> page.tsx</li>
-                </ul>
-                <div class="pane-label mt">Terminal</div>
-                <pre class="term" aria-hidden="true">$ spawn build
+
+              <!-- BUILD: chat + diff -->
+              <div class="surface" data-pane="build" hidden>
+                <div class="chat-col">
+                  <div class="pane-label">Build · ask for a change</div>
+                  <div class="thread" data-thread>
+                    <div class="bubble bot">
+                      <span class="who">Spawn</span>
+                      <p>Ready. What should we change?</p>
+                    </div>
+                    <div class="bubble you">
+                      <span class="who">You</span>
+                      <p><span data-typed></span><span class="caret" data-caret></span></p>
+                    </div>
+                    <div class="bubble bot" data-reply hidden>
+                      <span class="who">Spawn</span>
+                      <p data-reply-text></p>
+                      <div class="diff" data-diff hidden>
+                        <div class="diff-h">
+                          <span>Pricing.tsx — edited</span>
+                          <span class="plus">+48 −2</span>
+                        </div>
+                        <pre class="diff-b"><span class="add">+ /* Free, Pro, Team tiers */</span>
+<span class="add">+ /* Monthly / yearly toggle */</span>
+<span class="add">+ export function Pricing() { … }</span></pre>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="composer">
+                    <span class="ph">Describe a change…</span>
+                    <span class="send">Send <kbd>↵</kbd></span>
+                  </div>
+                </div>
+                <div class="build-side">
+                  <div class="pane-label">Changes</div>
+                  <ul class="change-list">
+                    <li class="on"><span class="m">M</span> Pricing.tsx</li>
+                    <li><span class="a">A</span> TierCard.tsx</li>
+                    <li><span class="m">M</span> page.tsx</li>
+                  </ul>
+                  <div class="pane-label mt">Terminal</div>
+                  <pre class="term" aria-hidden="true">$ spawn build
 ✓ Compiled in 412ms
 → Preview updated</pre>
+                </div>
               </div>
-            </div>
 
-            <!-- LIVE -->
-            <div class="surface" data-pane="live" hidden>
-              <div class="live-wrap">
-                <div class="pane-label">Go Live</div>
-                <div class="url-hero" data-url-card>
-                  <div class="uh-top">
-                    <span>Public URL</span>
-                    <span class="uh-badge" data-url-badge>Draft</span>
+              <!-- LIVE -->
+              <div class="surface is-on" data-pane="live">
+                <div class="live-wrap">
+                  <div class="pane-label">Your live link</div>
+                  <div class="url-hero" data-url-card>
+                    <div class="uh-top">
+                      <span>Public URL</span>
+                      <span class="uh-badge is-live" data-url-badge>Live</span>
+                    </div>
+                    <div class="uh-url" data-live-url>https://your-app.spawnapp.org</div>
+                    <div class="uh-meta">
+                      <span>HTTPS</span>
+                      <span>·</span>
+                      <span>Custom domain ready</span>
+                    </div>
                   </div>
-                  <div class="uh-url" data-live-url>your-app.spawnapp.org</div>
-                  <div class="uh-meta">
-                    <span>HTTPS</span>
-                    <span>·</span>
-                    <span>Edge</span>
-                    <span>·</span>
-                    <span>Ready</span>
+                  <div class="live-rows">
+                    <div><span>Domain</span><strong>app.yoursite.com</strong></div>
+                    <div><span>Secrets</span><strong>STRIPE_KEY · 2 more</strong></div>
+                    <div><span>Plugins</span><strong>auth · storage · email</strong></div>
                   </div>
+                  <button type="button" class="btn-solid btn-wide" data-go-live>Publish again</button>
+                  <p class="live-hint is-done" data-live-hint>Live on the internet — without leaving Spawn.</p>
                 </div>
-                <div class="live-rows">
-                  <div><span>Domain</span><strong>app.yoursite.com</strong></div>
-                  <div><span>Secrets</span><strong>STRIPE_KEY · 2 more</strong></div>
-                  <div><span>Plugins</span><strong>auth · storage · email</strong></div>
-                </div>
-                <button type="button" class="btn-solid btn-wide" data-go-live>Publish</button>
-                <p class="live-hint" data-live-hint>Nothing leaves Spawn until you publish.</p>
               </div>
             </div>
           </div>
         </div>
+        <p class="ide-caption" data-ide-caption>Go Live — your public URL, domains, secrets, and plugins in one place.</p>
       </div>
     </section>
   </main>
 
   <footer class="foot">
     <span>© <span data-year></span> Spawn</span>
-    <a href="/privacy.html">Privacy</a>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/how.html">How it works</a>
+      <a href="/access.html">Early access</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
   </footer>
 
   <!-- Command-palette early access -->
@@ -266,7 +303,7 @@
     <div class="palette-scrim" data-palette-close></div>
     <div class="palette-panel" role="dialog" aria-modal="true" aria-labelledby="palette-title">
       <div class="palette-head">
-        <span id="palette-title">Request early access</span>
+        <span id="palette-title">Get early access</span>
         <button type="button" class="palette-x" data-palette-close aria-label="Close">esc</button>
       </div>
       <form class="palette-form" data-access-form novalidate>
@@ -285,7 +322,7 @@
         </button>
       </form>
       <div class="form-note" data-form-note role="status" aria-live="polite"></div>
-      <p class="palette-foot">Opens in waves. We’ll email when it’s your turn.</p>
+      <p class="palette-foot">Private beta — building in public on spawnapp.org. We’ll email when it’s your turn.</p>
     </div>
   </div>
 

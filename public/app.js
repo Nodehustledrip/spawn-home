@@ -16,13 +16,28 @@
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
-  /* ——— Command palette / early access ——— */
+  /* Mobile nav */
+  var toggle = document.querySelector("[data-nav-toggle]");
+  var mobileNav = document.querySelector("[data-mobile-nav]");
+  if (toggle && mobileNav) {
+    toggle.addEventListener("click", function () {
+      var open = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", open ? "false" : "true");
+      if (open) mobileNav.setAttribute("hidden", "");
+      else mobileNav.removeAttribute("hidden");
+    });
+  }
+
+  /* ——— Command palette / early access (home + ⌘K) ——— */
   var palette = document.querySelector("[data-palette]");
   var openBtns = document.querySelectorAll("[data-open-access]");
   var accessInput = document.querySelector("[data-access-input]");
 
   function openPalette() {
-    if (!palette) return;
+    if (!palette) {
+      window.location.href = "/access.html";
+      return;
+    }
     palette.removeAttribute("hidden");
     document.body.style.overflow = "hidden";
     if (accessInput) {
@@ -47,10 +62,20 @@
     var meta = e.metaKey || e.ctrlKey;
     if (meta && (e.key === "k" || e.key === "K")) {
       e.preventDefault();
-      if (palette && palette.hasAttribute("hidden")) openPalette();
-      else closePalette();
+      if (palette) {
+        if (palette.hasAttribute("hidden")) openPalette();
+        else closePalette();
+      } else {
+        window.location.href = "/access.html";
+      }
     }
-    if (e.key === "Escape") closePalette();
+    if (e.key === "Escape") {
+      closePalette();
+      if (toggle && mobileNav && toggle.getAttribute("aria-expanded") === "true") {
+        toggle.setAttribute("aria-expanded", "false");
+        mobileNav.setAttribute("hidden", "");
+      }
+    }
   });
 
   /* ——— IDE surfaces ——— */
@@ -71,21 +96,23 @@
     var urlBadge = ide.querySelector("[data-url-badge]");
     var goLiveBtn = ide.querySelector("[data-go-live]");
     var liveHint = ide.querySelector("[data-live-hint]");
+    var captionEl = document.querySelector("[data-ide-caption]");
 
-    /* Phone: open on Build — one compelling panel, not explorer dump */
-    if (window.matchMedia("(max-width: 720px)").matches) {
-      var buildTab = ide.querySelector('[data-surface="build"]');
-      if (buildTab) {
-        /* defer to showSurface once defined — flag for later */
-        ide.setAttribute("data-prefer-build", "");
-      }
-    }
+    var CAPTIONS = {
+      home: "Home — your app files and a live preview on your machine.",
+      build: "Example: ask Spawn to add pricing — it edits the file.",
+      live: "Go Live — your public URL, domains, secrets, and plugins in one place."
+    };
 
     var PROMPT = "Add a pricing table with three tiers and a monthly toggle.";
-    var REPLY = "Updated Pricing.tsx — Free, Pro, Team with billingInterval toggle. Preview refreshed.";
+    var REPLY = "Done. Pricing now shows Free, Pro, and Team with a monthly toggle. Preview refreshed.";
     var typingTimer = null;
     var buildPlayed = false;
-    var published = false;
+    var published = true;
+
+    function setCaption(name) {
+      if (captionEl && CAPTIONS[name]) captionEl.textContent = CAPTIONS[name];
+    }
 
     function setStatus(kind, label) {
       if (dot) {
@@ -125,12 +152,15 @@
       if (name === "home") {
         syncTabs("home");
         syncLoop("home");
+        setCaption("home");
       } else if (name === "build") {
         syncTabs("build");
         syncLoop("build");
+        setCaption("build");
       } else if (name === "live") {
         syncTabs("live");
         syncLoop("live");
+        setCaption("live");
       }
     }
 
@@ -194,14 +224,17 @@
       buildPlayed = true;
     }
 
+    function showLive() {
+      showPane("live");
+      setStatus(published ? "is-live" : "", published ? "Live" : "Ready");
+    }
+
     tabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
         var name = tab.getAttribute("data-surface");
         if (name === "build") playBuild();
-        else if (name === "live") {
-          showPane("live");
-          setStatus(published ? "is-live" : "", published ? "Live" : "Ready");
-        } else {
+        else if (name === "live") showLive();
+        else {
           showPane("home");
           syncLoop("create");
           setStatus("", "Ready");
@@ -219,12 +252,12 @@
         if (key === "build") {
           playBuild();
         } else if (key === "live") {
-          showPane("live");
-          setStatus(published ? "is-live" : "", published ? "Live" : "Ready");
+          showLive();
         } else if (key === "run") {
           showPane("home");
           syncTabs("home");
           syncLoop("run");
+          setCaption("home");
           if (runEl) {
             runEl.textContent = "Running";
             runEl.classList.add("is-running");
@@ -259,13 +292,13 @@
         setStatus("is-busy", "Publishing");
         setTimeout(function () {
           published = true;
-          if (liveUrl) liveUrl.textContent = "your-app.spawnapp.org";
+          if (liveUrl) liveUrl.textContent = "https://your-app.spawnapp.org";
           if (urlBadge) {
             urlBadge.textContent = "Live";
             urlBadge.classList.add("is-live");
           }
           if (liveHint) {
-            liveHint.textContent = "Live on the edge. HTTPS ready.";
+            liveHint.textContent = "Live on the internet — without leaving Spawn.";
             liveHint.classList.add("is-done");
           }
           goLiveBtn.textContent = "Live";
@@ -282,20 +315,18 @@
       });
     }
 
-    /* Phone: land on Build chat immediately (one panel, not explorer dump) */
-    if (ide.hasAttribute("data-prefer-build")) {
-      playBuild();
-    } else if ("IntersectionObserver" in window && !reduceMotion) {
-      /* Desktop: auto-demo when IDE enters view */
+    /* Default: Go Live (clear payoff). Desktop can still auto-demo Build once. */
+    showLive();
+    setCaption("live");
+
+    if (!window.matchMedia("(max-width: 720px)").matches && "IntersectionObserver" in window && !reduceMotion) {
       var demoOnce = false;
       var io = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (entry) {
             if (entry.isIntersecting && !demoOnce) {
               demoOnce = true;
-              setTimeout(function () {
-                if (!buildPlayed) playBuild();
-              }, 1100);
+              /* Stay on Go Live — clarity first. Optional build demo only if user hasn't switched. */
               io.disconnect();
             }
           });
@@ -306,7 +337,7 @@
     }
   }
 
-  /* Early access form */
+  /* Early access form (palette and /access.html) */
   var form = document.querySelector("[data-access-form]");
   var note = document.querySelector("[data-form-note]");
   var okIcon =
