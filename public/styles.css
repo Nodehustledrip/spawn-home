@@ -3750,3 +3750,214 @@ a.btn-solid:hover { color: var(--accent-ink); }
 }
 
 .why-cta { margin-top: 0.25rem; }
+
+/* ——— Premium feel: restrained motion & interaction ——— */
+:root {
+  --dur: 180ms;
+  --dur-press: 120ms;
+  --dur-enter: 220ms;
+}
+
+/* Buttons / CTAs — slight lift, clear press */
+.btn-solid {
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur-press) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    filter var(--dur) var(--ease);
+}
+.btn-solid:hover {
+  background: #e0b584;
+  color: var(--accent-ink);
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: var(--inset), 0 6px 16px -8px rgba(0, 0, 0, 0.55);
+}
+.btn-solid:active {
+  transform: translateY(0) scale(0.985);
+  filter: brightness(0.97);
+  box-shadow: var(--inset), 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.btn-solid:disabled:hover,
+.btn-solid:disabled:active {
+  transform: none;
+  filter: none;
+  box-shadow: var(--inset), 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.ghost-btn {
+  transition:
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    transform var(--dur-press) var(--ease);
+}
+.ghost-btn:hover { transform: translateY(-1px); }
+.ghost-btn:active { transform: translateY(0) scale(0.985); }
+
+/* Nav — opacity polish + soft underline */
+.nav-link {
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.nav-link:not(.nav-cta) {
+  position: relative;
+}
+.nav-link:not(.nav-cta)::after {
+  content: "";
+  position: absolute;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: 0.18rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.55);
+  transform-origin: center;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  pointer-events: none;
+}
+.nav-link:not(.nav-cta):hover {
+  color: var(--text);
+  background: transparent;
+  opacity: 1;
+}
+.nav-link:not(.nav-cta):hover::after,
+.nav-link:not(.nav-cta).is-active::after {
+  opacity: 0.55;
+  transform: scaleX(1);
+}
+.nav-link.nav-cta {
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur-press) var(--ease),
+    filter var(--dur) var(--ease);
+}
+.nav-link.nav-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+.nav-link.nav-cta:active {
+  transform: translateY(0) scale(0.985);
+}
+
+/* Cards — Explore / Showcase / Tour frames / Why */
+.home-explore-card,
+.access-explore-card,
+.sc-card,
+.feature-card,
+.why-card {
+  transition:
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.home-explore-card:hover,
+.access-explore-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -18px rgba(0, 0, 0, 0.7);
+}
+.sc-card:hover {
+  border-color: rgba(212, 165, 116, 0.28);
+  background: rgba(212, 165, 116, 0.035);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -20px rgba(0, 0, 0, 0.65);
+}
+.feature-card:hover,
+.why-card:hover {
+  transform: translateY(-1px);
+}
+
+.tour-frame {
+  transition:
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.tour-step:hover .tour-frame {
+  border-color: rgba(212, 165, 116, 0.22);
+  transform: translateY(-1px);
+}
+
+/* Focus-visible — intentional, accessible */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.btn-solid:focus-visible,
+.nav-link.nav-cta:focus-visible {
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.nav-link:not(.nav-cta):focus-visible {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 7px;
+}
+.home-explore-card:focus-visible,
+.access-explore-card:focus-visible,
+.ghost-btn:focus-visible {
+  outline-offset: 3px;
+}
+
+/* Soft once-enter — opacity/transform only, no scrolljack */
+@keyframes feelIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.copy-rail,
+.ide-stage,
+.access-hero,
+.tour-hero,
+.sc-hero,
+.product-hero,
+.how-hero,
+.faq-hero,
+.why-hero,
+.changelog-hero,
+.home-explore {
+  animation: feelIn var(--dur-enter) var(--ease) both;
+}
+.ide-stage { animation-delay: 40ms; }
+.home-explore { animation-delay: 90ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-rail,
+  .ide-stage,
+  .access-hero,
+  .tour-hero,
+  .sc-hero,
+  .product-hero,
+  .how-hero,
+  .faq-hero,
+  .why-hero,
+  .changelog-hero,
+  .home-explore {
+    animation: none !important;
+  }
+  .btn-solid:hover,
+  .btn-solid:active,
+  .ghost-btn:hover,
+  .ghost-btn:active,
+  .nav-link.nav-cta:hover,
+  .nav-link.nav-cta:active,
+  .home-explore-card:hover,
+  .access-explore-card:hover,
+  .sc-card:hover,
+  .feature-card:hover,
+  .why-card:hover,
+  .tour-step:hover .tour-frame {
+    transform: none !important;
+    filter: none !important;
+  }
+  .nav-link:not(.nav-cta)::after {
+    transition: none !important;
+  }
+}
