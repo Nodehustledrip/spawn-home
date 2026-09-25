@@ -1939,3 +1939,16 @@ a.btn-solid:hover { color: var(--accent-ink); }
   .copy-rail h1 { font-size: 1.5rem; }
   .ide { height: min(58vh, 440px); }
 }
+
+
+/* Honeypot — visually hidden from humans */
+.hp-field {
+  position: absolute !important;
+  left: -10000px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

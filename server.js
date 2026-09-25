@@ -1,10 +1,64 @@
 "use strict";
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const app = express();
 const ai = require("./ai");
 const PORT = process.env.PORT || 3000;
-app.use(express.json());
+
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
+const WAITLIST_FILE = path.join(DATA_DIR, "waitlist.json");
+
+function ensureDataDir() {
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (_) { /* ignore */ }
+}
+
+function readWaitlist() {
+  ensureDataDir();
+  try {
+    const raw = fs.readFileSync(WAITLIST_FILE, "utf8");
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function writeWaitlist(entries) {
+  ensureDataDir();
+  const tmp = WAITLIST_FILE + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(entries, null, 2) + "\n", "utf8");
+  fs.renameSync(tmp, WAITLIST_FILE);
+}
+
+function normalizeEmail(email) {
+  return String(email || "")
+    .trim()
+    .toLowerCase();
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
+}
+
+/** Simple in-memory rate limit: max N posts per IP per window. */
+const RATE_LIMIT = { windowMs: 60 * 1000, max: 8 };
+const rateBuckets = new Map();
+
+function rateLimit(ip) {
+  const now = Date.now();
+  let bucket = rateBuckets.get(ip);
+  if (!bucket || now - bucket.start > RATE_LIMIT.windowMs) {
+    bucket = { start: now, count: 0 };
+    rateBuckets.set(ip, bucket);
+  }
+  bucket.count += 1;
+  return bucket.count <= RATE_LIMIT.max;
+}
+
+app.use(express.json({ limit: "16kb" }));
 app.use(function (_req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
@@ -17,8 +71,9 @@ app.use(function (_req, res, next) {
       "img-src 'self' data: https:",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://*.posthog.com https://us-assets.i.posthog.com https://browser.sentry-cdn.com",
+      "connect-src 'self' https://*.posthog.com https://us.i.posthog.com https://*.ingest.us.sentry.io https://*.ingest.sentry.io",
+      "worker-src 'self' blob: data:",
       "object-src 'none'",
       "base-uri 'self'",
       "frame-ancestors 'self'",
@@ -29,5 +84,67 @@ app.use(function (_req, res, next) {
 
 app.use(express.static(path.join(__dirname, "public")));
 ai.mount(app);
-app.get("/api/health", (_req, res) => res.json({ ok: true, app: "Spawn Home" }));
-app.listen(PORT, "0.0.0.0", () => console.log("Spawn Home listening on " + PORT));
+
+app.get("/api/health", (_req, res) =>
+  res.json({ ok: true, app: "Spawn Home", waitlist: true })
+);
+
+app.post("/api/waitlist", function (req, res) {
+  const ip =
+    (req.headers["x-forwarded-for"] &&
+      String(req.headers["x-forwarded-for"]).split(",")[0].trim()) ||
+    req.ip ||
+    "unknown";
+
+  if (!rateLimit(ip)) {
+    return res.status(429).json({ ok: false, error: "Too many requests. Try again shortly." });
+  }
+
+  const body = req.body || {};
+  /* Honeypot: bots fill hidden company field */
+  if (body.company || body.website || body.url) {
+    return res.json({ ok: true, duplicate: false });
+  }
+
+  const email = normalizeEmail(body.email);
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ ok: false, error: "Enter a valid email." });
+  }
+
+  let entries;
+  try {
+    entries = readWaitlist();
+  } catch (err) {
+    console.error("[waitlist] read failed", err && err.message);
+    return res.status(500).json({ ok: false, error: "Could not save. Try again." });
+  }
+
+  const exists = entries.some(function (e) {
+    return e && normalizeEmail(e.email) === email;
+  });
+  if (exists) {
+    console.log("[waitlist] duplicate", email);
+    return res.json({ ok: true, duplicate: true });
+  }
+
+  entries.push({
+    email: email,
+    createdAt: new Date().toISOString(),
+    ip: ip,
+    source: typeof body.source === "string" ? body.source.slice(0, 64) : "web",
+  });
+
+  try {
+    writeWaitlist(entries);
+  } catch (err) {
+    console.error("[waitlist] write failed", err && err.message);
+    return res.status(500).json({ ok: false, error: "Could not save. Try again." });
+  }
+
+  console.log("[waitlist] new signup", email, "total=", entries.length);
+  return res.status(201).json({ ok: true, duplicate: false });
+});
+
+app.listen(PORT, "0.0.0.0", () =>
+  console.log("Spawn Home listening on " + PORT)
+);

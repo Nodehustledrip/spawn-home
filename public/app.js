@@ -380,27 +380,78 @@
         input.focus();
         return;
       }
-      try {
-        var list = JSON.parse(localStorage.getItem("spawn_early_access") || "[]");
-        if (list.indexOf(value.toLowerCase()) === -1) {
-          list.push(value.toLowerCase());
-          localStorage.setItem("spawn_early_access", JSON.stringify(list));
-        }
-      } catch (_) { /* ignore */ }
 
-      form.reset();
-      showNote("success", "You're on the list. We'll be in touch.", okIcon);
       var btn = form.querySelector("[data-submit]");
       var label = form.querySelector("[data-submit-label]");
-      if (btn && label) {
-        var prev = label.textContent;
-        label.textContent = "Requested";
-        btn.disabled = true;
-        setTimeout(function () {
-          label.textContent = prev;
-          btn.disabled = false;
-        }, 2800);
-      }
+      var prevLabel = label ? label.textContent : "";
+      if (btn) btn.disabled = true;
+      if (label) label.textContent = "Joining…";
+
+      var honeypot = form.querySelector('[name="company"]');
+      var payload = {
+        email: value,
+        source: window.location.pathname || "web",
+        company: honeypot ? honeypot.value : ""
+      };
+
+      fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            return { ok: res.ok, status: res.status, data: data || {} };
+          }).catch(function () {
+            return { ok: res.ok, status: res.status, data: {} };
+          });
+        })
+        .then(function (result) {
+          if (!result.ok || (result.data && result.data.ok === false)) {
+            var msg =
+              (result.data && result.data.error) ||
+              (result.status === 429
+                ? "Too many requests. Try again shortly."
+                : "Something went wrong. Try again.");
+            showNote("error", msg, errIcon);
+            if (btn) btn.disabled = false;
+            if (label) label.textContent = prevLabel;
+            return;
+          }
+
+          try {
+            var list = JSON.parse(localStorage.getItem("spawn_early_access") || "[]");
+            var key = value.toLowerCase();
+            if (list.indexOf(key) === -1) {
+              list.push(key);
+              localStorage.setItem("spawn_early_access", JSON.stringify(list));
+            }
+          } catch (_) { /* ignore */ }
+
+          /* Event only — email stays server-side, not in PostHog */
+          if (typeof window.spawnTrack === "function") {
+            window.spawnTrack("early_access_requested", {
+              source: window.location.pathname || "web",
+              duplicate: !!(result.data && result.data.duplicate)
+            });
+          }
+
+          form.reset();
+          var successMsg = result.data && result.data.duplicate
+            ? "You're already on the list. We'll be in touch."
+            : "You're on the list. We'll be in touch.";
+          showNote("success", successMsg, okIcon);
+          if (label) label.textContent = "Requested";
+          setTimeout(function () {
+            if (label) label.textContent = prevLabel;
+            if (btn) btn.disabled = false;
+          }, 2800);
+        })
+        .catch(function () {
+          showNote("error", "Network error. Check your connection and try again.", errIcon);
+          if (btn) btn.disabled = false;
+          if (label) label.textContent = prevLabel;
+        });
     });
   }
 })();
