@@ -3881,6 +3881,94 @@ a.btn-solid:hover { color: var(--accent-ink); }
   transform: translateY(-1px);
 }
 
+/* ——— 404 / not found ——— */
+.page-404 {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 8vw, 5rem) 1.15rem 3.5rem;
+  min-height: min(62vh, 560px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.nf-hero {
+  margin-bottom: 2.25rem;
+}
+.nf-hero .kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.nf-code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.nf-hero h1 {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.85rem, 4.5vw, 2.55rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.12;
+}
+.nf-hero .lead {
+  margin: 0 0 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 34rem;
+}
+.nf-ctas {
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+}
+.nf-hints {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.nf-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: var(--inset);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.nf-hint:hover {
+  border-color: rgba(212, 165, 116, 0.35);
+  background: rgba(212, 165, 116, 0.04);
+  transform: translateY(-1px);
+}
+.nf-hint-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.nf-hint-desc {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+@media (max-width: 640px) {
+  .nf-hints {
+    grid-template-columns: 1fr;
+  }
+  .nf-ctas .ghost-btn {
+    width: auto;
+  }
+}
+
 /* Focus-visible — intentional, accessible */
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -3922,6 +4010,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .faq-hero,
 .why-hero,
 .changelog-hero,
+.nf-hero,
 .home-explore {
   animation: feelIn var(--dur-enter) var(--ease) both;
 }
@@ -3939,6 +4028,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
   .faq-hero,
   .why-hero,
   .changelog-hero,
+  .nf-hero,
   .home-explore {
     animation: none !important;
   }

@@ -133,7 +133,7 @@ app.use(function (_req, res, next) {
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 /* Clean marketing URLs: /how → how.html; /how.html → 301 /how */
-const CLEAN_PAGES = ["how", "product", "access", "privacy", "faq", "changelog", "tour", "showcase", "why"];
+const CLEAN_PAGES = ["how", "product", "access", "privacy", "faq", "changelog", "tour", "showcase", "why", "404"];
 const CLEAN_SET = new Set(CLEAN_PAGES);
 
 /* Trailing slash → canonical (must run before page routes; Express non-strict
@@ -141,7 +141,7 @@ const CLEAN_SET = new Set(CLEAN_PAGES);
 app.use(function (req, res, next) {
   if (req.method !== "GET" && req.method !== "HEAD") return next();
   const pathOnly = (req.path || "").split("?")[0];
-  const m = pathOnly.match(/^\/(how|product|access|privacy|faq|changelog|tour|showcase|why)\/$/);
+  const m = pathOnly.match(/^\/(how|product|access|privacy|faq|changelog|tour|showcase|why|404)\/$/);
   if (m && CLEAN_SET.has(m[1])) {
     return res.redirect(301, "/" + m[1]);
   }
@@ -242,6 +242,16 @@ app.post("/api/waitlist", function (req, res) {
 
   console.log("[waitlist] new signup", email, "total=", entries.length);
   return res.status(201).json({ ok: true, duplicate: false });
+});
+
+/* Branded 404 — status 404, same SPA-looking page (not Express Cannot GET) */
+app.use(function (req, res, next) {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const file = path.join(PUBLIC_DIR, "404.html");
+  if (!fs.existsSync(file)) {
+    return res.status(404).type("text").send("Not found");
+  }
+  res.status(404).sendFile(file);
 });
 
 app.listen(PORT, "0.0.0.0", () =>
