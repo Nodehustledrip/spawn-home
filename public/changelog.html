@@ -42,6 +42,7 @@
       background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
     }
   </style>
+  <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
   <script type="application/ld+json">
   {
@@ -102,6 +103,17 @@
           <time datetime="2026-09-28">September 28, 2026</time>
         </h2>
         <ol class="changelog-entries">
+          <li class="changelog-entry">
+            <h3>Performance polish — snappier loads, same premium feel</h3>
+            <p>
+              Static CSS/JS/images now send long-lived Cache-Control with
+              stale-while-revalidate; HTML stays must-revalidate with etag.
+              Stylesheet preload, deferred analytics/app scripts, idle-deferred
+              Sentry, gzip/brotli via compression middleware, and leaner
+              <code>og.png</code> / apple-touch icon — without gutting design
+              or touching waitlist, CSP, PostHog, clean URLs, or the branded 404.
+            </p>
+          </li>
           <li class="changelog-entry">
             <h3>Home — denser first-three-seconds story</h3>
             <p>
@@ -356,7 +368,7 @@
     </nav>
   </footer>
 
-  <script src="/analytics.js"></script>
-  <script src="/app.js"></script>
+  <script src="/analytics.js" defer></script>
+  <script src="/app.js" defer></script>
 </body>
 </html>

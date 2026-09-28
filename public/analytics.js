@@ -97,7 +97,12 @@
     document.head.appendChild(s);
   }
 
+  /* Defer Sentry until idle so it does not compete with first paint / LCP */
   try {
-    loadSentry();
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(function () { loadSentry(); }, { timeout: 4000 });
+    } else {
+      window.setTimeout(loadSentry, 2000);
+    }
   } catch (_) { /* ignore */ }
 })();

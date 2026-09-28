@@ -1,5 +1,6 @@
 "use strict";
 const express = require("express");
+const compression = require("compression");
 const path = require("path");
 const fs = require("fs");
 const app = express();
@@ -106,6 +107,7 @@ function rateLimit(ip) {
   return bucket.count <= RATE_LIMIT.max;
 }
 
+app.use(compression());
 app.use(express.json({ limit: "16kb" }));
 app.use(function (_req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -151,6 +153,7 @@ app.use(function (req, res, next) {
 CLEAN_PAGES.forEach(function (slug) {
   const file = path.join(PUBLIC_DIR, slug + ".html");
   app.get("/" + slug, function (_req, res) {
+    res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
     res.sendFile(file);
   });
   app.get("/" + slug + ".html", function (_req, res) {
@@ -158,7 +161,28 @@ CLEAN_PAGES.forEach(function (slug) {
   });
 });
 
-app.use(express.static(PUBLIC_DIR));
+/* Static assets: modest cache (no content hashes) + etag/last-mod revalidation */
+const STATIC_CACHE_EXT = new Set([
+  ".css", ".js", ".png", ".ico", ".svg", ".jpg", ".jpeg", ".webp", ".woff", ".woff2", ".gif",
+]);
+app.use(
+  express.static(PUBLIC_DIR, {
+    etag: true,
+    lastModified: true,
+    setHeaders: function (res, filePath) {
+      const ext = path.extname(filePath).toLowerCase();
+      if (STATIC_CACHE_EXT.has(ext)) {
+        /* 7d browser cache; SWR keeps snappy revisits without fingerprinting */
+        res.setHeader(
+          "Cache-Control",
+          "public, max-age=604800, stale-while-revalidate=86400"
+        );
+      } else if (ext === ".html" || ext === ".xml" || ext === ".txt") {
+        res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+      }
+    },
+  })
+);
 ai.mount(app);
 
 app.get("/api/health", (_req, res) =>
@@ -251,6 +275,7 @@ app.use(function (req, res, next) {
   if (!fs.existsSync(file)) {
     return res.status(404).type("text").send("Not found");
   }
+  res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
   res.status(404).sendFile(file);
 });
 
