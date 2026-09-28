@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn is a private app builder on your machine. Build real apps and put them on the internet — create, preview, chat to change, publish a public URL." />
+  <meta name="description" content="Spawn is a private app builder on your machine. Create, preview, chat to change, then publish a public URL — domains, secrets, and plugins stay inside." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Spawn — Build an app. Put it on the internet." />
-  <meta property="og:description" content="Private app builder on your machine. Create, preview, chat to change it, then publish a public URL." />
+  <meta property="og:description" content="Private app builder on your machine — create, preview, chat to change, then publish a public URL." />
   <meta property="og:url" content="https://spawnapp.org" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Spawn — Build an app. Put it on the internet." />
-  <meta name="twitter:description" content="Private app builder on your machine. Create, preview, chat to change it, then publish a public URL." />
+  <meta name="twitter:description" content="Private app builder on your machine — create, preview, chat to change, then publish a public URL." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Spawn — Build an app. Put it on the internet.</title>
   <link rel="canonical" href="https://spawnapp.org/" />
@@ -115,42 +115,50 @@
   <main id="main" class="shell">
     <section class="viewport" aria-label="Spawn product">
       <div class="copy-rail">
-        <p class="kicker">Private app builder</p>
+        <p class="kicker">Private app builder · On your machine</p>
         <h1>Build an app.<br />Put it on the internet.</h1>
         <p class="sub">
-          Create in Spawn, run a preview, change it with Build chat, then Go Live for a public link.
-          Domains, secrets, and plugins stay inside.
+          Create on your machine, preview live, change it with Build chat, then Go Live for a public URL.
+          Domains, secrets, and plugins stay inside Spawn.
         </p>
+
+        <ul class="home-proof" aria-label="What Spawn is">
+          <li>Private machine</li>
+          <li>Public URL</li>
+          <li>Build chat</li>
+          <li>Private beta</li>
+        </ul>
 
         <ol class="clarity" aria-label="How Spawn works">
           <li>
             <span class="clarity-n" aria-hidden="true">1</span>
             <div>
-              <strong>Create your app</strong>
-              <span>Describe it or start from files on your machine</span>
+              <strong>Create</strong>
+              <span>Describe it or open files already on disk</span>
             </div>
           </li>
           <li>
             <span class="clarity-n" aria-hidden="true">2</span>
             <div>
-              <strong>Change it in chat</strong>
-              <span>Ask for a change — Spawn edits the file and refreshes the preview</span>
+              <strong>Change in chat</strong>
+              <span>Ask — Spawn edits the file and refreshes preview</span>
             </div>
           </li>
           <li>
             <span class="clarity-n" aria-hidden="true">3</span>
             <div>
-              <strong>Publish a public URL</strong>
-              <span>Go Live with your domain, secrets, and plugins</span>
+              <strong>Go Live</strong>
+              <span>Publish HTTPS with domain, secrets, plugins</span>
             </div>
           </li>
         </ol>
 
         <div class="hero-ctas">
-          <a class="btn-solid" href="/access">Join the waitlist</a>
+          <a class="btn-solid" href="/access">Get early access</a>
           <a class="link-quiet" href="/tour">Take the tour</a>
+          <a class="link-quiet" href="/product">See the product</a>
         </div>
-        <p class="access-why">Private beta — invite waves, building in public.</p>
+        <p class="access-why">Invite waves · building in public on spawnapp.org</p>
       </div>
 
       <div class="ide-stage">
@@ -314,7 +322,7 @@
                   </div>
                   <div class="live-rows">
                     <div><span>Domain</span><strong>app.yoursite.com</strong></div>
-                    <div><span>Secrets</span><strong>STRIPE_KEY · 2 more</strong></div>
+                    <div><span>Secrets</span><strong>API_KEY · 2 more</strong></div>
                     <div><span>Plugins</span><strong>auth · storage · email</strong></div>
                   </div>
                   <button type="button" class="btn-solid btn-wide" data-go-live>Publish again</button>
@@ -324,25 +332,61 @@
             </div>
           </div>
         </div>
-        <p class="ide-caption" data-ide-caption>Go Live — your public URL, domains, secrets, and plugins in one place.</p>
+        <p class="ide-caption" data-ide-caption>Go Live — public URL, custom domain, secrets, and plugins in one place.</p>
+      </div>
+    </section>
+
+    <section class="home-bridge" aria-labelledby="home-bridge-heading">
+      <div class="home-bridge-inner">
+        <div class="home-bridge-copy">
+          <h2 id="home-bridge-heading">Private machine → public URL</h2>
+          <p>
+            Source and secrets stay local until you press Go Live.
+            Publishing puts a real HTTPS site on the internet — without leaving Spawn.
+          </p>
+        </div>
+        <div class="home-bridge-flow" aria-hidden="true">
+          <div class="hbf-card hbf-private">
+            <span class="hbf-tag">Private</span>
+            <strong>localhost</strong>
+            <em>Files · preview · chat</em>
+          </div>
+          <span class="hbf-arrow">→</span>
+          <div class="hbf-card hbf-public">
+            <span class="hbf-tag public">Public</span>
+            <strong>your-app.spawnapp.org</strong>
+            <em>HTTPS · domain · live</em>
+          </div>
+        </div>
       </div>
     </section>
 
     <section class="home-explore" aria-labelledby="explore-heading">
       <div class="home-explore-inner">
-        <p class="home-explore-kicker" id="explore-heading">Explore</p>
-        <div class="home-explore-grid">
+        <div class="home-explore-head">
+          <p class="home-explore-kicker" id="explore-heading">Go deeper</p>
+          <p class="home-explore-lead">Same story, denser pages — pick a path.</p>
+        </div>
+        <div class="home-explore-grid home-explore-grid-4">
+          <a class="home-explore-card" href="/product">
+            <span class="home-explore-idx" aria-hidden="true">01</span>
+            <strong>Product</strong>
+            <span>Every surface — Create through Account</span>
+          </a>
           <a class="home-explore-card" href="/tour">
+            <span class="home-explore-idx" aria-hidden="true">02</span>
             <strong>Tour</strong>
-            <span>Build → Run → Ship in three visual steps</span>
+            <span>Build → Run → Ship in three screens</span>
           </a>
           <a class="home-explore-card" href="/showcase">
+            <span class="home-explore-idx" aria-hidden="true">03</span>
             <strong>Showcase</strong>
-            <span>Example apps you can ship with Spawn</span>
+            <span>Example apps built to ship and share</span>
           </a>
-          <a class="home-explore-card" href="/why">
-            <strong>Why</strong>
-            <span>Local-first builder. Your machine. A real URL.</span>
+          <a class="home-explore-card" href="/access">
+            <span class="home-explore-idx" aria-hidden="true">04</span>
+            <strong>Early access</strong>
+            <span>Join the waitlist — invite waves</span>
           </a>
         </div>
       </div>
