@@ -46,6 +46,50 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How Spawn works",
+    "description": "Create an app on your machine, run a local preview, change it in Build chat, then publish a public URL.",
+    "url": "https://spawnapp.org/how",
+    "totalTime": "PT15M",
+    "tool": {
+      "@type": "HowToTool",
+      "name": "Spawn"
+    },
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Create your app",
+        "text": "Start from a blank workspace or your own files. Describe what you are building and Spawn scaffolds a real project on your machine.",
+        "url": "https://spawnapp.org/how#create"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Run a preview",
+        "text": "Hit Run and see your app live on localhost. You are looking at the real process you will ship — no deploy required to try it.",
+        "url": "https://spawnapp.org/how#run"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Change it in chat",
+        "text": "Open Build chat and ask for a change in plain English. Spawn edits the files, shows the diff, and refreshes the preview.",
+        "url": "https://spawnapp.org/how#build"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Publish a public URL",
+        "text": "Go Live puts your app on the internet with HTTPS. Custom domains, secrets, and plugins stay inside Spawn.",
+        "url": "https://spawnapp.org/how#live"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Spawn",
     "url": "https://spawnapp.org"
@@ -89,105 +133,246 @@
   <main id="main" class="page-how">
     <header class="how-hero">
       <p class="kicker">How it works</p>
-      <h1>From idea to a live URL — without leaving Spawn.</h1>
+      <h1>Four moves. One loop. Live URL.</h1>
       <p class="lead">
-        Spawn is a private app builder that runs on your machine.
-        You create a real app, see it run, change it by chatting, then publish a public link.
+        Spawn runs on your machine. Create a real app, run it locally,
+        change it in chat, then publish — without leaving the builder.
       </p>
+      <nav class="how-loop" aria-label="The Spawn loop">
+        <a class="how-loop-step" href="#create"><span>1</span> Create</a>
+        <span class="how-loop-join" aria-hidden="true"></span>
+        <a class="how-loop-step" href="#run"><span>2</span> Run</a>
+        <span class="how-loop-join" aria-hidden="true"></span>
+        <a class="how-loop-step" href="#build"><span>3</span> Chat</a>
+        <span class="how-loop-join" aria-hidden="true"></span>
+        <a class="how-loop-step" href="#live"><span>4</span> Live</a>
+      </nav>
     </header>
 
     <ol class="how-steps">
-      <li class="how-card">
+      <li class="how-card" id="create">
         <div class="how-visual" aria-hidden="true">
           <div class="hv-frame">
-            <div class="hv-bar"><i></i><i></i><i></i><span>Create</span></div>
+            <div class="hv-chrome">
+              <div class="hv-traffic"><i></i><i></i><i></i></div>
+              <div class="hv-title">New project · workspace</div>
+              <div class="hv-badge">Create</div>
+            </div>
             <div class="hv-body hv-create">
-              <div class="hv-line w80"></div>
-              <div class="hv-line w55"></div>
-              <div class="hv-chip">Describe your app…</div>
-            </div>
-          </div>
-        </div>
-        <div class="how-copy">
-          <span class="how-n">1</span>
-          <h2>Create your app</h2>
-          <p>
-            Start from a blank workspace or your own files. Tell Spawn what you’re building —
-            a landing page, a dashboard, a billing flow — and it scaffolds a real project on your machine.
-          </p>
-        </div>
-      </li>
-
-      <li class="how-card how-card-flip">
-        <div class="how-visual" aria-hidden="true">
-          <div class="hv-frame">
-            <div class="hv-bar"><i></i><i></i><i></i><span>localhost:5173</span></div>
-            <div class="hv-body hv-run">
-              <div class="hv-mock-nav"></div>
-              <div class="hv-mock-hero"></div>
-              <div class="hv-mock-tiers"><span></span><span class="on"></span><span></span></div>
-            </div>
-          </div>
-        </div>
-        <div class="how-copy">
-          <span class="how-n">2</span>
-          <h2>Run a preview</h2>
-          <p>
-            Hit Run and see your app live in a local preview. No deploy required to try it —
-            you’re looking at the real thing running on your machine.
-          </p>
-        </div>
-      </li>
-
-      <li class="how-card">
-        <div class="how-visual" aria-hidden="true">
-          <div class="hv-frame">
-            <div class="hv-bar"><i></i><i></i><i></i><span>Build chat</span></div>
-            <div class="hv-body hv-build">
-              <div class="hv-bubble you">Add a pricing table with three tiers</div>
-              <div class="hv-bubble bot">Updated Pricing — Free, Pro, Team. Preview refreshed.</div>
-            </div>
-          </div>
-        </div>
-        <div class="how-copy">
-          <span class="how-n">3</span>
-          <h2>Change it in chat</h2>
-          <p>
-            Open Build and ask for a change in plain English. Spawn edits the files,
-            shows you what changed, and refreshes the preview. No need to hunt through code first.
-          </p>
-        </div>
-      </li>
-
-      <li class="how-card how-card-flip">
-        <div class="how-visual" aria-hidden="true">
-          <div class="hv-frame hv-live">
-            <div class="hv-bar"><i></i><i></i><i></i><span>Go Live</span></div>
-            <div class="hv-body">
-              <div class="hv-url-card">
-                <em>Public URL</em>
-                <strong>https://your-app.spawnapp.org</strong>
+              <aside class="hv-side">
+                <div class="hv-side-h">Start</div>
+                <ul>
+                  <li class="on">Blank app</li>
+                  <li>From files</li>
+                  <li class="dim">Template</li>
+                </ul>
+              </aside>
+              <div class="hv-create-main">
+                <div class="hv-prompt-label">Describe your app</div>
+                <div class="hv-prompt">
+                  Billing page with Free, Pro, and Team tiers<span class="hv-caret"></span>
+                </div>
+                <div class="hv-chips">
+                  <span>Landing</span>
+                  <span class="on">Dashboard</span>
+                  <span>Checkout</span>
+                </div>
+                <div class="hv-create-foot">
+                  <em>Real files on disk</em>
+                  <strong>Scaffold</strong>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div class="how-copy">
-          <span class="how-n">4</span>
+          <span class="how-n" aria-hidden="true">01</span>
+          <h2>Create your app</h2>
+          <p>
+            Blank workspace or your own files. Tell Spawn what you’re building —
+            a landing page, a dashboard, a billing flow — and it scaffolds a real
+            project on your machine.
+          </p>
+          <p>
+            You’re not stuck in a cloud sandbox. The files are yours from the first keystroke.
+          </p>
+        </div>
+      </li>
+
+      <li class="how-card how-card-flip" id="run">
+        <div class="how-visual" aria-hidden="true">
+          <div class="hv-frame">
+            <div class="hv-chrome">
+              <div class="hv-traffic"><i></i><i></i><i></i></div>
+              <div class="hv-title">localhost:5173</div>
+              <div class="hv-badge hv-badge-ok">Running</div>
+            </div>
+            <div class="hv-body hv-run">
+              <div class="hv-preview">
+                <div class="hv-pnav">
+                  <span class="hv-logo"></span>
+                  <span class="hv-links"><i></i><i></i><i></i></span>
+                  <span class="hv-pill"></span>
+                </div>
+                <div class="hv-phero">
+                  <div class="hv-phero-line w70"></div>
+                  <div class="hv-phero-line w45"></div>
+                </div>
+                <div class="hv-ptiers">
+                  <div class="hv-tier">
+                    <em>Free</em>
+                    <strong>$0</strong>
+                  </div>
+                  <div class="hv-tier on">
+                    <em>Pro</em>
+                    <strong>$29</strong>
+                  </div>
+                  <div class="hv-tier">
+                    <em>Team</em>
+                    <strong>$99</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="hv-status">
+                <span class="hv-dot"></span>
+                Preview · hot reload
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="how-copy">
+          <span class="how-n" aria-hidden="true">02</span>
+          <h2>Run a preview</h2>
+          <p>
+            Hit Run and the app starts on localhost. Same process you’ll ship —
+            not a mock render or a temporary cloud preview.
+          </p>
+          <p>
+            Iterate until it feels right. Deploy stays optional until you’re ready.
+          </p>
+        </div>
+      </li>
+
+      <li class="how-card" id="build">
+        <div class="how-visual" aria-hidden="true">
+          <div class="hv-frame">
+            <div class="hv-chrome">
+              <div class="hv-traffic"><i></i><i></i><i></i></div>
+              <div class="hv-title">Build · billing-app</div>
+              <div class="hv-badge">Chat</div>
+            </div>
+            <div class="hv-body hv-build">
+              <div class="hv-msg you">
+                <span class="hv-role">You</span>
+                Add a pricing table with Free, Pro, and Team.
+              </div>
+              <div class="hv-msg bot">
+                <span class="hv-role">Spawn</span>
+                Updated <code>pricing.tsx</code> — three tiers. Preview refreshed.
+              </div>
+              <div class="hv-diff">
+                <span class="hv-diff-h">+ pricing.tsx</span>
+                <pre><code><span class="add">+ export function Pricing() {</span>
+<span class="add">+   return &lt;Tiers free pro team /&gt;</span>
+<span class="add">+ }</span></code></pre>
+              </div>
+              <div class="hv-compose">
+                <span>Ask for a change…</span>
+                <em>Send</em>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="how-copy">
+          <span class="how-n" aria-hidden="true">03</span>
+          <h2>Change it in chat</h2>
+          <p>
+            Open Build and ask in plain English. Spawn edits the files, shows the
+            diff, and refreshes the preview — no hunting through code first.
+          </p>
+          <p>
+            After you ship, the same chat is how you iterate. The loop doesn’t end at publish.
+          </p>
+        </div>
+      </li>
+
+      <li class="how-card how-card-flip" id="live">
+        <div class="how-visual" aria-hidden="true">
+          <div class="hv-frame">
+            <div class="hv-chrome">
+              <div class="hv-traffic"><i></i><i></i><i></i></div>
+              <div class="hv-title">Go Live</div>
+              <div class="hv-badge hv-badge-live">Live</div>
+            </div>
+            <div class="hv-body hv-ship">
+              <div class="hv-live-card">
+                <em>Public URL</em>
+                <strong>https://your-app.spawnapp.org</strong>
+                <div class="hv-live-meta">
+                  <span><i class="ok"></i> HTTPS</span>
+                  <span><i class="ok"></i> Deployed</span>
+                </div>
+                <div class="hv-live-actions">
+                  <span class="hv-btn primary">Open</span>
+                  <span class="hv-btn">Copy link</span>
+                  <span class="hv-btn">Domain</span>
+                </div>
+              </div>
+              <div class="hv-domain-row">
+                <span class="hv-mono">app.yourdomain.com</span>
+                <span class="hv-chip">Connected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="how-copy">
+          <span class="how-n" aria-hidden="true">04</span>
           <h2>Publish a public URL</h2>
           <p>
-            Go Live puts your app on the internet. Custom domains, secrets, and plugins
-            stay inside Spawn — you don’t leave the builder to ship.
+            Go Live puts your app on the internet with a real HTTPS URL —
+            not a temporary preview link.
+          </p>
+          <p>
+            Custom domains, secrets, and plugins stay inside Spawn.
+            You don’t leave the builder to ship.
           </p>
         </div>
       </li>
     </ol>
+
+    <section class="how-boundary" aria-labelledby="how-boundary-title">
+      <div class="how-boundary-head">
+        <h2 id="how-boundary-title">On your machine vs public</h2>
+        <p>Clear line between what stays private and what the world can see.</p>
+      </div>
+      <div class="how-boundary-grid">
+        <div class="how-bound how-bound-private">
+          <h3><span class="how-bound-tag">Private</span> Stays on your machine</h3>
+          <ul>
+            <li>Source files and local git history</li>
+            <li>Secrets, API keys, and env vars</li>
+            <li>Build chat and uncommitted diffs</li>
+            <li>Local preview process until you publish</li>
+          </ul>
+        </div>
+        <div class="how-bound how-bound-public">
+          <h3><span class="how-bound-tag public">Public</span> Goes live when you ship</h3>
+          <ul>
+            <li>The built app behind your public URL</li>
+            <li>HTTPS on <span class="how-mono">*.spawnapp.org</span> or your domain</li>
+            <li>Only what you choose to deploy</li>
+            <li>Iterate afterward — Build chat still works</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
     <section class="how-what">
       <h2>What you get</h2>
       <ul class="what-grid">
         <li>
           <strong>A private builder</strong>
-          <span>Runs on your machine — your code and secrets don’t leave until you publish.</span>
+          <span>Runs on your machine — code and secrets don’t leave until you publish.</span>
         </li>
         <li>
           <strong>A live site or app</strong>
@@ -201,7 +386,7 @@
     </section>
 
     <section class="how-cta">
-      <h2>Ready to try it?</h2>
+      <h2>Ready to try the loop?</h2>
       <p>Private beta — building in public on spawnapp.org.</p>
       <div class="product-hero-links product-cta-links">
         <a class="btn-solid" href="/access">Get early access</a>
