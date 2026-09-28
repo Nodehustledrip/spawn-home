@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Join the Spawn waitlist — private app builder on your machine. Create, preview, chat to change, publish a URL. Private beta, building in public." />
+  <meta name="description" content="Join Spawn private beta — app builder on your machine. Create, preview, chat to change, publish a URL. Invite waves, building in public on spawnapp.org." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Early access — Spawn" />
-  <meta property="og:description" content="Join the waitlist for Spawn — private app builder. Invite waves, building in public on spawnapp.org." />
+  <meta property="og:description" content="Join the Spawn waitlist — private beta, invite waves. Build on your machine, ship a public URL." />
   <meta property="og:url" content="https://spawnapp.org/access" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Early access — Spawn" />
-  <meta name="twitter:description" content="Join the waitlist for Spawn — private app builder. Invite waves, building in public on spawnapp.org." />
+  <meta name="twitter:description" content="Join the Spawn waitlist — private beta, invite waves. Build on your machine, ship a public URL." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Early access — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/access" />
@@ -43,6 +43,20 @@
     }
   </style>
   <link rel="stylesheet" href="/styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Early access — Spawn",
+    "description": "Join the Spawn private beta waitlist. Build apps on your machine, ship a public URL.",
+    "url": "https://spawnapp.org/access",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Spawn",
+      "url": "https://spawnapp.org"
+    }
+  }
+  </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -88,21 +102,33 @@
 
   <main id="main" class="page-access">
     <header class="access-hero">
-      <p class="kicker">Private beta</p>
-      <h1>Ship apps on your machine. Join early access.</h1>
+      <p class="kicker">Private beta · Invite only</p>
+      <h1>Join early. Shape what ships.</h1>
       <p class="lead">
-        Spawn is a private app builder — create, preview, chat to change, publish a URL.
-        Leave your email; we invite in waves.
+        Spawn is a private app builder — create on your machine, preview live,
+        chat to change, publish a public URL. We’re inviting in waves while we
+        build in public. Leave your email to get in line.
       </p>
-      <ul class="access-proof" aria-label="Waitlist context">
-        <li>Join the waitlist</li>
-        <li>Building in public on spawnapp.org</li>
-        <li>Invite waves — no spam</li>
+      <ul class="access-proof" aria-label="What Spawn stands for">
+        <li>Private machine</li>
+        <li>Public URL</li>
+        <li>Invite waves</li>
+        <li>No spam</li>
       </ul>
     </header>
 
+    <section class="access-why-now" aria-labelledby="access-why-heading">
+      <h2 id="access-why-heading" class="access-section-title">Why join now</h2>
+      <p class="access-why-copy">
+        Early seats get the real builder first — not a watered-down demo.
+        Feedback from the waitlist shapes Create, Run, Build chat, and Go Live
+        before the wider open.
+      </p>
+    </section>
+
     <section class="access-card" aria-labelledby="access-form-heading">
       <h2 id="access-form-heading" class="access-card-title">Request early access</h2>
+      <p class="access-card-lead">One email. We’ll write when your invite is ready.</p>
       <form class="access-form" data-access-form novalidate>
         <div class="access-field">
           <label class="access-label" for="email">Work email</label>
@@ -115,8 +141,10 @@
             placeholder="you@company.com"
             inputmode="email"
             data-access-input
-            aria-describedby="access-trust"
+            aria-describedby="access-hint access-trust"
+            aria-required="true"
           />
+          <p class="access-hint" id="access-hint">Use the inbox you check for product updates.</p>
         </div>
         <input
           type="text"
@@ -132,21 +160,21 @@
       </form>
       <div class="form-note" data-form-note role="status" aria-live="polite"></div>
       <p class="access-trust" id="access-trust">
-        We only use your email for invite updates.
+        Invite updates only — no newsletters, no sales drip.
         <a href="/privacy">Privacy</a>
       </p>
     </section>
 
     <section class="access-perks" aria-labelledby="access-perks-heading">
-      <h2 id="access-perks-heading" class="access-section-title">What early access gets you</h2>
+      <h2 id="access-perks-heading" class="access-section-title">What you get in beta</h2>
       <ul class="access-perk-grid">
         <li>
-          <strong>Private builder</strong>
-          <span>Apps stay on your machine until you choose to publish.</span>
+          <strong>Builder on your machine</strong>
+          <span>Apps stay local until you choose to publish — your files, your machine.</span>
         </li>
         <li>
           <strong>Create → change → ship</strong>
-          <span>Describe an app, chat to edit, preview live, Go Live with a URL.</span>
+          <span>Describe an app, chat to edit, preview live, Go Live with a real URL.</span>
         </li>
         <li>
           <strong>Domains, secrets, plugins</strong>
@@ -156,11 +184,15 @@
     </section>
 
     <aside class="access-explore" aria-label="Explore before joining">
-      <p class="access-explore-label">Not ready yet?</p>
+      <p class="access-explore-label">See the product first</p>
       <div class="access-explore-links">
         <a class="access-explore-card" href="/tour">
           <strong>Tour</strong>
-          <span>Build → Run → Ship in frames</span>
+          <span>Build → Run → Ship walkthrough</span>
+        </a>
+        <a class="access-explore-card" href="/how">
+          <strong>How it works</strong>
+          <span>The loop, machine vs public</span>
         </a>
         <a class="access-explore-card" href="/showcase">
           <strong>Showcase</strong>
@@ -169,8 +201,8 @@
       </div>
       <p class="access-alt">
         <a href="/product">Product</a>
-        · <a href="/how">How it works</a>
         · <a href="/faq">FAQ</a>
+        · <a href="/why">Why Spawn</a>
         · <a href="/">Home</a>
       </p>
     </aside>
