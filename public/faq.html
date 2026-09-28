@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="FAQ about Spawn — what it is, local vs cloud, early access, custom domains, secrets, and how publishing works." />
+  <meta name="description" content="Spawn FAQ — waitlist, private machine vs public URL, Go Live, custom domains, secrets, Build chat, and pricing." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="FAQ — Spawn" />
-  <meta property="og:description" content="Straight answers: what Spawn is, local vs cloud, early access, custom domains, and more." />
+  <meta property="og:description" content="Plain answers: waitlist, private machine, Go Live, domains, secrets, and how Spawn differs from chat-only builders." />
   <meta property="og:url" content="https://spawnapp.org/faq" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="FAQ — Spawn" />
-  <meta name="twitter:description" content="Straight answers: what Spawn is, local vs cloud, early access, custom domains, and more." />
+  <meta name="twitter:description" content="Plain answers: waitlist, private machine, Go Live, domains, secrets, and how Spawn differs from chat-only builders." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>FAQ — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/faq" />
@@ -50,6 +50,78 @@
     "@type": "Organization",
     "name": "Spawn",
     "url": "https://spawnapp.org"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Spawn?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Spawn is a private app builder that runs on your machine. You create a real app, run a local preview, change it in Build chat, then Go Live for a public HTTPS URL — with domains, secrets, and plugins in the same place."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Spawn local or cloud?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Building stays local. Your project files, preview, and secrets live on your machine until you choose to publish. Go Live puts a public site on the internet; the builder itself is not a browser-only sandbox that holds your code."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does early access work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Spawn is in private beta. Join the waitlist with your email on the early access page. We invite people in waves and email when it’s your turn — no spam, no pitch deck drip."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens when I Go Live?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Go Live publishes your app to a real public HTTPS URL. The same project you ran on localhost becomes a site you can share. You can keep iterating and republishing from Spawn."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use a custom domain?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. After Go Live you can attach your own hostname from inside Spawn — apex and www — without bouncing to a separate hosting console."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where do my code and secrets live?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Code stays on your machine until you publish. Secrets (API keys, env vars) are stored in Spawn’s Secrets and injected at run and deploy time — they don’t belong in your source tree."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is this different from chat-only builders?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Spawn edits real project files, shows the preview on your machine, and ships a public URL with domains and secrets included. It’s a builder loop — create → run → build → live — not a one-shot chat that dumps disposable code."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is there pricing yet?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Not publicly. Private beta first. Join early access and we’ll share plans when seats open — building in public on spawnapp.org."
+        }
+      }
+    ]
   }
   </script>
 </head>
@@ -90,109 +162,155 @@
   <main id="main" class="page-faq">
     <header class="faq-hero">
       <p class="kicker">FAQ</p>
-      <h1>Questions, answered plainly.</h1>
+      <h1>Straight answers. No pitch deck.</h1>
       <p class="lead">
-        What Spawn is, where it runs, how early access works, and what happens
-        when you put an app on the internet.
+        Waitlist, private machine vs public URL, Go Live, domains, secrets,
+        and how Spawn differs from chat-only builders.
       </p>
+      <ul class="product-proof faq-proof" aria-label="Topics covered">
+        <li>Waitlist</li>
+        <li>Privacy</li>
+        <li>Go Live</li>
+        <li>Domains</li>
+      </ul>
+      <nav class="faq-jump" aria-label="FAQ groups">
+        <a href="#basics">Basics</a>
+        <a href="#privacy">Privacy &amp; machine</a>
+        <a href="#shipping">Shipping</a>
+        <a href="#access-faq">Access</a>
+      </nav>
     </header>
 
-    <div class="faq-list">
-      <details class="faq-item" open>
-        <summary>What is Spawn?</summary>
-        <div class="faq-body">
-          <p>
-            Spawn is a private app builder that runs on your machine. You create a
-            real app, run a local preview, change it in Build chat, then Go Live
-            for a public HTTPS URL — with domains, secrets, and plugins in the same place.
-          </p>
-        </div>
-      </details>
+    <section class="faq-group" id="basics" aria-labelledby="faq-basics-h">
+      <h2 id="faq-basics-h" class="faq-group-title">Basics</h2>
+      <div class="faq-list">
+        <details class="faq-item" open>
+          <summary>What is Spawn?</summary>
+          <div class="faq-body">
+            <p>
+              A private app builder on your machine. Create a real app, run a
+              localhost preview, change it in Build chat, then Go Live for a
+              public HTTPS URL — with domains, secrets, and plugins in the same place.
+            </p>
+          </div>
+        </details>
 
-      <details class="faq-item">
-        <summary>Is Spawn local or cloud?</summary>
-        <div class="faq-body">
-          <p>
-            Building stays local. Your project files, preview, and secrets live on
-            your machine until you choose to publish. Go Live puts a public site on
-            the internet; the builder itself is not a browser-only sandbox that holds your code.
-          </p>
-        </div>
-      </details>
+        <details class="faq-item">
+          <summary>How is this different from chat-only builders?</summary>
+          <div class="faq-body">
+            <p>
+              Spawn edits real project files, shows the preview on your machine,
+              and ships a public URL with domains and secrets included. It’s a
+              builder loop — create → run → build → live — not a one-shot chat
+              that dumps disposable code. See <a href="/why">Why Spawn</a>.
+            </p>
+          </div>
+        </details>
 
-      <details class="faq-item">
-        <summary>How does early access work?</summary>
-        <div class="faq-body">
-          <p>
-            Spawn is in private beta. Join the waitlist with your email on the
-            <a href="/access">early access</a> page. We invite people in waves
-            and email when it’s your turn — no spam, no pitch deck drip.
-          </p>
-        </div>
-      </details>
+        <details class="faq-item">
+          <summary>What do I need to get started?</summary>
+          <div class="faq-body">
+            <p>
+              A machine that can run Spawn, and (when invited) a private beta
+              seat. Describe an app or open existing files, hit Run for a
+              localhost preview, then iterate in chat. No separate deploy dance
+              just to try a change. Walkthrough: <a href="/how">How it works</a>.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
 
-      <details class="faq-item">
-        <summary>Can I use a custom domain?</summary>
-        <div class="faq-body">
-          <p>
-            Yes. After Go Live you can attach your own hostname from inside Spawn —
-            apex and www — without bouncing to a separate hosting console. Domains
-            stay wired to the app you’re shipping.
-          </p>
-        </div>
-      </details>
+    <section class="faq-group" id="privacy" aria-labelledby="faq-privacy-h">
+      <h2 id="faq-privacy-h" class="faq-group-title">Privacy &amp; machine</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Is Spawn local or cloud?</summary>
+          <div class="faq-body">
+            <p>
+              Building stays local. Project files, preview, and secrets live on
+              your machine until you choose to publish. Go Live puts a public
+              site on the internet; the builder is not a browser-only sandbox
+              that holds your code.
+            </p>
+          </div>
+        </details>
 
-      <details class="faq-item">
-        <summary>Where do my code and secrets live?</summary>
-        <div class="faq-body">
-          <p>
-            Code stays on your machine until you publish. Secrets (API keys, env
-            vars) are stored in Spawn’s Secrets and injected at run and deploy time —
-            they don’t belong in your source tree. See
-            <a href="/privacy">Privacy</a> for how this site handles waitlist email.
-          </p>
-        </div>
-      </details>
+        <details class="faq-item">
+          <summary>Where do my code and secrets live?</summary>
+          <div class="faq-body">
+            <p>
+              Code stays on your machine until you publish. Secrets (API keys,
+              env vars) live in Spawn’s Secrets and inject at run and deploy —
+              not in your source tree. This site’s waitlist email handling is on
+              <a href="/privacy">Privacy</a>.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
 
-      <details class="faq-item">
-        <summary>What do I need to get started?</summary>
-        <div class="faq-body">
-          <p>
-            A machine that can run Spawn, and (when invited) access to the private
-            beta. You describe an app or open existing files, hit Run for a localhost
-            preview, then iterate in chat. No separate deploy dance just to try a change.
-          </p>
-        </div>
-      </details>
+    <section class="faq-group" id="shipping" aria-labelledby="faq-shipping-h">
+      <h2 id="faq-shipping-h" class="faq-group-title">Shipping</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>What happens when I Go Live?</summary>
+          <div class="faq-body">
+            <p>
+              Go Live publishes your app to a real public HTTPS URL. The same
+              project you ran on localhost becomes a site you can share. Keep
+              iterating and republishing from Spawn — v1 is not the finish.
+            </p>
+          </div>
+        </details>
 
-      <details class="faq-item">
-        <summary>How is this different from chat-only builders?</summary>
-        <div class="faq-body">
-          <p>
-            Spawn edits real project files, shows the preview on your machine, and
-            ships a public URL with domains and secrets included. It’s a builder loop —
-            create → run → build → live — not a one-shot chat that dumps disposable code.
-          </p>
-        </div>
-      </details>
+        <details class="faq-item">
+          <summary>Can I use a custom domain?</summary>
+          <div class="faq-body">
+            <p>
+              Yes. After Go Live, attach your own hostname from inside Spawn —
+              apex and www — without bouncing to a separate hosting console.
+              Domains stay wired to the app you’re shipping.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
 
-      <details class="faq-item">
-        <summary>Is there pricing yet?</summary>
-        <div class="faq-body">
-          <p>
-            Not publicly. Private beta first. Join early access and we’ll share plans
-            when seats open — building in public on spawnapp.org.
-          </p>
-        </div>
-      </details>
-    </div>
+    <section class="faq-group" id="access-faq" aria-labelledby="faq-access-h">
+      <h2 id="faq-access-h" class="faq-group-title">Access</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>How does early access / the waitlist work?</summary>
+          <div class="faq-body">
+            <p>
+              Spawn is in private beta. Join with your email on
+              <a href="/access">early access</a>. We invite in waves and email
+              when it’s your turn — no spam, no pitch-deck drip. Honest seat
+              counts; no fake waitlist theater.
+            </p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is there pricing yet?</summary>
+          <div class="faq-body">
+            <p>
+              Not publicly. Private beta first. Join early access and we’ll share
+              plans when seats open — building in public on spawnapp.org.
+            </p>
+          </div>
+        </details>
+      </div>
+    </section>
 
     <section class="faq-cta how-cta">
       <h2>Still deciding?</h2>
-      <p>See the product, walk through the loop, or join the waitlist.</p>
+      <p>Join the waitlist, or walk the Create → Run → Live loop.</p>
       <div class="product-hero-links product-cta-links">
         <a class="btn-solid" href="/access">Get early access</a>
-        <a class="link-quiet" href="/product">See the product</a>
+        <a class="link-quiet" href="/how">How it works</a>
+        <a class="link-quiet" href="/why">Why Spawn</a>
       </div>
     </section>
   </main>

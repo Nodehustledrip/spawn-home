@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Why Spawn exists: build on your machine, run it locally, and ship a real URL. Your code and secrets stay yours." />
+  <meta name="description" content="Why Spawn: a private app builder on your machine — real files, Build chat, and a public HTTPS URL with domains, secrets, and plugins in one place." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Why Spawn — Spawn" />
-  <meta property="og:description" content="Spawn exists so you build on your machine, run locally, and ship a real URL — code and secrets stay yours." />
+  <meta property="og:description" content="Why Spawn exists: private machine, real public URL, Build chat, and ship kit — not a throwaway cloud tab." />
   <meta property="og:url" content="https://spawnapp.org/why" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Why Spawn — Spawn" />
-  <meta name="twitter:description" content="Spawn exists so you build on your machine, run locally, and ship a real URL — code and secrets stay yours." />
+  <meta name="twitter:description" content="Why Spawn exists: private machine, real public URL, Build chat, and ship kit — not a throwaway cloud tab." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Why Spawn — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/why" />
@@ -50,6 +50,15 @@
     "@type": "Organization",
     "name": "Spawn",
     "url": "https://spawnapp.org"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Why Spawn",
+    "url": "https://spawnapp.org/why",
+    "description": "Why Spawn exists: build on your private machine, run locally, and ship a real public URL — with Build chat, domains, secrets, and plugins in one product."
   }
   </script>
 </head>
@@ -90,57 +99,128 @@
   <main id="main" class="page-why">
     <header class="why-hero">
       <p class="kicker">Why Spawn</p>
-      <h1>Build on your machine. Ship a real URL.</h1>
+      <h1>Because the app should live on your machine — then on the internet.</h1>
       <p class="lead">
-        Spawn exists so the app is yours — files on your computer, a local preview,
-        then a public link — and you keep evolving it after the first publish.
+        Spawn is a private app builder: real files on your computer, a localhost
+        preview, Build chat to change them, then Go Live for a public HTTPS URL.
+        Domains, secrets, and plugins stay in the same product.
       </p>
+      <ul class="product-proof why-proof" aria-label="What makes Spawn different">
+        <li>Private machine</li>
+        <li>Real public URL</li>
+        <li>Build chat</li>
+        <li>Ship kit included</li>
+      </ul>
       <div class="product-hero-links">
         <a class="btn-solid" href="/access">Get early access</a>
         <a class="link-quiet" href="/tour">Take the tour</a>
+        <a class="link-quiet" href="/product">See the product</a>
       </div>
+      <nav class="why-rail" aria-label="Why sections">
+        <a class="why-rail-step" href="#different"><span>01</span> Different</a>
+        <span class="why-rail-join" aria-hidden="true"></span>
+        <a class="why-rail-step" href="#principles"><span>02</span> Principles</a>
+        <span class="why-rail-join" aria-hidden="true"></span>
+        <a class="why-rail-step" href="#for"><span>03</span> Who it’s for</a>
+        <span class="why-rail-join" aria-hidden="true"></span>
+        <a class="why-rail-step" href="#next"><span>04</span> Next</a>
+      </nav>
     </header>
 
-    <ol class="why-principles">
-      <li class="why-card">
-        <span class="why-n" aria-hidden="true">01</span>
-        <h2>Build on your machine</h2>
-        <p class="why-contrast">Local-first, not cloud-only.</p>
-        <p>The project is files. Open them, read the diff, keep the repo. Nothing important lives only inside a browser tab.</p>
-      </li>
-      <li class="why-card">
-        <span class="why-n" aria-hidden="true">02</span>
-        <h2>Run it locally</h2>
-        <p class="why-contrast">The real process, not a mock.</p>
-        <p>Hit Run. The preview is localhost — the same app you’ll ship. Iterate until it feels right. Deploy stays optional.</p>
-      </li>
-      <li class="why-card">
-        <span class="why-n" aria-hidden="true">03</span>
-        <h2>Ship a real URL</h2>
-        <p class="why-contrast">On the internet, not a session.</p>
-        <p>Go Live publishes HTTPS. Attach your domain. Share a link that stays up — not a preview that vanishes when the tab closes.</p>
-      </li>
-      <li class="why-card">
-        <span class="why-n" aria-hidden="true">04</span>
-        <h2>Code and secrets stay yours</h2>
-        <p class="why-contrast">You own the machine.</p>
-        <p>Source stays local until you publish. Keys live in Secrets and are injected at run and deploy — not left in a workspace you don’t control.</p>
-      </li>
-      <li class="why-card">
-        <span class="why-n" aria-hidden="true">05</span>
-        <h2>Evolve continuously</h2>
-        <p class="why-contrast">v1 is not the finish.</p>
-        <p>Chat a change, re-run, republish. The same loop keeps moving after the first URL is live.</p>
-      </li>
-      <li class="why-card">
-        <span class="why-n" aria-hidden="true">06</span>
-        <h2>A premium bar, not a demo</h2>
-        <p class="why-contrast">Software you’d put your name on.</p>
-        <p>Structure, diffs, a live site. Spawn is for products you’d ship — not a throwaway mock.</p>
-      </li>
-    </ol>
+    <section class="why-diff" id="different" aria-labelledby="why-diff-h">
+      <div class="why-diff-head">
+        <h2 id="why-diff-h">What most builders leave out</h2>
+        <p>
+          Generic chat-to-app tools often stop at a temporary preview or a
+          disposable export. Spawn is built for the full loop — private work,
+          then a URL you’d put your name on.
+        </p>
+      </div>
+      <div class="why-diff-grid">
+        <article class="why-diff-card">
+          <span class="why-diff-tag">Machine</span>
+          <h3>Your computer, not a rented tab</h3>
+          <p>
+            Source, uncommitted work, and secrets stay on your machine until you
+            publish. Open the files, read the diff, keep the repo — nothing
+            important lives only inside a browser session.
+          </p>
+        </article>
+        <article class="why-diff-card">
+          <span class="why-diff-tag">URL</span>
+          <h3>A real public site</h3>
+          <p>
+            Go Live publishes HTTPS that stays up. Attach your domain. Share a
+            link that doesn’t vanish when the tab closes — the same app you
+            ran on localhost.
+          </p>
+        </article>
+        <article class="why-diff-card">
+          <span class="why-diff-tag">Chat</span>
+          <h3>Build chat on real files</h3>
+          <p>
+            Ask in English; Spawn edits the project, shows the diff, and
+            refreshes the preview. Iteration is the product — not a one-shot
+            dump of code you can’t keep evolving.
+          </p>
+        </article>
+        <article class="why-diff-card">
+          <span class="why-diff-tag">Ship kit</span>
+          <h3>Domains, secrets, plugins — here</h3>
+          <p>
+            Custom hostname, env injection, and extensions live inside Spawn.
+            You don’t bounce across hosting consoles just to finish shipping.
+          </p>
+        </article>
+      </div>
+    </section>
 
-    <section class="why-for" aria-labelledby="why-for-h">
+    <section class="why-principles-wrap" id="principles" aria-labelledby="why-principles-h">
+      <div class="why-section-head">
+        <h2 id="why-principles-h">Six principles</h2>
+        <p>The bar we build to — complementary to Product and How, not a second feature list.</p>
+      </div>
+      <ol class="why-principles">
+        <li class="why-card">
+          <span class="why-n" aria-hidden="true">01</span>
+          <h2>Build on your machine</h2>
+          <p class="why-contrast">Local-first, not cloud-only.</p>
+          <p>The project is files. Diff them, commit them, keep them. The builder doesn’t own your source.</p>
+        </li>
+        <li class="why-card">
+          <span class="why-n" aria-hidden="true">02</span>
+          <h2>Run it locally</h2>
+          <p class="why-contrast">The real process, not a mock.</p>
+          <p>Hit Run. Preview is localhost — the same app you’ll ship. Deploy stays optional until you’re ready.</p>
+        </li>
+        <li class="why-card">
+          <span class="why-n" aria-hidden="true">03</span>
+          <h2>Ship a real URL</h2>
+          <p class="why-contrast">On the internet, not a session.</p>
+          <p>Go Live publishes HTTPS. Point a custom domain. Share a link that stays live while you keep iterating.</p>
+        </li>
+        <li class="why-card">
+          <span class="why-n" aria-hidden="true">04</span>
+          <h2>Code and secrets stay yours</h2>
+          <p class="why-contrast">You own the machine.</p>
+          <p>Source stays local until you publish. Keys live in Secrets and inject at run and deploy — not in a workspace you don’t control.</p>
+        </li>
+        <li class="why-card">
+          <span class="why-n" aria-hidden="true">05</span>
+          <h2>Evolve continuously</h2>
+          <p class="why-contrast">v1 is not the finish.</p>
+          <p>Chat a change, re-run, republish. The same loop keeps moving after the first URL is live.</p>
+        </li>
+        <li class="why-card">
+          <span class="why-n" aria-hidden="true">06</span>
+          <h2>A premium bar, not a demo</h2>
+          <p class="why-contrast">Software you’d put your name on.</p>
+          <p>Structure, diffs, a live site. Spawn is for products you’d ship — not a throwaway mock.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="why-for" id="for" aria-labelledby="why-for-h">
       <h2 id="why-for-h">Who it’s for</h2>
       <ul class="why-for-grid">
         <li>
@@ -158,13 +238,31 @@
       </ul>
     </section>
 
+    <aside class="why-explore product-explore" id="next" aria-label="Go deeper">
+      <p class="product-explore-label">Not Product or How — go deeper</p>
+      <div class="product-explore-links">
+        <a class="product-explore-card" href="/tour">
+          <strong>Tour</strong>
+          <span>Walk Build → Run → Ship in the UI</span>
+        </a>
+        <a class="product-explore-card" href="/product">
+          <strong>Product</strong>
+          <span>Eight surfaces and the ship kit</span>
+        </a>
+        <a class="product-explore-card" href="/access">
+          <strong>Early access</strong>
+          <span>Join the private beta waitlist</span>
+        </a>
+      </div>
+    </aside>
+
     <section class="why-cta how-cta">
       <h2>See the loop, then get in</h2>
       <p>Private beta — invite-only. Tour the product, look at what ships, or join the list.</p>
       <div class="product-hero-links product-cta-links">
         <a class="btn-solid" href="/access">Get early access</a>
         <a class="link-quiet" href="/tour">Tour</a>
-        <a class="link-quiet" href="/showcase">Showcase</a>
+        <a class="link-quiet" href="/product">Product</a>
       </div>
     </section>
   </main>

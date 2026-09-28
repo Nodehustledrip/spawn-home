@@ -3474,21 +3474,63 @@ a.btn-solid:hover { color: var(--accent-ink); }
   padding: clamp(1.75rem, 4vw, 3rem) 1.15rem 3.5rem;
 }
 .faq-hero {
-  margin-bottom: 2rem;
+  margin-bottom: 2.25rem;
 }
 .faq-hero h1 {
   margin: 0 0 0.85rem;
-  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-size: clamp(1.85rem, 4.5vw, 2.55rem);
   font-weight: 650;
-  letter-spacing: -0.04em;
-  line-height: 1.15;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
 }
 .faq-hero .lead {
-  margin: 0;
-  font-size: 1rem;
+  margin: 0 0 1.15rem;
+  font-size: 1.02rem;
   line-height: 1.55;
   color: var(--muted);
-  max-width: 36rem;
+  max-width: 38rem;
+}
+.faq-proof {
+  margin-bottom: 1.15rem;
+}
+.faq-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.55rem;
+  margin-top: 0.25rem;
+}
+.faq-jump a {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.faq-jump a:hover {
+  color: var(--text);
+  border-color: rgba(212, 165, 116, 0.35);
+  background: rgba(212, 165, 116, 0.04);
+}
+
+.faq-group {
+  margin-bottom: 1.75rem;
+  scroll-margin-top: 5rem;
+}
+.faq-group-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.faq-group .faq-list {
+  margin-bottom: 0;
 }
 
 .faq-list {
@@ -3569,7 +3611,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .faq-body a:hover { color: #e0b584; }
 
 .faq-cta {
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 @media (min-width: 960px) {
@@ -5314,27 +5356,163 @@ a.btn-solid:hover { color: var(--accent-ink); }
   padding: clamp(1.75rem, 4vw, 3rem) 1.15rem 3.5rem;
 }
 .why-hero {
-  max-width: 38rem;
+  max-width: 42rem;
   margin-bottom: 2.75rem;
 }
 .why-hero h1 {
   margin: 0 0 0.85rem;
-  font-size: clamp(1.85rem, 4.5vw, 2.65rem);
+  font-size: clamp(1.95rem, 4.8vw, 2.75rem);
   font-weight: 650;
   letter-spacing: -0.045em;
-  line-height: 1.1;
+  line-height: 1.08;
 }
 .why-hero .lead {
-  margin: 0;
-  font-size: 1.02rem;
+  margin: 0 0 1.15rem;
+  font-size: 1.05rem;
   line-height: 1.55;
   color: var(--muted);
   max-width: 40rem;
 }
+.why-proof {
+  margin-bottom: 1.25rem;
+}
+.why-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1.65rem;
+  padding: 0.55rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+.why-rail-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.38rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.why-rail-step span {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.why-rail-step:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+.why-rail-join {
+  width: 0.55rem;
+  height: 1px;
+  background: var(--line-strong);
+  flex-shrink: 0;
+}
+
+.why-diff {
+  margin-bottom: 2.75rem;
+  scroll-margin-top: 5rem;
+}
+.why-diff-head {
+  max-width: 40rem;
+  margin-bottom: 1.25rem;
+}
+.why-diff-head h2 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.2rem, 2.5vw, 1.45rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+.why-diff-head p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.why-diff-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+@media (min-width: 700px) {
+  .why-diff-grid { grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+}
+.why-diff-card {
+  margin: 0;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: var(--inset);
+  transition:
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+.why-diff-card:hover {
+  border-color: rgba(212, 165, 116, 0.28);
+  background: rgba(212, 165, 116, 0.03);
+  transform: translateY(-1px);
+}
+.why-diff-tag {
+  display: inline-block;
+  margin-bottom: 0.55rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.why-diff-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.02rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+.why-diff-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.why-principles-wrap {
+  margin-bottom: 2.75rem;
+  scroll-margin-top: 5rem;
+}
+.why-section-head {
+  max-width: 40rem;
+  margin-bottom: 1.15rem;
+}
+.why-section-head h2 {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.15rem, 2.4vw, 1.35rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.why-section-head p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
 
 .why-principles {
   list-style: none;
-  margin: 0 0 2.75rem;
+  margin: 0;
   padding: 0;
   display: grid;
   gap: 0.75rem;
@@ -5384,7 +5562,8 @@ a.btn-solid:hover { color: var(--accent-ink); }
 }
 
 .why-for {
-  margin-bottom: 2.75rem;
+  margin-bottom: 2.5rem;
+  scroll-margin-top: 5rem;
 }
 .why-for h2 {
   margin: 0 0 1rem;
@@ -5424,6 +5603,9 @@ a.btn-solid:hover { color: var(--accent-ink); }
   color: var(--muted);
 }
 
+.why-explore {
+  scroll-margin-top: 5rem;
+}
 .why-cta { margin-top: 0.25rem; }
 
 /* ——— Premium feel: restrained motion & interaction ——— */
@@ -5523,7 +5705,8 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .product-explore-card,
 .sc-card,
 .feature-card,
-.why-card {
+.why-card,
+.why-diff-card {
   transition:
     border-color var(--dur) var(--ease),
     background var(--dur) var(--ease),
@@ -5722,6 +5905,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
   .sc-card:hover,
   .feature-card:hover,
   .why-card:hover,
+  .why-diff-card:hover,
   .tour-step:hover .tour-frame,
   .how-card:hover .hv-frame,
   .tour-get-grid li:hover,
