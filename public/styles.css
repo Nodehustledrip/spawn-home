@@ -2663,27 +2663,138 @@ a.btn-solid:hover { color: var(--accent-ink); }
 
 /* Trust line under palette — shown via ::after on panel? use HTML note */
 
-/* Privacy page reuse */
+/* ——— Privacy page (elevated disclosure) ——— */
 .page-privacy {
   position: relative;
   z-index: 1;
-  max-width: 36rem;
+  max-width: 720px;
   margin: 0 auto;
-  padding: clamp(2.5rem, 6vw, 4rem) 1.25rem;
+  padding: clamp(1.75rem, 4vw, 3rem) 1.15rem 3.5rem;
 }
-.privacy-card h1 {
-  margin: 0 0 1rem;
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+.privacy-hero {
+  margin-bottom: 2.25rem;
+}
+.privacy-hero h1 {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.85rem, 4.5vw, 2.55rem);
   font-weight: 650;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+.privacy-hero .lead {
+  margin: 0 0 1.15rem;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 38rem;
+}
+.privacy-proof {
+  margin-bottom: 1.15rem;
+}
+.privacy-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.55rem;
+  margin-top: 0.25rem;
+}
+.privacy-jump a {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.privacy-jump a:hover {
+  color: var(--text);
+  border-color: rgba(212, 165, 116, 0.35);
+  background: rgba(212, 165, 116, 0.04);
+}
+
+.privacy-section {
+  margin-bottom: 1.35rem;
+  scroll-margin-top: 5rem;
+}
+.privacy-section-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.privacy-card {
+  padding: 1.15rem 1.2rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: var(--inset);
 }
 .privacy-card p {
   color: var(--muted);
   line-height: 1.6;
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.85rem;
+  font-size: 0.92rem;
 }
-.privacy-card .btn-solid,
-.privacy-card .ghost-btn { margin-top: 1rem; }
+.privacy-card p:last-child {
+  margin-bottom: 0;
+}
+.privacy-card a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.privacy-card a:hover { color: #e0b584; }
+.privacy-card code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.78em;
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.privacy-dont-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.privacy-dont-list li {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--muted);
+  padding-left: 1.1rem;
+  position: relative;
+}
+.privacy-dont-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.7;
+}
+.privacy-dont-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.privacy-cta {
+  margin-top: 2rem;
+}
+.privacy-actions {
+  margin-top: 0;
+}
 
 .eyebrow {
   margin: 0 0 0.75rem;
@@ -5868,6 +5979,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .how-hero,
 .faq-hero,
 .why-hero,
+.privacy-hero,
 .changelog-hero,
 .nf-hero,
 .home-bridge,
@@ -5888,6 +6000,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
   .how-hero,
   .faq-hero,
   .why-hero,
+  .privacy-hero,
   .changelog-hero,
   .nf-hero,
   .home-bridge,

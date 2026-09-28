@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Privacy policy for Spawn — spawnapp.org" />
+  <meta name="description" content="Spawn privacy — waitlist email posts to our server and PostHog, site analytics via PostHog, error monitoring via Sentry. No data selling. Apps stay on your machine until you publish." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Privacy — Spawn" />
-  <meta property="og:description" content="Privacy policy for Spawn — what we collect on spawnapp.org and how we handle waitlist and analytics data." />
+  <meta property="og:description" content="Honest disclosure: waitlist email, PostHog analytics, Sentry errors. No selling your data. Apps stay on your machine until you publish." />
   <meta property="og:url" content="https://spawnapp.org/privacy" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Privacy — Spawn" />
-  <meta name="twitter:description" content="Privacy policy for Spawn — what we collect on spawnapp.org and how we handle waitlist and analytics data." />
+  <meta name="twitter:description" content="Honest disclosure: waitlist email, PostHog analytics, Sentry errors. No selling your data. Apps stay on your machine until you publish." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Privacy — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/privacy" />
@@ -44,6 +44,20 @@
   </style>
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Privacy — Spawn",
+    "description": "What Spawn collects on spawnapp.org: waitlist email, PostHog analytics, and Sentry error reports. No selling of data.",
+    "url": "https://spawnapp.org/privacy",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Spawn",
+      "url": "https://spawnapp.org"
+    }
+  }
+  </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -88,27 +102,141 @@
   </div>
 
   <main id="main" class="page-privacy">
-    <article class="privacy-card">
-      <p class="eyebrow">Legal</p>
-      <h1>Privacy</h1>
-      <p>
-        Spawn stores emails and contact details you submit for early access,
-        leads, or accounts on your host. When authentication is enabled, we use
-        an HttpOnly session cookie.
+    <header class="privacy-hero">
+      <p class="kicker">Privacy</p>
+      <h1>What we collect. What we don’t.</h1>
+      <p class="lead">
+        Plain disclosure for spawnapp.org — waitlist email, site analytics, and
+        error reports. No corporate theater. No selling your data.
       </p>
-      <p>
-        We do not sell your data. Access requests submitted on this site may be
-        stored locally in your browser until a server endpoint is connected.
-      </p>
-      <p>
-        Apps you build with Spawn stay on your machine until you choose to
-        publish. Secrets and domain settings you configure in Spawn are yours.
-      </p>
-      <div class="privacy-actions">
-        <a class="btn-solid" href="/">Back to home</a>
-        <a class="ghost-btn" href="/access">Early access</a>
+      <ul class="product-proof privacy-proof" aria-label="Privacy at a glance">
+        <li>No data selling</li>
+        <li>Invite email only</li>
+        <li>Apps stay local</li>
+        <li>Honest analytics</li>
+      </ul>
+      <nav class="privacy-jump" aria-label="Privacy sections">
+        <a href="#waitlist">Waitlist</a>
+        <a href="#analytics">Analytics</a>
+        <a href="#errors">Errors</a>
+        <a href="#apps">Your apps</a>
+        <a href="#cookies">Cookies</a>
+        <a href="#dont">What we don’t</a>
+      </nav>
+    </header>
+
+    <section class="privacy-section" id="waitlist" aria-labelledby="privacy-waitlist-h">
+      <h2 id="privacy-waitlist-h" class="privacy-section-title">Waitlist email</h2>
+      <div class="privacy-card">
+        <p>
+          When you join early access, your email is sent to
+          <code>POST /api/waitlist</code> on this site. The server saves it to a
+          local waitlist file (best-effort — ephemeral on free hosting) and
+          dual-writes a durable copy to PostHog as a
+          <code>waitlist_signup</code> event (distinct id = your email).
+        </p>
+        <p>
+          We use that address for invite / waitlist updates only — not a
+          newsletter drip, not a sales sequence. If you already signed up, a
+          duplicate submit is ignored.
+        </p>
       </div>
-    </article>
+    </section>
+
+    <section class="privacy-section" id="analytics" aria-labelledby="privacy-analytics-h">
+      <h2 id="privacy-analytics-h" class="privacy-section-title">Site analytics</h2>
+      <div class="privacy-card">
+        <p>
+          spawnapp.org uses <strong>PostHog</strong> (US cloud) for product
+          analytics: pageviews, pageleave, and custom
+          <code>spawnTrack</code> events. Person profiles are
+          <code>identified_only</code> — we don’t build rich profiles for
+          anonymous browsers by default.
+        </p>
+        <p>
+          Waitlist signup is also captured server-side so the list survives
+          redeploys. Analytics help us see what pages convert and what’s broken —
+          not to resell audiences.
+        </p>
+      </div>
+    </section>
+
+    <section class="privacy-section" id="errors" aria-labelledby="privacy-errors-h">
+      <h2 id="privacy-errors-h" class="privacy-section-title">Error monitoring</h2>
+      <div class="privacy-card">
+        <p>
+          We load the <strong>Sentry</strong> browser SDK (deferred until the
+          page is idle) in the production environment with a low traces sample
+          rate. That catches client-side errors so we can fix the site — not
+          track you across the web.
+        </p>
+      </div>
+    </section>
+
+    <section class="privacy-section" id="apps" aria-labelledby="privacy-apps-h">
+      <h2 id="privacy-apps-h" class="privacy-section-title">Your apps &amp; secrets</h2>
+      <div class="privacy-card">
+        <p>
+          Apps you build in Spawn stay on <strong>your machine</strong> until
+          you choose to publish. Secrets and domain settings you configure in
+          the builder are yours — they are not scraped from this marketing site.
+        </p>
+        <p>
+          This page covers spawnapp.org (the public marketing / waitlist site).
+          The builder’s local data stays local until you Go Live.
+        </p>
+      </div>
+    </section>
+
+    <section class="privacy-section" id="cookies" aria-labelledby="privacy-cookies-h">
+      <h2 id="privacy-cookies-h" class="privacy-section-title">Cookies</h2>
+      <div class="privacy-card">
+        <p>
+          PostHog may set analytics cookies so visits and events work reliably.
+          The waitlist itself is an email POST — this marketing site does not
+          use HttpOnly account-session cookies for waitlist signup.
+        </p>
+        <p>
+          If Spawn adds account auth on this site later, we’ll update this page
+          to describe those cookies honestly.
+        </p>
+      </div>
+    </section>
+
+    <section class="privacy-section" id="dont" aria-labelledby="privacy-dont-h">
+      <h2 id="privacy-dont-h" class="privacy-section-title">What we don’t do</h2>
+      <div class="privacy-card">
+        <ul class="privacy-dont-list">
+          <li>We do <strong>not</strong> sell your data.</li>
+          <li>We do <strong>not</strong> run a newsletter / pitch-deck drip off the waitlist.</li>
+          <li>We do <strong>not</strong> claim fake “compliance badges” or invent a legal entity for theater.</li>
+          <li>We do <strong>not</strong> hold your Spawn project files on this marketing host.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="privacy-section" id="contact" aria-labelledby="privacy-contact-h">
+      <h2 id="privacy-contact-h" class="privacy-section-title">Questions</h2>
+      <div class="privacy-card">
+        <p>
+          Privacy questions about this site or the waitlist: use
+          <a href="/access">early access</a> or the paths on the site — we’ll
+          respond through the same invite channel. For product privacy on your
+          machine, see the FAQ
+          <a href="/faq#privacy">Privacy &amp; machine</a> section.
+        </p>
+      </div>
+    </section>
+
+    <section class="privacy-cta how-cta" aria-labelledby="privacy-cta-h">
+      <h2 id="privacy-cta-h">Ready when you are</h2>
+      <p>Join the waitlist, or dig into FAQ privacy answers first.</p>
+      <div class="product-hero-links product-cta-links privacy-actions">
+        <a class="btn-solid" href="/access">Get early access</a>
+        <a class="link-quiet" href="/faq#privacy">FAQ — Privacy</a>
+        <a class="link-quiet" href="/">Home</a>
+      </div>
+    </section>
   </main>
 
   <footer class="foot">
@@ -122,7 +250,7 @@
       <a href="/faq">FAQ</a>
       <a href="/changelog">Changelog</a>
       <a href="/access">Early access</a>
-      <a href="/privacy">Privacy</a>
+      <a href="/privacy" aria-current="page">Privacy</a>
     </nav>
   </footer>
 
