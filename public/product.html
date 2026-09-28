@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn product: Create, Run, Build chat, Go Live, Domains, Secrets, Evolve, and local AI — a private app builder on your machine." />
+  <meta name="description" content="Spawn product: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — a private app builder on your machine that ships a public URL." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Product — Spawn" />
-  <meta property="og:description" content="What’s included in Spawn: Create, Run, Build chat, Go Live public URL, Domains, Secrets, Evolve, and local AI." />
+  <meta property="og:description" content="What’s in Spawn: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — private machine to public URL." />
   <meta property="og:url" content="https://spawnapp.org/product" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Product — Spawn" />
-  <meta name="twitter:description" content="What’s included in Spawn: Create, Run, Build chat, Go Live public URL, Domains, Secrets, Evolve, and local AI." />
+  <meta name="twitter:description" content="What’s in Spawn: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — private machine to public URL." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Product — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/product" />
@@ -46,9 +46,41 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Product — Spawn",
+    "description": "Spawn product surfaces: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — a private app builder that ships a public URL.",
+    "url": "https://spawnapp.org/product",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Spawn",
+      "url": "https://spawnapp.org"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Spawn",
     "url": "https://spawnapp.org"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Spawn",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS, Windows, Linux",
+    "description": "Private app builder on your machine — Create, Run, Build chat, Go Live with Domains, Secrets, Plugins, and Account.",
+    "url": "https://spawnapp.org/product",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/LimitedAvailability",
+      "description": "Private beta — invite only"
+    }
   }
   </script>
 </head>
@@ -89,49 +121,115 @@
   <main id="main" class="page-product">
     <header class="product-hero">
       <p class="kicker">Product</p>
-      <h1>What’s in Spawn</h1>
+      <h1>A private builder. Every surface to ship.</h1>
       <p class="lead">
-        A private app builder that runs on your machine. Real files, a live preview,
-        chat to change them, then a public URL — domains and secrets included.
+        Spawn is an app builder that runs on your machine — real files, live preview,
+        chat to change them — then a public URL when you’re ready. Domains, secrets,
+        plugins, and account stay inside the same product.
       </p>
+      <ul class="product-proof" aria-label="What Spawn is">
+        <li>Private machine</li>
+        <li>Public URL</li>
+        <li>Eight builder surfaces</li>
+        <li>Private beta</li>
+      </ul>
       <div class="product-hero-links">
         <a class="btn-solid" href="/access">Get early access</a>
-        <a class="link-quiet" href="/showcase">See what you can ship</a>
+        <a class="link-quiet" href="/tour">Walk the tour</a>
+        <a class="link-quiet" href="/how">How it works</a>
       </div>
+      <nav class="product-rail" aria-label="Builder surfaces">
+        <a class="product-rail-step" href="#create"><span>01</span> Create</a>
+        <span class="product-rail-join" aria-hidden="true"></span>
+        <a class="product-rail-step" href="#run"><span>02</span> Run</a>
+        <span class="product-rail-join" aria-hidden="true"></span>
+        <a class="product-rail-step" href="#build"><span>03</span> Build</a>
+        <span class="product-rail-join" aria-hidden="true"></span>
+        <a class="product-rail-step" href="#live"><span>04</span> Go Live</a>
+        <span class="product-rail-join" aria-hidden="true"></span>
+        <a class="product-rail-step" href="#ship-kit"><span>05</span> Ship kit</a>
+      </nav>
     </header>
+
+    <section class="product-bridge" aria-labelledby="bridge-heading">
+      <div class="product-bridge-copy">
+        <h2 id="bridge-heading">Private machine → public URL</h2>
+        <p>
+          Everything starts local. Source, secrets, and uncommitted work stay on
+          your machine until you press Go Live. Publishing puts a real HTTPS site
+          on the internet — your domain if you want one — without leaving Spawn.
+        </p>
+      </div>
+      <div class="product-bridge-flow" aria-hidden="true">
+        <div class="pbf-card pbf-private">
+          <span class="pbf-tag">Private</span>
+          <strong>localhost</strong>
+          <em>Files · preview · chat</em>
+        </div>
+        <span class="pbf-arrow" aria-hidden="true">→</span>
+        <div class="pbf-card pbf-public">
+          <span class="pbf-tag public">Public</span>
+          <strong>your-app.spawnapp.org</strong>
+          <em>HTTPS · domain · live</em>
+        </div>
+      </div>
+    </section>
 
     <section class="product-included" aria-labelledby="included-heading">
       <div class="product-section-head">
-        <h2 id="included-heading">Included</h2>
-        <p>Everything you need to go from idea to a live site without leaving the builder.</p>
+        <h2 id="included-heading">Builder surfaces</h2>
+        <p>
+          Eight capabilities in one product — feature-forward, not a walkthrough.
+          Jump any surface; Tour and How cover the loop.
+        </p>
       </div>
 
       <ul class="feature-grid">
-        <li class="feature-card">
+        <li class="feature-card" id="create">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">New project</span>
+            <span class="fc-badge">Create</span>
+          </div>
           <span class="feature-tag">Create</span>
-          <h3>Start an app</h3>
+          <h3>Start a real app</h3>
           <p>
-            Describe what you’re building or open files already on your machine.
-            Spawn scaffolds a real project — not a throwaway sandbox.
+            Describe what you’re building or open files already on disk.
+            Spawn scaffolds a project on your machine — not a throwaway sandbox.
           </p>
         </li>
-        <li class="feature-card">
+        <li class="feature-card" id="run">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">localhost:5173</span>
+            <span class="fc-badge fc-badge-ok">Running</span>
+          </div>
           <span class="feature-tag">Run</span>
           <h3>Local preview</h3>
           <p>
-            Hit Run and see the app live on localhost. You’re looking at the real
-            process on your machine — no deploy required to try a change.
+            Hit Run and see the app live on localhost. Same process you’ll ship —
+            no deploy required to try a change.
           </p>
         </li>
-        <li class="feature-card">
+        <li class="feature-card" id="build">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">Build · chat</span>
+            <span class="fc-badge">Diff</span>
+          </div>
           <span class="feature-tag">Build chat</span>
           <h3>Change it in English</h3>
           <p>
             Ask for a pricing table, auth flow, or layout fix. Spawn edits the files,
-            shows the diff, and refreshes the preview.
+            shows the diff, and refreshes the preview — with your keys, on your project.
           </p>
         </li>
-        <li class="feature-card">
+        <li class="feature-card" id="live">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">Go Live</span>
+            <span class="fc-badge fc-badge-live">Live</span>
+          </div>
           <span class="feature-tag">Go Live</span>
           <h3>Public URL</h3>
           <p>
@@ -139,7 +237,12 @@
             without switching tools to ship.
           </p>
         </li>
-        <li class="feature-card">
+        <li class="feature-card" id="domains">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">Domains</span>
+            <span class="fc-badge">Connected</span>
+          </div>
           <span class="feature-tag">Domains</span>
           <h3>Your hostname</h3>
           <p>
@@ -147,7 +250,12 @@
             your live app — no separate hosting console.
           </p>
         </li>
-        <li class="feature-card">
+        <li class="feature-card" id="secrets">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">Secrets</span>
+            <span class="fc-badge">Env</span>
+          </div>
           <span class="feature-tag">Secrets</span>
           <h3>Keys stay put</h3>
           <p>
@@ -155,61 +263,81 @@
             deploy time — they don’t live in your source tree.
           </p>
         </li>
-        <li class="feature-card">
-          <span class="feature-tag">Evolve</span>
-          <h3>Keep shipping</h3>
+        <li class="feature-card" id="plugins">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">Plugins</span>
+            <span class="fc-badge">Auth · DB</span>
+          </div>
+          <span class="feature-tag">Plugins</span>
+          <h3>Extend without leaving</h3>
           <p>
-            After Go Live, keep building. Chat in a change, re-run, republish.
-            The same loop — create → run → build → live — doesn’t stop at v1.
+            Wire auth, storage, email, and more from inside the builder.
+            Production pieces stay in one place — not a pile of side consoles.
           </p>
         </li>
-        <li class="feature-card">
-          <span class="feature-tag">Local AI</span>
-          <h3>On your machine</h3>
+        <li class="feature-card" id="account">
+          <div class="fc-chrome" aria-hidden="true">
+            <div class="fc-dots"><i></i><i></i><i></i></div>
+            <span class="fc-title">Account</span>
+            <span class="fc-badge">You</span>
+          </div>
+          <span class="feature-tag">Account</span>
+          <h3>Your seat, your machine</h3>
           <p>
-            Build chat and product help run with your keys, against your project.
-            Your code stays local until you choose to publish.
+            Sign in, manage invites, and keep builder settings with you.
+            Private beta seats land here first — honest invite waves, no fake wait counts.
           </p>
         </li>
       </ul>
     </section>
 
-    <section class="product-loop" aria-labelledby="loop-heading">
+    <section class="product-ship-kit" id="ship-kit" aria-labelledby="ship-kit-heading">
       <div class="product-section-head">
-        <h2 id="loop-heading">The loop</h2>
-        <p>One surface. Four moves. Ship without leaving Spawn.</p>
+        <h2 id="ship-kit-heading">Ship kit</h2>
+        <p>What Go Live unlocks — domains, secrets, and plugins as first-class surfaces, not afterthoughts.</p>
       </div>
-      <ol class="loop-rail">
-        <li>
-          <span class="loop-n" aria-hidden="true">01</span>
-          <strong>Create</strong>
-          <span>Scaffold or open files</span>
-        </li>
-        <li>
-          <span class="loop-n" aria-hidden="true">02</span>
-          <strong>Run</strong>
-          <span>Preview on localhost</span>
-        </li>
-        <li>
-          <span class="loop-n" aria-hidden="true">03</span>
-          <strong>Build</strong>
-          <span>Chat a change, see the diff</span>
-        </li>
-        <li>
-          <span class="loop-n" aria-hidden="true">04</span>
-          <strong>Go Live</strong>
-          <span>Public URL + domain + secrets</span>
-        </li>
-      </ol>
+      <div class="product-ship-grid">
+        <article class="product-ship-card">
+          <h3>Domains</h3>
+          <p>Point <span class="product-mono">app.yourdomain.com</span> at your live app from inside Spawn.</p>
+        </article>
+        <article class="product-ship-card">
+          <h3>Secrets</h3>
+          <p>Env vars injected at run and deploy — never checked into the repo.</p>
+        </article>
+        <article class="product-ship-card">
+          <h3>Plugins</h3>
+          <p>Auth, storage, email, and more without bouncing between dashboards.</p>
+        </article>
+      </div>
     </section>
+
+    <aside class="product-explore" aria-label="Go deeper">
+      <p class="product-explore-label">Not a second How or Tour</p>
+      <div class="product-explore-links">
+        <a class="product-explore-card" href="/tour">
+          <strong>Tour</strong>
+          <span>Walk Build → Run → Ship in the UI</span>
+        </a>
+        <a class="product-explore-card" href="/how">
+          <strong>How it works</strong>
+          <span>The loop and private vs public</span>
+        </a>
+        <a class="product-explore-card" href="/access">
+          <strong>Early access</strong>
+          <span>Join the private beta waitlist</span>
+        </a>
+      </div>
+    </aside>
 
     <section class="product-cta how-cta">
       <h2>Ready to try it?</h2>
-      <p>Private beta — building in public on spawnapp.org.</p>
+      <p>Private beta — invite waves, building in public on spawnapp.org.</p>
       <div class="product-hero-links product-cta-links">
         <a class="btn-solid" href="/access">Get early access</a>
-        <a class="link-quiet" href="/why">Why Spawn</a>
-        <a class="link-quiet" href="/how">How it works</a>
+        <a class="link-quiet" href="/tour">See the tour</a>
+        <a class="link-quiet" href="/showcase">Showcase</a>
       </div>
     </section>
   </main>
