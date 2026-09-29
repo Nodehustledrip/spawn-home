@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Join Spawn private beta — app builder on your machine. Create, preview, chat to change, publish a URL. Invite waves, building in public on spawnapp.org." />
+  <meta name="description" content="Join Spawn early access — private app builder on your machine. One email, invite waves, honest beta. Create, preview, chat to change, then ship a public URL." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Early access — Spawn" />
-  <meta property="og:description" content="Join the Spawn waitlist — private beta, invite waves. Build on your machine, ship a public URL." />
+  <meta property="og:description" content="Join Spawn early access — one email, invite waves, no spam. Private machine builder that ships a public URL." />
   <meta property="og:url" content="https://spawnapp.org/access" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Early access — Spawn" />
-  <meta name="twitter:description" content="Join the Spawn waitlist — private beta, invite waves. Build on your machine, ship a public URL." />
+  <meta name="twitter:description" content="Join Spawn early access — one email, invite waves, no spam. Private machine builder that ships a public URL." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Early access — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/access" />
@@ -49,7 +49,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "Early access — Spawn",
-    "description": "Join the Spawn private beta waitlist. Build apps on your machine, ship a public URL.",
+    "description": "Join Spawn early access. One email for invite waves. Private machine builder that ships a public URL.",
     "url": "https://spawnapp.org/access",
     "isPartOf": {
       "@type": "WebSite",
@@ -104,87 +104,128 @@
   <main id="main" class="page-access">
     <header class="access-hero">
       <p class="kicker">Private beta · Invite only</p>
-      <h1>Join early. Shape what ships.</h1>
+      <h1>One email. Real seats. No theater.</h1>
       <p class="lead">
-        Spawn is a private app builder — create on your machine, preview live,
-        chat to change, publish a public URL. We’re inviting in waves while we
-        build in public. Leave your email to get in line.
+        Spawn is a private app builder on your machine — create, preview live,
+        change it in Build chat, then Go Live for a public URL. We’re inviting
+        in waves while we build in public. Join the list; we’ll email when your
+        seat opens.
       </p>
-      <ul class="access-proof" aria-label="What Spawn stands for">
+      <ul class="access-proof" aria-label="What you can expect">
         <li>Private machine</li>
         <li>Public URL</li>
         <li>Invite waves</li>
         <li>No spam</li>
       </ul>
+      <nav class="access-rail" aria-label="Access sections">
+        <a class="access-rail-step" href="#join"><span>01</span> Join</a>
+        <span class="access-rail-join" aria-hidden="true"></span>
+        <a class="access-rail-step" href="#after"><span>02</span> After</a>
+        <span class="access-rail-join" aria-hidden="true"></span>
+        <a class="access-rail-step" href="#beta"><span>03</span> Beta</a>
+        <span class="access-rail-join" aria-hidden="true"></span>
+        <a class="access-rail-step" href="#explore"><span>04</span> Explore</a>
+      </nav>
     </header>
 
-    <section class="access-why-now" aria-labelledby="access-why-heading">
-      <h2 id="access-why-heading" class="access-section-title">Why join now</h2>
-      <p class="access-why-copy">
-        Early seats get the real builder first — not a watered-down demo.
-        Feedback from the waitlist shapes Create, Run, Build chat, and Go Live
-        before the wider open.
-      </p>
-    </section>
-
-    <section class="access-card" aria-labelledby="access-form-heading">
-      <h2 id="access-form-heading" class="access-card-title">Request early access</h2>
-      <p class="access-card-lead">One email. We’ll write when your invite is ready.</p>
-      <form class="access-form" data-access-form novalidate>
-        <div class="access-field">
-          <label class="access-label" for="email">Work email</label>
+    <section class="access-convert" id="join" aria-labelledby="access-form-heading">
+      <div class="access-card">
+        <h2 id="access-form-heading" class="access-card-title">Request early access</h2>
+        <p class="access-card-lead">One work email. We’ll write when your invite is ready — nothing else.</p>
+        <form class="access-form" data-access-form novalidate>
+          <div class="access-field">
+            <label class="access-label" for="email">Work email</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              autocomplete="email"
+              required
+              placeholder="you@company.com"
+              inputmode="email"
+              data-access-input
+              aria-describedby="access-hint access-trust"
+              aria-required="true"
+            />
+            <p class="access-hint" id="access-hint">Use the inbox you check for product updates.</p>
+          </div>
           <input
-            type="email"
-            name="email"
-            id="email"
-            autocomplete="email"
-            required
-            placeholder="you@company.com"
-            inputmode="email"
-            data-access-input
-            aria-describedby="access-hint access-trust"
-            aria-required="true"
+            type="text"
+            name="company"
+            class="hp-field"
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
           />
-          <p class="access-hint" id="access-hint">Use the inbox you check for product updates.</p>
-        </div>
-        <input
-          type="text"
-          name="company"
-          class="hp-field"
-          tabindex="-1"
-          autocomplete="off"
-          aria-hidden="true"
-        />
-        <button type="submit" class="btn-solid btn-wide" data-submit>
-          <span data-submit-label>Join waitlist</span>
-        </button>
-      </form>
-      <div class="form-note" data-form-note role="status" aria-live="polite"></div>
-      <p class="access-trust" id="access-trust">
-        Invite updates only — no newsletters, no sales drip.
-        <a href="/privacy">Privacy</a>
-      </p>
+          <button type="submit" class="btn-solid btn-wide" data-submit>
+            <span data-submit-label>Join waitlist</span>
+          </button>
+        </form>
+        <div class="form-note" data-form-note role="status" aria-live="polite"></div>
+        <p class="access-trust" id="access-trust">
+          Invite updates only — no newsletters, no sales drip.
+          <a href="/privacy">How we handle your email</a>
+        </p>
+      </div>
+
+      <aside class="access-next" id="after" aria-labelledby="access-after-heading">
+        <h2 id="access-after-heading" class="access-section-title">What happens next</h2>
+        <ol class="access-next-steps">
+          <li>
+            <span class="access-next-n" aria-hidden="true">1</span>
+            <div>
+              <strong>You’re on the list</strong>
+              <span>We save your email for invite waves — not a drip sequence.</span>
+            </div>
+          </li>
+          <li>
+            <span class="access-next-n" aria-hidden="true">2</span>
+            <div>
+              <strong>Invite when a seat opens</strong>
+              <span>Waves go out as the builder is ready. No fake “12,482 waiting” counters.</span>
+            </div>
+          </li>
+          <li>
+            <span class="access-next-n" aria-hidden="true">3</span>
+            <div>
+              <strong>Install Spawn on your machine</strong>
+              <span>Create → Run → Build chat → Go Live on your PC — apps stay local until you publish.</span>
+            </div>
+          </li>
+        </ol>
+        <p class="access-next-note">
+          Early seats shape Create, Run, Build chat, and Go Live before a wider open —
+          the real builder, not a watered-down demo.
+        </p>
+      </aside>
     </section>
 
-    <section class="access-perks" aria-labelledby="access-perks-heading">
-      <h2 id="access-perks-heading" class="access-section-title">What you get in beta</h2>
-      <ul class="access-perk-grid">
+    <section class="access-beta" id="beta" aria-labelledby="access-beta-heading">
+      <div class="access-section-head">
+        <h2 id="access-beta-heading">What beta actually is</h2>
+        <p>Honest expectations — so you know what you’re joining.</p>
+      </div>
+      <ul class="access-perk-grid access-beta-grid">
         <li>
-          <strong>Builder on your machine</strong>
-          <span>Apps stay local until you choose to publish — your files, your machine.</span>
+          <strong>On your machine</strong>
+          <span>Spawn runs locally. Your files, preview, and secrets stay on your computer until you choose to publish.</span>
         </li>
         <li>
           <strong>Create → change → ship</strong>
-          <span>Describe an app, chat to edit, preview live, Go Live with a real URL.</span>
+          <span>Describe an app, chat to edit, preview on localhost, then Go Live for a public HTTPS URL you can share.</span>
         </li>
         <li>
-          <strong>Domains, secrets, plugins</strong>
-          <span>Production pieces in one place — not a throwaway prototype toy.</span>
+          <strong>Ship kit inside</strong>
+          <span>Domains, secrets, and plugins live in the same product — not a throwaway prototype toy.</span>
+        </li>
+        <li>
+          <strong>Still evolving</strong>
+          <span>Private beta means edges get sharper with early feedback. We build in public on spawnapp.org — no vapor brochure.</span>
         </li>
       </ul>
     </section>
 
-    <aside class="access-explore" aria-label="Explore before joining">
+    <aside class="access-explore" id="explore" aria-label="Explore before joining">
       <p class="access-explore-label">See the product first</p>
       <div class="access-explore-links">
         <a class="access-explore-card" href="/tour">
@@ -199,11 +240,15 @@
           <strong>Showcase</strong>
           <span>Example apps you can ship</span>
         </a>
+        <a class="access-explore-card" href="/faq">
+          <strong>FAQ</strong>
+          <span>Waitlist, Go Live, domains, pricing</span>
+        </a>
       </div>
       <p class="access-alt">
         <a href="/product">Product</a>
-        · <a href="/faq">FAQ</a>
         · <a href="/why">Why Spawn</a>
+        · <a href="/privacy">Privacy</a>
         · <a href="/">Home</a>
       </p>
     </aside>

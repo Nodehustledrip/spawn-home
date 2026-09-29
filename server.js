@@ -150,6 +150,11 @@ app.use(function (req, res, next) {
   next();
 });
 
+/* Alias: /get-access → /access (common CTA wording) */
+app.get(["/get-access", "/get-access/"], function (_req, res) {
+  res.redirect(301, "/access");
+});
+
 CLEAN_PAGES.forEach(function (slug) {
   const file = path.join(PUBLIC_DIR, slug + ".html");
   app.get("/" + slug, function (_req, res) {

@@ -2221,12 +2221,68 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .page-access {
   position: relative;
   z-index: 1;
-  max-width: 640px;
+  max-width: 920px;
   margin: 0 auto;
   padding: clamp(1.75rem, 5vw, 3.25rem) 1.15rem 3.5rem;
 }
 .access-hero {
   margin-bottom: 1.75rem;
+  max-width: 40rem;
+}
+.access-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.15rem;
+  margin: 1.35rem 0 0;
+  padding: 0;
+}
+.access-rail-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.access-rail-step span {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--dim);
+}
+.access-rail-step:hover {
+  color: var(--text);
+  border-color: rgba(212, 165, 116, 0.35);
+  background: var(--accent-dim);
+}
+.access-rail-join {
+  width: 0.85rem;
+  height: 1px;
+  background: var(--line);
+  margin: 0 0.1rem;
+}
+@media (max-width: 520px) {
+  .access-rail-join { display: none; }
+}
+
+.access-convert {
+  display: grid;
+  gap: 1.15rem;
+  margin: 0 0 2.25rem;
+  align-items: start;
+}
+@media (min-width: 860px) {
+  .access-convert {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 1.35rem;
+  }
 }
 .access-hero h1 {
   margin: 0 0 0.9rem;
@@ -2267,31 +2323,14 @@ a.btn-solid:hover { color: var(--accent-ink); }
   background: var(--accent-dim);
 }
 
-.access-why-now {
-  margin: 0 0 1.5rem;
-  padding: 1rem 1.1rem;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.02);
-}
-.access-why-now .access-section-title {
-  margin-bottom: 0.45rem;
-}
-.access-why-copy {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--muted);
-  max-width: 40rem;
-}
-
 .access-card {
   padding: 1.35rem 1.25rem 1.2rem;
   border-radius: 14px;
   border: 1px solid var(--line-strong);
   background: var(--bg-elev);
   box-shadow: var(--inset), 0 20px 40px -24px rgba(0, 0, 0, 0.7);
-  margin-bottom: 2.15rem;
+  margin-bottom: 0;
+  height: 100%;
 }
 .access-card-title {
   margin: 0 0 0.35rem;
@@ -2399,6 +2438,101 @@ a.btn-solid:hover { color: var(--accent-ink); }
   text-underline-offset: 2px;
 }
 .access-trust a:hover { color: var(--accent); }
+
+.access-next {
+  padding: 1.25rem 1.2rem 1.15rem;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  height: 100%;
+}
+.access-next .access-section-title {
+  margin-bottom: 0.95rem;
+}
+.access-next-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.access-next-steps > li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.access-next-n {
+  flex-shrink: 0;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(212, 165, 116, 0.28);
+  margin-top: 0.05rem;
+}
+.access-next-steps strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+.access-next-steps span:not(.access-next-n) {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.access-next-note {
+  margin: 1.1rem 0 0;
+  padding-top: 0.95rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--dim);
+}
+
+.access-beta {
+  margin: 0 0 2.25rem;
+}
+.access-section-head {
+  margin-bottom: 1rem;
+}
+.access-section-head h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.access-section-head p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 36rem;
+}
+.access-beta-grid {
+  margin-bottom: 0 !important;
+}
+@media (min-width: 720px) {
+  .access-beta-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (min-width: 720px) {
+  .page-access .access-explore-links {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
 .access-section-title {
   margin: 0 0 0.85rem;
