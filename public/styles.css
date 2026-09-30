@@ -2151,6 +2151,17 @@ a.btn-solid:hover { color: var(--accent-ink); }
   font-size: 0.78em;
 }
 
+.how-ship-honest {
+  margin: 2.75rem 0 0;
+  padding-top: 0.25rem;
+}
+.how-ship-honest-grid {
+  margin-top: 1.25rem;
+}
+.how-ship-honest .how-boundary-head {
+  margin-bottom: 0;
+}
+
 .how-what {
   margin-bottom: 2.75rem;
   padding: 1.5rem 0 0;

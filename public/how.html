@@ -82,7 +82,7 @@
         "@type": "HowToStep",
         "position": 4,
         "name": "Publish a public URL",
-        "text": "Go Live puts your app on the internet with HTTPS. Custom domains, secrets, and plugins stay inside Spawn.",
+        "text": "Go Live opens a shareable public HTTPS URL from your machine (Ship → Open to the internet). Custom domains need DNS to your WAN IP plus router port-forward; keep the PC on for lasting traffic. Secrets and plugins stay inside Spawn.",
         "url": "https://spawnapp.org/how#live"
       }
     ]
@@ -308,20 +308,20 @@
             <div class="hv-body hv-ship">
               <div class="hv-live-card">
                 <em>Public URL</em>
-                <strong>https://your-app.spawnapp.org</strong>
+                <strong>https://… · copyable</strong>
                 <div class="hv-live-meta">
                   <span><i class="ok"></i> HTTPS</span>
-                  <span><i class="ok"></i> Deployed</span>
+                  <span><i class="ok"></i> From your machine</span>
                 </div>
                 <div class="hv-live-actions">
                   <span class="hv-btn primary">Open</span>
-                  <span class="hv-btn">Copy link</span>
+                  <span class="hv-btn">Copy / QR</span>
                   <span class="hv-btn">Domain</span>
                 </div>
               </div>
               <div class="hv-domain-row">
                 <span class="hv-mono">app.yourdomain.com</span>
-                <span class="hv-chip">Connected</span>
+                <span class="hv-chip">DNS + forward</span>
               </div>
             </div>
           </div>
@@ -330,12 +330,15 @@
           <span class="how-n" aria-hidden="true">04</span>
           <h2>Publish a public URL</h2>
           <p>
-            Go Live puts your app on the internet with a real HTTPS URL —
-            not a temporary preview link.
+            Go Live opens your app to the internet with a real HTTPS URL you can
+            copy or scan — from the same machine you built on. Fast path:
+            <strong>Ship → Open to the internet</strong>.
           </p>
           <p>
-            Custom domains, secrets, and plugins stay inside Spawn.
-            You don’t leave the builder to ship.
+            For a lasting custom domain, point DNS at your WAN IP and forward the
+            Forge port; keep the PC awake (Auto-start Public URL helps). Tunnel
+            links can refresh after reconnect — Reconnect keeps the saved URL current.
+            Secrets and plugins stay inside Spawn.
           </p>
         </div>
       </li>
@@ -360,12 +363,35 @@
           <h3><span class="how-bound-tag public">Public</span> Goes live when you ship</h3>
           <ul>
             <li>The built app behind your public URL</li>
-            <li>HTTPS on <span class="how-mono">*.spawnapp.org</span> or your domain</li>
-            <li>Only what you choose to deploy</li>
+            <li>Shareable public HTTPS from your machine</li>
+            <li>Optional custom domain (DNS + port-forward)</li>
+            <li>Only what you choose to publish</li>
             <li>Iterate afterward — Build chat still works</li>
           </ul>
         </div>
       </div>
+    </section>
+
+
+    <section class="how-ship-honest" aria-labelledby="how-ship-honest-title">
+      <div class="how-boundary-head">
+        <h2 id="how-ship-honest-title">How public actually works</h2>
+        <p>Same product — precise about the internet path so beta expectations stay honest.</p>
+      </div>
+      <ul class="what-grid how-ship-honest-grid">
+        <li>
+          <strong>Share now</strong>
+          <span>Ship → Open to the internet → copyable HTTPS URL and phone QR. No separate host console.</span>
+        </li>
+        <li>
+          <strong>Lasting domain</strong>
+          <span>A-record to your WAN IP + router port-forward for the Forge port. Spawn shows the steps.</span>
+        </li>
+        <li>
+          <strong>Machine stays on</strong>
+          <span>Traffic from this path needs your PC (and Spawn) running. Tunnel URLs can refresh after reconnect.</span>
+        </li>
+      </ul>
     </section>
 
     <section class="how-what">
@@ -376,12 +402,12 @@
           <span>Runs on your machine — code and secrets don’t leave until you publish.</span>
         </li>
         <li>
-          <strong>A live site or app</strong>
-          <span>A real public URL with HTTPS, not a temporary preview link.</span>
+          <strong>A live public HTTPS link</strong>
+          <span>Shareable from your machine via Open to the internet — copy or QR.</span>
         </li>
         <li>
           <strong>Domains, secrets, plugins</strong>
-          <span>Wire your domain, API keys, and plugins without leaving Spawn.</span>
+          <span>Wire hostname, API keys, and plugins inside Spawn — lasting domains need DNS + port-forward.</span>
         </li>
       </ul>
     </section>

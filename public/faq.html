@@ -86,7 +86,7 @@
         "name": "What happens when I Go Live?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Go Live publishes your app to a real public HTTPS URL. The same project you ran on localhost becomes a site you can share. You can keep iterating and republishing from Spawn."
+          "text": "Go Live opens a shareable public HTTPS URL from your machine — typically Ship → Open to the internet, then copy the link or scan the QR. The same project you ran on localhost becomes a site you can share. Keep iterating from Spawn. Tunnel URLs can refresh after reconnect; Reconnect / Auto-start keeps the saved URL current."
         }
       },
       {
@@ -94,7 +94,7 @@
         "name": "Can I use a custom domain?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. After Go Live you can attach your own hostname from inside Spawn — apex and www — without bouncing to a separate hosting console."
+          "text": "Yes. Attach your hostname from inside Spawn. For lasting traffic, point DNS (A-record) at your public WAN IP and forward the Forge port on your router — Spawn shows the target IP and steps. Your PC needs to stay on for that path."
         }
       },
       {
@@ -111,6 +111,14 @@
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Spawn edits real project files, shows the preview on your machine, and ships a public URL with domains and secrets included. It’s a builder loop — create → run → build → live — not a one-shot chat that dumps disposable code."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does my computer need to stay on for a public URL?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes for lasting traffic on the current path — Spawn publishes from your machine. Keep the PC awake (Start with Windows helps) and optionally enable Auto-start Public URL. Tunnel links work without router port-forward; custom domains need DNS plus port-forward."
         }
       },
       {
@@ -257,9 +265,11 @@
           <summary>What happens when I Go Live?</summary>
           <div class="faq-body">
             <p>
-              Go Live publishes your app to a real public HTTPS URL. The same
-              project you ran on localhost becomes a site you can share. Keep
-              iterating and republishing from Spawn — v1 is not the finish.
+              Go Live opens a shareable public HTTPS URL from your machine.
+              Fast path: <strong>Ship → Open to the internet</strong>, then copy
+              the link or scan the QR. Same project you ran on localhost — keep
+              iterating from Spawn. Tunnel URLs can refresh after reconnect;
+              Reconnect / Auto-start keeps the saved URL current.
             </p>
           </div>
         </details>
@@ -268,9 +278,24 @@
           <summary>Can I use a custom domain?</summary>
           <div class="faq-body">
             <p>
-              Yes. After Go Live, attach your own hostname from inside Spawn —
-              apex and www — without bouncing to a separate hosting console.
-              Domains stay wired to the app you’re shipping.
+              Yes. Attach your hostname from inside Spawn — no separate hosting
+              console. For lasting traffic, point DNS (A/@) at your public WAN IP
+              and forward the Forge port on your router; Spawn shows the target IP
+              and verify steps. Tunnel links work without port-forward when you
+              just need a shareable HTTPS URL now.
+            </p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Does my computer need to stay on?</summary>
+          <div class="faq-body">
+            <p>
+              Yes for lasting traffic on this path — Spawn publishes from your
+              machine. Keep the PC awake (Start with Windows helps) and optionally
+              enable Auto-start Public URL so the tunnel comes back after reboot.
+              This is honest private-machine shipping, not a rented always-on host
+              pretending to be local.
             </p>
           </div>
         </details>

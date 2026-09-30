@@ -292,7 +292,7 @@
         setStatus("is-busy", "Publishing");
         setTimeout(function () {
           published = true;
-          if (liveUrl) liveUrl.textContent = "https://your-app.spawnapp.org";
+          if (liveUrl) liveUrl.textContent = "https://… · copyable";
           if (urlBadge) {
             urlBadge.textContent = "Live";
             urlBadge.classList.add("is-live");
