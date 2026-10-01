@@ -5864,6 +5864,13 @@ a.btn-solid:hover { color: var(--accent-ink); }
 }
 .why-cta { margin-top: 0.25rem; }
 
+.why-ship-honest {
+  margin: 0 auto 2.75rem;
+  max-width: 52rem;
+  padding: 0 1.25rem;
+}
+
+
 /* ——— Premium feel: restrained motion & interaction ——— */
 :root {
   --dur: 180ms;
