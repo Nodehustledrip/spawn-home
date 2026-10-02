@@ -101,7 +101,7 @@
     var CAPTIONS = {
       home: "Home — your app files and a live preview on your machine.",
       build: "Example: ask Spawn to add pricing — it edits the file.",
-      live: "Go Live — your public URL, domains, secrets, and plugins in one place."
+      live: "Go Live — Ship → Open to the internet; lasting domains need DNS + port-forward; PC stays on."
     };
 
     var PROMPT = "Add a pricing table with three tiers and a monthly toggle.";
@@ -288,17 +288,17 @@
       goLiveBtn.addEventListener("click", function () {
         goLiveBtn.disabled = true;
         var label = goLiveBtn.textContent;
-        goLiveBtn.textContent = "Publishing…";
-        setStatus("is-busy", "Publishing");
+        goLiveBtn.textContent = "Opening…";
+        setStatus("is-busy", "Opening");
         setTimeout(function () {
           published = true;
-          if (liveUrl) liveUrl.textContent = "https://… · copyable";
+          if (liveUrl) liveUrl.textContent = "Copy link · scan QR";
           if (urlBadge) {
             urlBadge.textContent = "Live";
             urlBadge.classList.add("is-live");
           }
           if (liveHint) {
-            liveHint.textContent = "Live on the internet — without leaving Spawn.";
+            liveHint.textContent = "Shareable HTTPS from this machine — tunnel can refresh; PC stays on for lasting traffic.";
             liveHint.classList.add("is-done");
           }
           goLiveBtn.textContent = "Live";

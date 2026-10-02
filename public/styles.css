@@ -1009,6 +1009,10 @@ a.btn-solid:hover { color: var(--accent-ink); }
   font-size: 0.72rem;
   color: var(--dim);
   text-align: center;
+  line-height: 1.45;
+  max-width: 42ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 .live-hint.is-done { color: var(--ok); }
 
@@ -2161,6 +2165,17 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .how-ship-honest .how-boundary-head {
   margin-bottom: 0;
 }
+
+/* Home reuses how-ship-honest between bridge and explore */
+.home-ship-honest {
+  padding: 0.5rem 1.25rem 1.75rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+@media (max-width: 720px) {
+  .home-ship-honest { padding: 0.35rem 1rem 1.35rem; }
+}
+
 
 .how-what {
   margin-bottom: 2.75rem;
