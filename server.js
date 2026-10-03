@@ -285,6 +285,18 @@ app.use(function (req, res, next) {
   res.status(404).sendFile(file);
 });
 
+/* JSON API errors (malformed body, too large) → JSON, not Express' HTML error page */
+app.use(function (err, req, res, next) {
+  if (!err) return next();
+  if (res.headersSent) return next(err);
+  const status = err.status || err.statusCode || 500;
+  if (req.path && req.path.indexOf("/api/") === 0) {
+    const msg = status === 413 ? "Request too large." : status < 500 ? "Invalid request." : "Server error.";
+    return res.status(status >= 400 && status < 600 ? status : 500).json({ ok: false, error: msg });
+  }
+  return next(err);
+});
+
 app.listen(PORT, "0.0.0.0", () =>
   console.log("Spawn Home listening on " + PORT)
 );
