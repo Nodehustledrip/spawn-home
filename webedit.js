@@ -6,6 +6,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const webfree = require("./webfree");
 
 const ACCENTS = {
   teal: "#5eead4",
@@ -44,7 +45,11 @@ function exists(root, rel) {
 function insertBeforeFooter(html, block) {
   const markers = ["<footer", "</footer>", "</main>", "</body>"];
   for (const m of markers) {
-    const idx = html.lastIndexOf(m);
+    let idx = html.lastIndexOf(m);
+    if (idx !== -1 && m === "<footer") {
+      while (idx > 0 && /[ \t]/.test(html[idx - 1])) idx--;
+      return html.slice(0, idx) + block + "\n\n" + html.slice(idx);
+    }
     if (idx !== -1) {
       if (m.startsWith("</")) {
         return html.slice(0, idx) + "\n" + block + "\n" + html.slice(idx);
@@ -200,7 +205,7 @@ function ctaBanner(text) {
 }
 
 function ensureOnce(html, key, block, changes, file) {
-  if (html.includes('data-forge="' + key + '"')) {
+  if (html.includes('data-forge="' + key + '"') || html.includes('id="' + key + '"')) {
     changes.push({ action: "skip", detail: key + " already present" });
     return { html: html, dirty: false };
   }
@@ -254,12 +259,14 @@ function applyEdit(projectRoot, message, opts) {
   let htmlDirty = false;
   let cssDirty = false;
 
-  // Rename / title
+  // Rename / title (skip 'rename "A" to "B"' — that is a text swap handled by webfree)
+  const quoteCount = webfree.quotes(msg).length;
   let titleMatch =
-    lower.match(/(?:rename(?:\s+app)?|change title|set title|title to|call it|rename to)\s+["']?([^"'\n.]+)["']?/i) ||
-    msg.match(/(?:rename|change title|set title)\s+["']([^"']+)["']/i);
+    quoteCount < 2 &&
+    msg.match(/\b(?:rename(?:\s+(?:the\s+)?(?:app|site|project|brand|it))?(?:\s+to)?|change (?:the )?(?:title|name|brand(?: name)?)(?:\s+to)?|set (?:the )?(?:title|name)(?:\s+to)?|call it|name it)\s+["'“]?([^"'”\n.,;]+)["'”]?/i);
+  if (titleMatch && /^(to|the|it)$/i.test(titleMatch[1].trim())) titleMatch = null;
   if (titleMatch) {
-    const title = titleMatch[1].trim().slice(0, 80);
+    const title = titleMatch[1].trim().replace(/\s+(?:and|then)\b.*$/i, "").slice(0, 80);
     html = replaceTitle(html, title);
     htmlDirty = true;
     changes.push({ action: "edit", file: indexPath, detail: "Updated title to " + title });
@@ -275,91 +282,33 @@ function applyEdit(projectRoot, message, opts) {
     } catch (_) {}
   }
 
-  // Accent / theme color
-  const wantsThemeToggle = /theme.?toggle|dark\/?light/.test(lower);
-  if (!wantsThemeToggle && /theme|colors?|palette|recolor|make it (teal|violet|amber|mint|slate|purple|green|orange|blue)/.test(lower)) {
-    let hex = null;
-    let name = null;
-    for (const [k, v] of Object.entries(ACCENTS)) {
-      if (new RegExp("\\b" + k + "\\b").test(lower)) {
-        hex = v;
-        name = k;
-        break;
+  // Section inserts (per clause, so "remove pricing and add FAQ" does the right thing).
+  // Colors, CTA text, and hero copy are handled by webfree (freeform offline rules).
+  webfree.clauses(msg).forEach(function (clause) {
+    const lc = webfree.stripPlacement(clause.toLowerCase());
+    if (/\b(remove|delete|drop|hide|move|put|place|get rid of|take out|reorder)\b/.test(lc)) return;
+    function add(key, block) {
+      if (html.includes('data-forge="' + key + '"') || html.includes('id="' + key + '"')) {
+        changes.push({ action: "skip", detail: key + " already present" });
+        return;
       }
-    }
-    const hexMatch = msg.match(/#([0-9a-fA-F]{6})\b/);
-    if (hexMatch) {
-      hex = "#" + hexMatch[1];
-      name = hex;
-    }
-    if (!hex) {
-      hex = ACCENTS.teal;
-      name = "teal";
-    }
-    if (css) {
-      css = setAccent(css, hex);
-      cssDirty = true;
-      changes.push({ action: "edit", file: cssPath, detail: "Accent → " + name + " (" + hex + ")" });
-    }
-  }
-
-  // Section inserts
-  if (/pricing|price plan|pricing section|pricing table|add pricing/.test(lower) && !/pricing page/.test(lower)) {
-    const r = ensureOnce(html, "pricing", pricingSection(), changes, indexPath);
-    html = r.html;
-    htmlDirty = htmlDirty || r.dirty;
-  }
-  if (/\bfaq\b|frequently asked|add faq/.test(lower)) {
-    const r = ensureOnce(html, "faq", faqSection(), changes, indexPath);
-    html = r.html;
-    htmlDirty = htmlDirty || r.dirty;
-  }
-  if (/testimonial|reviews? section|social proof|add reviews/.test(lower)) {
-    const r = ensureOnce(html, "testimonials", testimonialsSection(), changes, indexPath);
-    html = r.html;
-    htmlDirty = htmlDirty || r.dirty;
-  }
-  if (/add features?|features? (?:section|grid)|feature (?:grid|cards)/.test(lower)) {
-    const r = ensureOnce(html, "features", featuresSection(), changes, indexPath);
-    html = r.html;
-    htmlDirty = htmlDirty || r.dirty;
-  }
-  if (/stats?(?:\/counters?)?|counters? row|traction|add (?:stats|counters)/.test(lower)) {
-    const r = ensureOnce(html, "stats", statsSection(), changes, indexPath);
-    html = r.html;
-    htmlDirty = htmlDirty || r.dirty;
-  }
-  if (/contact (form|section)|add contact|lead form|lead capture|signup form/.test(lower)) {
-    const r = ensureOnce(html, "contact", contactSection(), changes, indexPath);
-    html = r.html;
-    htmlDirty = htmlDirty || r.dirty;
-  }
-  if (/\bcta\b|call to action|get started banner|add (?:a )?cta/.test(lower) && !/swap cta|change cta|cta to|button (?:to|say)/.test(lower)) {
-    const m = msg.match(/(?:cta|banner)[:\s]+["']?([^"'\n]+)["']?/i);
-    const r = ensureOnce(html, "cta", ctaBanner(m ? m[1].trim() : "Get started today"), changes, indexPath);
-    html = r.html;
-    htmlDirty = htmlDirty || r.dirty;
-  }
-  if (/swap cta|change cta|cta (?:to|text)|button (?:to|say|says)/.test(lower)) {
-    const m =
-      msg.match(/(?:cta|button|action)\s*(?:to|text|:)?\s*["']([^"']+)["']/i) ||
-      msg.match(/(?:says?|to)\s+["']([^"']+)["']/i);
-    const label = m ? m[1].trim() : "Get started";
-    html = swapCta(html, label);
-    htmlDirty = true;
-    changes.push({ action: "edit", file: indexPath, detail: "Swapped CTA to '" + label + "'" });
-  }
-
-  // Hero subtitle tweak
-  const subMatch = msg.match(/(?:subtitle|tagline|hero (?:text|sub(?:title)?))\s*(?:to|:)\s*["']([^"']+)["']/i);
-  if (subMatch) {
-    const sub = escapeHtml(subMatch[1].trim().slice(0, 200));
-    if (/<section class="hero"[\s\S]*?<p>/.test(html)) {
-      html = html.replace(/(<section class="hero"[\s\S]*?<p>)([\s\S]*?)(<\/p>)/i, "$1" + sub + "$3");
+      html = webfree.placeBlock(html, block.replace(/^\s+/, "    "), clause);
       htmlDirty = true;
-      changes.push({ action: "edit", file: indexPath, detail: "Updated hero subtitle" });
+      changes.push({ action: "insert", file: indexPath, detail: "Added " + key });
     }
-  }
+    if (/\b(pricing|price plans?|pricing table)\b/.test(lc) && !/pricing page/.test(lc)) add("pricing", pricingSection());
+    if (/\bfaqs?\b|frequently asked/.test(lc)) add("faq", faqSection());
+    if (/testimonial|reviews? section|social proof|add reviews|customer reviews/.test(lc)) add("testimonials", testimonialsSection());
+    if (/add (?:a |some )?features?|features? (?:section|grid)|feature (?:grid|cards)/.test(lc)) add("features", featuresSection());
+    if (/\bstats\b|\bstat (?:row|section)\b|counters? row|\btraction\b|add (?:stats|counters)/.test(lc)) add("stats", statsSection());
+    if (/contact (form|section)|add (?:a )?contact|lead form|lead capture|signup form/.test(lc)) add("contact", contactSection());
+    if (/\bcta\b|call to action|get started banner/.test(lc) && /\b(add|insert|include|create|banner|section)\b/.test(lc) && !/\b(swap|change|set|rename|update)\b|\bcta (?:to|text)\b|button (?:to|say)/.test(lc)) {
+      const m = clause.match(/(?:cta|banner)[:\s]+["']?([^"'\n]+)["']?/i);
+      let label = m ? m[1].trim() : "Get started today";
+      if (/^(banner|section|block)$/i.test(label)) label = "Get started today";
+      add("cta", ctaBanner(label));
+    }
+  });
 
   // About page (extra file)
   if (/add (?:an? )?about page|create (?:an? )?about page|need (?:an? )?about page/.test(lower)) {
@@ -420,16 +369,42 @@ function applyEdit(projectRoot, message, opts) {
     htmlDirty = htmlDirty || r.dirty;
   }
 
+  // Freeform offline edits (copy, sections, layout, colors) — free, no API credits
+  let meta = null;
+  try {
+    meta = JSON.parse(readText(projectRoot, "forge.json"));
+  } catch (_) {}
+  const ctx = {
+    html: html,
+    css: css,
+    msg: msg,
+    meta: meta,
+    changes: changes,
+    skip: function (clause) {
+      return (
+        /landing polish|starter polish|polish (?:the )?landing|offline polish|robots|sitemap|about page|^(?:rename|call it|name it|change (?:the )?(?:title|name)|set (?:the )?(?:title|name))\b/i.test(clause) &&
+        webfree.quotes(clause).length < 2
+      );
+    },
+  };
+  webfree.applyFreeform(ctx);
+  html = ctx.html;
+  css = ctx.css;
+  htmlDirty = htmlDirty || !!ctx.htmlDirty;
+  cssDirty = cssDirty || !!ctx.cssDirty;
+
   if (htmlDirty) writeText(projectRoot, indexPath, html);
   if (cssDirty) writeText(projectRoot, cssPath, css);
 
   try {
     if (exists(projectRoot, "forge.json")) {
-      const meta = JSON.parse(readText(projectRoot, "forge.json"));
-      meta.updatedAt = new Date().toISOString();
-      writeText(projectRoot, "forge.json", JSON.stringify(meta, null, 2) + "\n");
+      const m2 = JSON.parse(readText(projectRoot, "forge.json"));
+      m2.updatedAt = new Date().toISOString();
+      if (ctx.meta && ctx.meta.topic) m2.topic = ctx.meta.topic;
+      writeText(projectRoot, "forge.json", JSON.stringify(m2, null, 2) + "\n");
     }
   } catch (_) {}
+  const notes = (ctx.notes || []).join(" ");
 
   const real = changes.filter(function (c) {
     return c.action !== "skip";
@@ -438,8 +413,9 @@ function applyEdit(projectRoot, message, opts) {
     return {
       ok: true,
       mode: "offline",
-      reply:
-        'No matching edit yet. Try: "add FAQ", "add pricing", "make it violet", "rename to Acme", "add features", "add testimonials", "landing polish", "add about page", "swap CTA to Start free".',
+      reply: notes
+        ? notes
+        : "Free Build didn't recognize that one yet. Try plain asks like: “rewrite the hero for a coffee shop”, “make the copy more playful”, “add a team section”, “add a section about our mission”, “remove pricing”, “move FAQ above pricing”, “change 'Get started' to 'Join free'”, “make it rose”, “center the hero”, “use Poppins font”, “3 columns”, “make it look more modern”, or “undo”.",
       changes: [],
     };
   }
@@ -447,7 +423,7 @@ function applyEdit(projectRoot, message, opts) {
     return {
       ok: true,
       mode: "offline",
-      reply: "Already in place. Try another edit, or open Spawn desktop for fuller Build chat.",
+      reply: (notes ? notes + " " : "") + "Already in place — try another edit (or say “undo”).",
       changes: changes,
     };
   }
@@ -461,9 +437,9 @@ function applyEdit(projectRoot, message, opts) {
   return {
     ok: true,
     mode: "offline",
-    reply: "Applied: " + summary,
+    reply: "Applied: " + summary + (notes ? " — " + notes : ""),
     changes: changes,
   };
 }
 
-module.exports = { applyEdit, ACCENTS };
+module.exports = { applyEdit, ACCENTS, COLORS: webfree.COLORS };

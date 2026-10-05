@@ -12,6 +12,7 @@ const express = require("express");
 const webgen = require("./webgen");
 const webedit = require("./webedit");
 const buildai = require("./buildai");
+const history = require("./buildhistory");
 
 const BUILDS_DIR = process.env.BUILDS_DIR || path.join(__dirname, "data", "builds");
 const INDEX_FILE = path.join(BUILDS_DIR, "_sessions.json");
@@ -176,7 +177,14 @@ function mount(app) {
 
   app.get("/api/builds/ai-status", function (_req, res) {
     res.setHeader("Cache-Control", "no-store");
-    res.json(buildai.status());
+    buildai
+      .status()
+      .then(function (s) {
+        res.json(s);
+      })
+      .catch(function () {
+        res.json({ ok: true, configured: false, mode: "offline", free: true, label: "Free Build (offline)" });
+      });
   });
 
   app.get("/api/builds", function (req, res) {
@@ -301,13 +309,26 @@ function mount(app) {
     const message = String((req.body && (req.body.message || req.body.text)) || "").trim();
     if (!message) return res.status(400).json({ ok: false, error: "Message required" });
     if (message.length > 2000) return res.status(400).json({ ok: false, error: "Message too long" });
-    /* Prefer the model when configured; body.ai === false forces offline rules. */
+    /* Prefer a model when one is usable (paid with credits, or free Groq/OpenRouter);
+     * body.ai === false forces offline rules. Offline rules are always free. */
     const wantAi = !(req.body && req.body.ai === false) && buildai.isConfigured();
     if (editing.has(id)) {
       return res.status(409).json({ ok: false, error: "An edit is already running for this build — one moment." });
     }
     editing.add(id);
     (async function () {
+      if (/^\s*(undo|revert|go back|undo (?:that|last(?: change| edit)?))\s*[.!]?\s*$/i.test(message)) {
+        const restored = history.restore(root);
+        return res.json({
+          ok: true,
+          reply: restored ? "Undid the last edit." : "Nothing to undo yet.",
+          changes: restored ? [{ action: "undo", detail: "Restored previous version" }] : [],
+          mode: "offline",
+          previewPath: "/preview/" + id + "/",
+          build: summarizeBuild(id),
+        });
+      }
+      history.snapshot(root);
       let ai = null;
       if (wantAi) {
         try {
@@ -326,18 +347,18 @@ function mount(app) {
           return c.action !== "skip";
         });
         if (ai && !real.length && ai.reply) out.reply = ai.reply;
-        else if (ai && ai.reason === "model_error") {
-          out.reply = (out.reply || "") + " (AI Build is unavailable right now — used offline rules.)";
-        } else if (ai && ai.reason === "rate_limited") {
-          out.reply = (out.reply || "") + " (AI Build is busy — used offline rules. Try again in a minute.)";
+        else if (ai && ai.reason === "rate_limited") {
+          out.reply = (out.reply || "") + " (Cloud model is busy — used free offline rules.)";
         }
         out.mode = "offline";
         if (ai) out.aiFallback = ai.reason;
+        if (!real.length) history.discard(root);
       }
       dualWriteBuild("build_edited", {
         sessionId: sid,
         id: id,
         mode: out.mode || "offline",
+        provider: out.provider || null,
         aiFallback: out.aiFallback || null,
         changeCount: (out.changes || []).length,
       });
@@ -346,6 +367,7 @@ function mount(app) {
         reply: out.reply,
         changes: out.changes || [],
         mode: out.mode || "offline",
+        provider: out.provider || undefined,
         aiFallback: out.aiFallback || undefined,
         previewPath: "/preview/" + id + "/",
         build: summarizeBuild(id),

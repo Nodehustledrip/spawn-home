@@ -264,7 +264,7 @@
           appendChat("build", (res.data && res.data.error) || "Edit failed.");
           return;
         }
-        appendChat("build", (res.data.mode === "ai" ? "✦ " : "") + (res.data.reply || "Done."));
+        appendChat("build", (res.data.mode === "ai" || res.data.mode === "free-cloud" ? "✦ " : "") + (res.data.reply || "Done."));
         var path = res.data.previewPath || "/preview/" + state.activeId + "/";
         showPreview(path);
         if (res.data.build) {
@@ -303,21 +303,32 @@
         return r.json();
       })
       .then(function (data) {
-        state.aiReady = !!(data && data.configured);
+        data = data || {};
+        var mode = data.mode || (data.configured ? "ai" : "offline");
+        state.aiReady = !!data.configured;
+        state.buildMode = mode;
         var badge = $("[data-ai-badge]");
         if (badge) {
-          badge.hidden = !state.aiReady;
-          badge.textContent = data && data.degraded ? "AI Build (fallback)" : "AI Build ready";
-          badge.classList.toggle("is-degraded", !!(data && data.degraded));
-          if (state.aiReady && data.model) badge.title = "Edits powered by " + data.model;
+          badge.hidden = false;
+          badge.textContent = data.label || (mode === "ai" ? "AI Build ready" : "Free Build (offline)");
+          badge.classList.toggle("is-free", mode !== "ai");
+          badge.classList.toggle("is-degraded", !!data.degraded);
+          badge.title =
+            mode === "ai"
+              ? "Edits powered by " + (data.model || "AI") + " — falls back to free offline rules"
+              : mode === "free-cloud"
+              ? "Free cloud model (" + (data.model || "free tier") + ") — no API credits needed; offline rules as backup"
+              : "Free offline rules on this server — no API credits needed";
         }
         var hint = $("[data-chat-hint]");
-        if (hint && state.aiReady) {
-          hint.textContent =
-            "AI Build ready — describe any change in plain words (sections, copy, layout, style). Falls back to offline rules if AI is unavailable.";
+        if (hint && mode !== "offline") {
+          hint.innerHTML =
+            "<strong>" +
+            (mode === "ai" ? "AI Build ready." : "Free Build — no API credits needed.") +
+            "</strong> Describe any change in plain words (sections, copy, layout, style). Falls back to free offline rules if the model is unavailable. Say “undo” to revert.";
         }
         var input = $("[data-chat-input]");
-        if (input && state.aiReady) {
+        if (input && mode !== "offline") {
           input.placeholder = "Describe a change — e.g. “add a team section with 3 founders”";
         }
       })

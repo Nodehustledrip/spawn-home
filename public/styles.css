@@ -6463,3 +6463,4 @@ a.btn-solid:hover { color: var(--accent-ink); }
 }
 .build-ai-badge[hidden] { display: none; }
 .build-ai-badge.is-degraded { color: #e0b050; background: rgba(224, 176, 80, 0.15); }
+.build-ai-badge.is-free { color: #7dd3a8; background: rgba(125, 211, 168, 0.14); }

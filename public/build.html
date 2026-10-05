@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Build an app in the browser on Spawn — pick a template, preview live, edit with Build chat. Lasting public URL still needs Spawn desktop." />
+  <meta name="description" content="Build an app in the browser on Spawn — pick a template, preview live, edit in plain words. Free Build, no API credits needed. Lasting public URL still needs Spawn desktop." />
   <meta name="theme-color" content="#0a0a0b" />
   <meta name="robots" content="index,follow" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -96,7 +96,7 @@
       <div class="build-side-head">
         <p class="kicker">On-site Build</p>
         <h1>Build an app</h1>
-        <p class="build-lead">Name it, pick a template, preview live, then change it in chat. Same starter templates as Spawn desktop.</p>
+        <p class="build-lead">Name it, pick a template, preview live, then change it in plain words. Same starter templates as Spawn desktop. Free Build — no API credits needed.</p>
       </div>
 
       <div class="build-limits" role="note">
@@ -142,7 +142,7 @@
           <span class="dot" data-preview-dot></span>
           <span data-preview-label>Preview</span>
           <span class="build-stage-path mono" data-preview-path></span>
-          <span class="build-ai-badge" data-ai-badge hidden>AI Build ready</span>
+          <span class="build-ai-badge is-free" data-ai-badge title="Edits run free on this server — no API credits needed">Free Build</span>
         </div>
         <div class="build-stage-actions">
           <button type="button" class="build-icon-btn" data-refresh title="Refresh preview" aria-label="Refresh preview">↻</button>
@@ -162,10 +162,10 @@
         <div class="build-chat-log" data-chat-log aria-live="polite"></div>
         <form class="build-chat-form" data-chat-form>
           <label class="sr-only" for="build-chat-input">Build message</label>
-          <input id="build-chat-input" type="text" maxlength="2000" placeholder='Try: “add FAQ”, “make it violet”, “rename to Acme”' data-chat-input autocomplete="off" />
+          <input id="build-chat-input" type="text" maxlength="2000" placeholder='Try: “rewrite the hero for a bakery”, “add a team section”, “make it rose”' data-chat-input autocomplete="off" />
           <button type="submit" class="btn-solid" data-chat-submit>Apply</button>
         </form>
-        <p class="build-chat-hint" data-chat-hint>Offline rules edit files when no Build AI key is on this server — same idea as Spawn desktop heuristics.</p>
+        <p class="build-chat-hint" data-chat-hint><strong>Free Build — no API credits needed.</strong> Describe changes in plain words: “rewrite the hero for a coffee shop”, “make the copy more playful”, “add a section about our mission”, “move FAQ above pricing”, “change 'Get started' to 'Join free'”, “center the hero”, “use Poppins font”. Say “undo” to revert.</p>
       </div>
     </section>
   </main>
