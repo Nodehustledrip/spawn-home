@@ -297,6 +297,45 @@ app.use(function (err, req, res, next) {
   return next(err);
 });
 
-app.listen(PORT, "0.0.0.0", () =>
-  console.log("Spawn Home listening on " + PORT)
-);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Spawn Home listening on " + PORT);
+  startKeepAlive();
+});
+
+/*
+ * Keep-warm: free Render instances sleep after ~15 min with no inbound traffic,
+ * which made a stranger's first visit to spawnapp.org wait 10-50s on a cold start.
+ * Ping our own public URL every ~10 min so the first paint stays instant.
+ * Only runs on Render (RENDER_EXTERNAL_URL is set there) unless KEEPALIVE_URL
+ * is given; KEEPALIVE=off disables it. One service = ~744h/mo, inside the 750h free quota.
+ */
+function startKeepAlive() {
+  if (String(process.env.KEEPALIVE || "").toLowerCase() === "off") return;
+  const base = process.env.KEEPALIVE_URL || process.env.RENDER_EXTERNAL_URL;
+  if (!base) return;
+  let target;
+  try {
+    target = new URL("/api/health?keepalive=1", base);
+  } catch (_) {
+    console.warn("[keepalive] bad url", base);
+    return;
+  }
+  const lib = target.protocol === "http:" ? require("http") : require("https");
+  const INTERVAL_MS = 10 * 60 * 1000;
+  function ping() {
+    const req = lib.get(
+      target,
+      { timeout: 15000, headers: { "user-agent": "spawn-home-keepalive" } },
+      function (res) {
+        res.resume();
+        if (res.statusCode !== 200) console.warn("[keepalive] status", res.statusCode);
+      }
+    );
+    req.on("timeout", function () { req.destroy(new Error("timeout")); });
+    req.on("error", function (err) { console.warn("[keepalive] failed", err && err.message); });
+  }
+  const timer = setInterval(ping, INTERVAL_MS);
+  if (timer.unref) timer.unref();
+  setTimeout(ping, 60 * 1000).unref();
+  console.log("[keepalive] warming " + target.origin + " every 10 min");
+}
