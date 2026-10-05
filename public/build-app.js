@@ -264,7 +264,7 @@
           appendChat("build", (res.data && res.data.error) || "Edit failed.");
           return;
         }
-        appendChat("build", res.data.reply || "Done.");
+        appendChat("build", (res.data.mode === "ai" ? "✦ " : "") + (res.data.reply || "Done."));
         var path = res.data.previewPath || "/preview/" + state.activeId + "/";
         showPreview(path);
         if (res.data.build) {
@@ -297,7 +297,35 @@
     }
   }
 
+  function loadAiStatus() {
+    return fetch("/api/builds/ai-status", { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        state.aiReady = !!(data && data.configured);
+        var badge = $("[data-ai-badge]");
+        if (badge) {
+          badge.hidden = !state.aiReady;
+          badge.textContent = data && data.degraded ? "AI Build (fallback)" : "AI Build ready";
+          badge.classList.toggle("is-degraded", !!(data && data.degraded));
+          if (state.aiReady && data.model) badge.title = "Edits powered by " + data.model;
+        }
+        var hint = $("[data-chat-hint]");
+        if (hint && state.aiReady) {
+          hint.textContent =
+            "AI Build ready — describe any change in plain words (sections, copy, layout, style). Falls back to offline rules if AI is unavailable.";
+        }
+        var input = $("[data-chat-input]");
+        if (input && state.aiReady) {
+          input.placeholder = "Describe a change — e.g. “add a team section with 3 founders”";
+        }
+      })
+      .catch(function () {});
+  }
+
   function init() {
+    loadAiStatus();
     bind();
     renderTemplates();
     loadTemplates();

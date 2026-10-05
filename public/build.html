@@ -142,6 +142,7 @@
           <span class="dot" data-preview-dot></span>
           <span data-preview-label>Preview</span>
           <span class="build-stage-path mono" data-preview-path></span>
+          <span class="build-ai-badge" data-ai-badge hidden>AI Build ready</span>
         </div>
         <div class="build-stage-actions">
           <button type="button" class="build-icon-btn" data-refresh title="Refresh preview" aria-label="Refresh preview">↻</button>
@@ -164,7 +165,7 @@
           <input id="build-chat-input" type="text" maxlength="2000" placeholder='Try: “add FAQ”, “make it violet”, “rename to Acme”' data-chat-input autocomplete="off" />
           <button type="submit" class="btn-solid" data-chat-submit>Apply</button>
         </form>
-        <p class="build-chat-hint">Offline rules edit files when no Build AI key is on this server — same idea as Spawn desktop heuristics.</p>
+        <p class="build-chat-hint" data-chat-hint>Offline rules edit files when no Build AI key is on this server — same idea as Spawn desktop heuristics.</p>
       </div>
     </section>
   </main>

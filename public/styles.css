@@ -6447,3 +6447,19 @@ a.btn-solid:hover { color: var(--accent-ink); }
   .build-stage { min-height: 520px; }
   .build-preview { min-height: 320px; }
 }
+
+/* Build AI status badge */
+.build-ai-badge {
+  margin-left: 0.5rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ok, #34d399);
+  background: var(--ok-dim, rgba(52, 211, 153, 0.15));
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.build-ai-badge[hidden] { display: none; }
+.build-ai-badge.is-degraded { color: #e0b050; background: rgba(224, 176, 80, 0.15); }

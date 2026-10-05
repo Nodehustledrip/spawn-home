@@ -11,6 +11,7 @@ const crypto = require("crypto");
 const express = require("express");
 const webgen = require("./webgen");
 const webedit = require("./webedit");
+const buildai = require("./buildai");
 
 const BUILDS_DIR = process.env.BUILDS_DIR || path.join(__dirname, "data", "builds");
 const INDEX_FILE = path.join(BUILDS_DIR, "_sessions.json");
@@ -24,6 +25,7 @@ const POSTHOG_HOST = process.env.POSTHOG_HOST || "https://us.i.posthog.com";
 
 const RATE = { windowMs: 60 * 1000, max: 20 };
 const rateBuckets = new Map();
+const editing = new Set();
 
 function ensureDir() {
   try {
@@ -172,6 +174,11 @@ function mount(app) {
     res.json({ ok: true, templates: webgen.listTemplates() });
   });
 
+  app.get("/api/builds/ai-status", function (_req, res) {
+    res.setHeader("Cache-Control", "no-store");
+    res.json(buildai.status());
+  });
+
   app.get("/api/builds", function (req, res) {
     const sid = getOrCreateSession(req, res);
     const map = readSessions();
@@ -292,20 +299,46 @@ function mount(app) {
       return res.status(403).json({ ok: false, error: "This build belongs to another session" });
     }
     const message = String((req.body && (req.body.message || req.body.text)) || "").trim();
-    try {
-      // Optional AI path if AI_API_KEY is set and body.ai === true — still fall back offline
-      const useAi = !!(req.body && req.body.ai) && !!String(process.env.AI_API_KEY || "").trim();
-      let out = webedit.applyEdit(root, message);
-      if (useAi && (!out.changes || !out.changes.filter(function (c) { return c.action !== "skip"; }).length)) {
-        // Keep honest: AI site chat refuses code edits; web Build stays on offline rules.
-        out.reply =
-          (out.reply || "") +
-          " (AI key is present for product help only — Build edits use offline rules on this site.)";
+    if (!message) return res.status(400).json({ ok: false, error: "Message required" });
+    if (message.length > 2000) return res.status(400).json({ ok: false, error: "Message too long" });
+    /* Prefer the model when configured; body.ai === false forces offline rules. */
+    const wantAi = !(req.body && req.body.ai === false) && buildai.isConfigured();
+    if (editing.has(id)) {
+      return res.status(409).json({ ok: false, error: "An edit is already running for this build — one moment." });
+    }
+    editing.add(id);
+    (async function () {
+      let ai = null;
+      if (wantAi) {
+        try {
+          ai = await buildai.applyAiEdit(root, message, ip);
+        } catch (err) {
+          console.error("[builds] ai edit crashed:", (err && err.message) || "error");
+          ai = { ok: false, reason: "crash" };
+        }
+      }
+      let out;
+      if (ai && ai.ok) {
+        out = ai;
+      } else {
+        out = webedit.applyEdit(root, message);
+        const real = (out.changes || []).filter(function (c) {
+          return c.action !== "skip";
+        });
+        if (ai && !real.length && ai.reply) out.reply = ai.reply;
+        else if (ai && ai.reason === "model_error") {
+          out.reply = (out.reply || "") + " (AI Build is unavailable right now — used offline rules.)";
+        } else if (ai && ai.reason === "rate_limited") {
+          out.reply = (out.reply || "") + " (AI Build is busy — used offline rules. Try again in a minute.)";
+        }
+        out.mode = "offline";
+        if (ai) out.aiFallback = ai.reason;
       }
       dualWriteBuild("build_edited", {
         sessionId: sid,
         id: id,
         mode: out.mode || "offline",
+        aiFallback: out.aiFallback || null,
         changeCount: (out.changes || []).length,
       });
       return res.json({
@@ -313,13 +346,16 @@ function mount(app) {
         reply: out.reply,
         changes: out.changes || [],
         mode: out.mode || "offline",
+        aiFallback: out.aiFallback || undefined,
         previewPath: "/preview/" + id + "/",
         build: summarizeBuild(id),
       });
-    } catch (err) {
+    })().catch(function (err) {
       const status = err.status || 500;
-      return res.status(status).json({ ok: false, error: err.message || "Edit failed" });
-    }
+      if (!res.headersSent) res.status(status).json({ ok: false, error: err.message || "Edit failed" });
+    }).finally(function () {
+      editing.delete(id);
+    });
   });
 
   /* Demo lead endpoint used by generated preview forms (absolute /api/lead) */
