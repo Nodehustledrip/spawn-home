@@ -194,7 +194,7 @@ ai.mount(app);
 builds.mount(app);
 
 app.get("/api/health", (_req, res) =>
-  res.json({ ok: true, app: "Spawn Home", waitlist: true, builds: true })
+  res.json({ ok: true, app: "Spawn Home", waitlist: true, builds: true, buildStorage: builds.store.mode() })
 );
 
 app.get("/api/waitlist", function (req, res) {

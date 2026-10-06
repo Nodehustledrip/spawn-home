@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Build an app in the browser on Spawn — pick a template, preview live, edit in plain words. Free Build, no API credits needed. Lasting public URL still needs Spawn desktop." />
+  <meta name="description" content="Build an app in the browser on Spawn — pick a template, preview live, edit in plain words, download a zip. Free Build, no API credits needed. Lasting public URL still needs Spawn desktop." />
   <meta name="theme-color" content="#0a0a0b" />
   <meta name="robots" content="index,follow" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -43,8 +43,8 @@
       background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
     }
   </style>
-  <link rel="preload" href="/styles.css" as="style" />
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/styles.css?v=20261006" as="style" />
+  <link rel="stylesheet" href="/styles.css?v=20261006" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -96,12 +96,12 @@
       <div class="build-side-head">
         <p class="kicker">On-site Build</p>
         <h1>Build an app</h1>
-        <p class="build-lead">Name it, pick a template, preview live, then change it in plain words. Same starter templates as Spawn desktop. Free Build — no API credits needed.</p>
+        <p class="build-lead">Name it, pick a template, preview live, then change it in plain words. Same starter templates as Spawn desktop. Your builds are saved — come back any time or download a zip. Free Build — no API credits needed.</p>
       </div>
 
       <div class="build-limits" role="note">
         <strong>Honest limits</strong>
-        <p>This page is create + edit + preview. A lasting public URL or custom domain still needs Spawn desktop — Ship → Open to the internet. We do not invent fake <span class="mono">*.spawnapp.org</span> app URLs.</p>
+        <p>This page is create, edit, preview, and download. Your builds are saved on Spawn and listed under My builds in this browser. A lasting public URL or custom domain still needs Spawn desktop — Ship → Open to the internet. We do not invent fake <span class="mono">*.spawnapp.org</span> app URLs.</p>
         <p><a href="/access">Get a desktop invite</a> when you want Go Live.</p>
       </div>
 
@@ -129,8 +129,11 @@
       </section>
 
       <section class="build-panel" data-list-panel>
-        <h2 class="build-h2">Your builds</h2>
-        <p class="build-muted">Saved for this browser session. Ephemeral on free hosting — export from desktop for lasting copies.</p>
+        <div class="build-panel-head">
+          <h2 class="build-h2">My builds</h2>
+          <span class="build-count mono" data-build-count hidden></span>
+        </div>
+        <p class="build-muted">Saved on Spawn and tied to this browser — reopen, keep editing, or download any time.</p>
         <ul class="build-list" data-build-list></ul>
         <p class="build-empty" data-build-empty hidden>No builds yet — create one above.</p>
       </section>
@@ -145,6 +148,11 @@
           <span class="build-ai-badge is-free" data-ai-badge title="Edits run free on this server — no API credits needed">Free Build</span>
         </div>
         <div class="build-stage-actions">
+          <span class="build-saved" data-saved hidden>Saved</span>
+          <button type="button" class="build-dl-btn" data-download title="Download a static zip that opens from your computer" hidden>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5v7.25M4.75 6.75 8 10l3.25-3.25M3 12.75h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-download-label>Download zip</span>
+          </button>
           <button type="button" class="build-icon-btn" data-refresh title="Refresh preview" aria-label="Refresh preview">↻</button>
           <a class="build-icon-btn" data-open-tab href="#" target="_blank" rel="noopener" title="Open preview" aria-label="Open preview" hidden>↗</a>
         </div>
@@ -186,6 +194,6 @@
 
   <script src="/analytics.js" defer></script>
   <script src="/app.js" defer></script>
-  <script src="/build-app.js" defer></script>
+  <script src="/build-app.js?v=20261006" defer></script>
 </body>
 </html>

@@ -16,6 +16,73 @@
     activeId: null,
   };
 
+  /* Owner token: random, kept in this browser only; the server stores a hash and
+   * returns just the builds made with it ("My builds"). */
+  var OWNER_KEY = "spawn-build-owner";
+  var LAST_KEY = "spawn-build-last";
+  var memOwner = null;
+  function randomToken() {
+    var bytes = new Uint8Array(24);
+    (window.crypto || window.msCrypto).getRandomValues(bytes);
+    var s = "";
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function ownerToken() {
+    if (memOwner) return memOwner;
+    try {
+      var t = localStorage.getItem(OWNER_KEY);
+      if (!t || !/^[A-Za-z0-9_-]{24,64}$/.test(t)) {
+        t = randomToken();
+        localStorage.setItem(OWNER_KEY, t);
+      }
+      memOwner = t;
+    } catch (_) {
+      memOwner = memOwner || randomToken();
+    }
+    return memOwner;
+  }
+  function store(key, val) {
+    try {
+      if (val == null) localStorage.removeItem(key);
+      else localStorage.setItem(key, val);
+    } catch (_) {}
+  }
+  function recall(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (_) {
+      return null;
+    }
+  }
+  function api(url, opts) {
+    opts = opts || {};
+    var headers = Object.assign({ "X-Build-Owner": ownerToken() }, opts.headers || {});
+    return fetch(url, Object.assign({ credentials: "same-origin" }, opts, { headers: headers }));
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return "";
+    var t = new Date(iso).getTime();
+    if (!t) return "";
+    var s = Math.max(0, Math.round((Date.now() - t) / 1000));
+    if (s < 45) return "just now";
+    var m = Math.round(s / 60);
+    if (m < 60) return m + "m ago";
+    var h = Math.round(m / 60);
+    if (h < 24) return h + "h ago";
+    var d = Math.round(h / 24);
+    if (d < 30) return d + "d ago";
+    return new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+
+  function templateName(id) {
+    var t = state.templates.filter(function (x) {
+      return x.id === id;
+    })[0];
+    return (t && t.name) || id || "";
+  }
+
   function $(sel, root) {
     return (root || document).querySelector(sel);
   }
@@ -66,25 +133,151 @@
   function renderList() {
     var list = $("[data-build-list]");
     var empty = $("[data-build-empty]");
+    var count = $("[data-build-count]");
     if (!list) return;
     list.innerHTML = "";
+    if (count) {
+      count.hidden = !state.builds.length;
+      count.textContent = state.builds.length + (state.maxBuilds ? " / " + state.maxBuilds : "");
+    }
     if (!state.builds.length) {
       if (empty) empty.hidden = false;
       return;
     }
     if (empty) empty.hidden = true;
-    state.builds.forEach(function (b) {
+    state.builds.forEach(function (b, i) {
       var li = el("li", "build-list-item" + (b.id === state.activeId ? " is-on" : ""));
+      li.style.setProperty("--i", String(Math.min(i, 8)));
       var btn = el("button", "build-list-btn");
       btn.type = "button";
+      btn.setAttribute("aria-current", b.id === state.activeId ? "true" : "false");
       btn.appendChild(el("strong", null, b.name || b.id));
-      btn.appendChild(el("span", "mono", b.template || ""));
+      var metaLine = el("span", "build-list-meta");
+      metaLine.appendChild(el("span", "mono", templateName(b.template)));
+      var when = timeAgo(b.updatedAt || b.createdAt);
+      if (when) metaLine.appendChild(el("span", "build-list-when", (b.editCount ? "Edited " : "Created ") + when));
+      btn.appendChild(metaLine);
       btn.addEventListener("click", function () {
         openBuild(b.id);
       });
       li.appendChild(btn);
+      var del = el("button", "build-list-del", "×");
+      del.type = "button";
+      del.title = "Delete " + (b.name || "build");
+      del.setAttribute("aria-label", "Delete " + (b.name || "build"));
+      del.addEventListener("click", function (e) {
+        e.stopPropagation();
+        deleteBuild(b);
+      });
+      li.appendChild(del);
       list.appendChild(li);
     });
+  }
+
+  function deleteBuild(b) {
+    if (!window.confirm("Delete “" + (b.name || b.id) + "”? This can’t be undone.")) return;
+    api("/api/builds/" + encodeURIComponent(b.id), { method: "DELETE" })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        if (!data || !data.ok) {
+          setNote((data && data.error) || "Could not delete.", true);
+          return;
+        }
+        state.builds = state.builds.filter(function (x) {
+          return x.id !== b.id;
+        });
+        if (state.activeId === b.id) closePreview();
+        renderList();
+      })
+      .catch(function () {
+        setNote("Network error — try again.", true);
+      });
+  }
+
+  function closePreview() {
+    state.activeId = null;
+    store(LAST_KEY, null);
+    var iframe = $("[data-preview]");
+    if (iframe) {
+      iframe.hidden = true;
+      iframe.removeAttribute("src");
+    }
+    var empty = $("[data-preview-empty]");
+    if (empty) empty.hidden = false;
+    var chat = $("[data-chat]");
+    if (chat) chat.hidden = true;
+    var dl = $("[data-download]");
+    if (dl) dl.hidden = true;
+    var openTab = $("[data-open-tab]");
+    if (openTab) openTab.hidden = true;
+    var dot = $("[data-preview-dot]");
+    if (dot) dot.classList.remove("is-live");
+    var label = $("[data-preview-label]");
+    if (label) label.textContent = "Preview";
+    var pathEl = $("[data-preview-path]");
+    if (pathEl) pathEl.textContent = "";
+  }
+
+  function flashSaved(text) {
+    var n = $("[data-saved]");
+    if (!n) return;
+    n.textContent = text || "Saved";
+    n.hidden = false;
+    n.classList.remove("is-flash");
+    void n.offsetWidth;
+    n.classList.add("is-flash");
+  }
+
+  function downloadZip() {
+    if (!state.activeId) return;
+    var id = state.activeId;
+    var btn = $("[data-download]");
+    var label = $("[data-download-label]");
+    if (btn) btn.disabled = true;
+    if (label) label.textContent = "Preparing…";
+    api("/api/builds/" + encodeURIComponent(id) + "/zip")
+      .then(function (r) {
+        if (!r.ok) {
+          return r.json().then(
+            function (d) {
+              throw new Error((d && d.error) || "Download failed");
+            },
+            function () {
+              throw new Error("Download failed");
+            }
+          );
+        }
+        var cd = r.headers.get("Content-Disposition") || "";
+        var m = cd.match(/filename="([^"]+)"/);
+        return r.blob().then(function (blob) {
+          return { blob: blob, name: (m && m[1]) || id + ".zip" };
+        });
+      })
+      .then(function (out) {
+        var url = URL.createObjectURL(out.blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = out.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () {
+          URL.revokeObjectURL(url);
+        }, 4000);
+        if (label) label.textContent = "Downloaded";
+        setTimeout(function () {
+          if (label) label.textContent = "Download zip";
+        }, 1800);
+      })
+      .catch(function (err) {
+        if (label) label.textContent = "Download zip";
+        appendChat("build", (err && err.message) || "Download failed — try again.");
+      })
+      .finally(function () {
+        if (btn) btn.disabled = false;
+      });
   }
 
   function bust(url) {
@@ -113,6 +306,8 @@
     }
     if (chat) chat.hidden = false;
     if (dot) dot.classList.add("is-live");
+    var dl = $("[data-download]");
+    if (dl) dl.hidden = false;
   }
 
   function appendChat(role, text) {
@@ -127,6 +322,7 @@
 
   function openBuild(id) {
     state.activeId = id;
+    store(LAST_KEY, id);
     renderList();
     var path = "/preview/" + id + "/";
     showPreview(path);
@@ -145,19 +341,26 @@
   }
 
   function loadBuilds() {
-    return fetch("/api/builds", { credentials: "same-origin" })
+    return api("/api/builds", { cache: "no-store" })
       .then(function (r) {
         return r.json();
       })
       .then(function (data) {
         if (!data || !data.ok) return;
         state.builds = data.builds || [];
+        state.maxBuilds = (data.limits && data.limits.maxBuilds) || null;
         renderList();
-        if (state.activeId) {
+        var want = null;
+        try {
+          want = new URLSearchParams(location.search).get("b");
+        } catch (_) {}
+        want = state.activeId || want || recall(LAST_KEY);
+        if (want && !state.activeId) {
           var still = state.builds.some(function (b) {
-            return b.id === state.activeId;
+            return b.id === want;
           });
-          if (still) openBuild(state.activeId);
+          if (still) openBuild(want);
+          else if (want === recall(LAST_KEY)) store(LAST_KEY, null);
         }
       })
       .catch(function () {});
@@ -173,6 +376,7 @@
           state.templates = data.templates;
         }
         renderTemplates();
+        renderList();
       })
       .catch(function () {
         renderTemplates();
@@ -196,9 +400,8 @@
     if (label) label.textContent = "Creating…";
     setNote("");
 
-    fetch("/api/builds", {
+    api("/api/builds", {
       method: "POST",
-      credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: name,
@@ -217,7 +420,7 @@
           setNote((res.data && res.data.error) || "Could not create.", true);
           return;
         }
-        setNote("Created — preview on the right.");
+        setNote("Created and saved — preview on the right.");
         state.builds = [res.data.build].concat(
           state.builds.filter(function (b) {
             return b.id !== res.data.build.id;
@@ -248,9 +451,8 @@
     appendChat("you", msg);
     if (submit) submit.disabled = true;
 
-    fetch("/api/builds/" + encodeURIComponent(state.activeId) + "/edit", {
+    api("/api/builds/" + encodeURIComponent(state.activeId) + "/edit", {
       method: "POST",
-      credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: msg }),
     })
@@ -267,9 +469,19 @@
         appendChat("build", (res.data.mode === "ai" || res.data.mode === "free-cloud" ? "✦ " : "") + (res.data.reply || "Done."));
         var path = res.data.previewPath || "/preview/" + state.activeId + "/";
         showPreview(path);
+        if ((res.data.changes || []).length) flashSaved("Saved");
         if (res.data.build) {
           state.builds = state.builds.map(function (b) {
-            return b.id === res.data.build.id ? Object.assign({}, b, res.data.build) : b;
+            if (b.id !== res.data.build.id) return b;
+            var next = Object.assign({}, b, res.data.build);
+            if ((res.data.changes || []).length) {
+              next.editCount = (b.editCount || 0) + 1;
+              next.updatedAt = new Date().toISOString();
+            }
+            return next;
+          });
+          state.builds.sort(function (a, b) {
+            return String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || ""));
           });
           renderList();
         }
@@ -288,6 +500,8 @@
     if (form) form.addEventListener("submit", onCreate);
     var chat = $("[data-chat-form]");
     if (chat) chat.addEventListener("submit", onChat);
+    var dl = $("[data-download]");
+    if (dl) dl.addEventListener("click", downloadZip);
     var refresh = $("[data-refresh]");
     if (refresh) {
       refresh.addEventListener("click", function () {
