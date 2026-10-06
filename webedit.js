@@ -7,6 +7,7 @@
 const fs = require("fs");
 const path = require("path");
 const webfree = require("./webfree");
+const copy = require("./webcopy");
 
 const ACCENTS = {
   teal: "#5eead4",
@@ -121,19 +122,26 @@ function faqSection() {
     </section>`;
 }
 
-function testimonialsSection() {
+function testimonialsSection(packId, html) {
+  const esc = escapeHtml;
+  const used = String(html || "");
+  const pool = copy.quotesFor(packId).concat(copy.GENERIC_QUOTES);
+  const picks = [];
+  pool.forEach(function (q) {
+    if (picks.length < 2 && used.indexOf(q[0]) === -1 && !picks.some(function (p) { return p[0] === q[0]; })) picks.push(q);
+  });
+  const ini = function (n) { return String(n).split(/[ ,.&]+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join(""); };
+  const card = function (q) {
+    return `        <div class="card" style="margin:0">
+          <div class="row" style="margin-bottom:10px"><span class="avatar">${esc(ini(q[1]))}</span><strong>${esc(q[1])}</strong></div>
+          <p class="quote">${esc(q[0])}</p>
+        </div>`;
+  };
   return `    <section id="testimonials" class="card" style="margin-top:24px" data-forge="testimonials">
       <h2>What people say</h2>
       <p class="muted">Sample quotes — replace with real customers.</p>
       <div class="grid 2" style="margin-top:14px">
-        <div class="card" style="margin:0">
-          <div class="row" style="margin-bottom:10px"><span class="avatar">JR</span><strong>Jordan R.</strong></div>
-          <p class="quote">We shipped a polished page the same afternoon we started.</p>
-        </div>
-        <div class="card" style="margin:0">
-          <div class="row" style="margin-bottom:10px"><span class="avatar">AL</span><strong>Alex L.</strong></div>
-          <p class="quote">Clear layout, real CTAs — felt finished on day one.</p>
-        </div>
+${picks.map(card).join("\n")}
       </div>
     </section>`;
 }
@@ -282,6 +290,16 @@ function applyEdit(projectRoot, message, opts) {
     } catch (_) {}
   }
 
+  let packId = null;
+  try {
+    const fm = JSON.parse(readText(projectRoot, "forge.json"));
+    packId = fm.pack || null;
+    if (!packId) {
+      const fp = copy.findPack((fm.name || "") + " " + (fm.description || "") + " " + (fm.topic || ""));
+      packId = fp ? fp.id : null;
+    }
+  } catch (_) {}
+
   // Section inserts (per clause, so "remove pricing and add FAQ" does the right thing).
   // Colors, CTA text, and hero copy are handled by webfree (freeform offline rules).
   webfree.clauses(msg).forEach(function (clause) {
@@ -298,7 +316,7 @@ function applyEdit(projectRoot, message, opts) {
     }
     if (/\b(pricing|price plans?|pricing table)\b/.test(lc) && !/pricing page/.test(lc)) add("pricing", pricingSection());
     if (/\bfaqs?\b|frequently asked/.test(lc)) add("faq", faqSection());
-    if (/testimonial|reviews? section|social proof|add reviews|customer reviews/.test(lc)) add("testimonials", testimonialsSection());
+    if (/testimonial|reviews? section|social proof|add reviews|customer reviews/.test(lc)) add("testimonials", testimonialsSection(packId, html));
     if (/add (?:a |some )?features?|features? (?:section|grid)|feature (?:grid|cards)/.test(lc)) add("features", featuresSection());
     if (/\bstats\b|\bstat (?:row|section)\b|counters? row|\btraction\b|add (?:stats|counters)/.test(lc)) add("stats", statsSection());
     if (/contact (form|section)|add (?:a )?contact|lead form|lead capture|signup form/.test(lc)) add("contact", contactSection());
@@ -361,7 +379,7 @@ function applyEdit(projectRoot, message, opts) {
     let r = ensureOnce(html, "features", featuresSection(), changes, indexPath);
     html = r.html;
     htmlDirty = htmlDirty || r.dirty;
-    r = ensureOnce(html, "testimonials", testimonialsSection(), changes, indexPath);
+    r = ensureOnce(html, "testimonials", testimonialsSection(packId, html), changes, indexPath);
     html = r.html;
     htmlDirty = htmlDirty || r.dirty;
     r = ensureOnce(html, "faq", faqSection(), changes, indexPath);

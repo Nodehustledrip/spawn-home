@@ -518,4 +518,127 @@ function copyFor(topic, tone, current) {
   return out;
 }
 
-module.exports = { PACKS, TONES, copyFor, findPack, findTone, cleanTopic, cap };
+
+/* ---------- creation-time profiles (first preview should already look like the business) ---------- */
+
+const GENERIC_QUOTES = [
+  ["Easy to work with, quick to reply, and genuinely great at what they do.", "Sam T., customer"],
+  ["We recommended them to three friends in the first month. That says it all.", "Lee R., customer"],
+];
+
+const LOCAL = {
+  coffee: {
+    trust: "Roasted weekly · Open from 6am · Order ahead",
+    cta2: "See the menu", cta2Href: "#menu", navServices: "Menu", navServicesHref: "#menu",
+    kpis: [["Cups a week", "2,000+"], ["Single origins", "6"], ["Rating", "4.9"]],
+    formTitle: "Order ahead", formSub: "Tell us your order and pickup time — we'll have it ready.",
+    placeholder: "e.g. 2 oat lattes for 8:15am", button: "Send order", success: "Got it — we'll confirm your order shortly.",
+    quotes: [["Best cortado in town, and they remember your name by the second visit.", "Maya K., regular"], ["My laptop and I basically live in the corner booth now. Great coffee, great music.", "Ben O., regular"]],
+    menu: [["Espresso", "Double shot, house blend", "$3.25"], ["Latte", "Whole, oat, or almond milk", "$4.95"], ["Cold brew", "Steeped 18 hours", "$4.50"], ["Seasonal pastry", "Baked in-house this morning", "$3.75"]],
+  },
+  restaurant: {
+    trust: "Made from scratch · Local ingredients · Dine-in & takeout",
+    cta2: "View the menu", cta2Href: "#menu", navServices: "Menu", navServicesHref: "#menu",
+    kpis: [["Dishes on the menu", "30+"], ["Farm partners", "5"], ["Rating", "4.8"]],
+    formTitle: "Reserve a table", formSub: "Tell us the date, time, and party size — we'll confirm by text or email.",
+    placeholder: "e.g. Friday 7pm, party of 4", button: "Request reservation", success: "Thanks — we'll confirm your table shortly.",
+    quotes: [["Every dish tasted like someone actually cared. We're already planning our next visit.", "Chris P., guest"], ["Our go-to for birthdays now. The staff made it feel like a celebration.", "Ana G., guest"]],
+    menu: [["Seasonal starter", "Changes with the market", "$9"], ["House pasta", "Made fresh every morning", "$18"], ["Grilled entrée", "Local, with two sides", "$24"], ["Dessert of the day", "Ask your server", "$8"]],
+  },
+  bakery: {
+    trust: "Baked before sunrise · Real butter · Custom orders",
+    cta2: "See today's bakes", cta2Href: "#menu", navServices: "Bakes", navServicesHref: "#menu",
+    kpis: [["Loaves a week", "600+"], ["Custom cakes", "1,100+"], ["Rating", "4.9"]],
+    formTitle: "Order a cake or a dozen", formSub: "Tell us what you need and when — we'll confirm pickup details.",
+    placeholder: "e.g. 8-inch chocolate cake for Saturday, 'Happy 30th Sam'", button: "Send order request", success: "Thanks — we'll confirm your order shortly.",
+    quotes: [["The birthday cake was the star of the party. Everyone asked where it came from.", "Jess M., customer"], ["Their sourdough ruined grocery-store bread for me forever.", "Omar D., regular"]],
+    menu: [["Sourdough loaf", "48-hour ferment", "$8"], ["Butter croissant", "Laminated by hand", "$4"], ["Cupcake", "Rotating flavors", "$3.50"], ["Custom cake", "Serves 12–16", "from $45"]],
+  },
+  fitness: {
+    trust: "Certified coaches · All levels welcome · First class free",
+    cta2: "See classes",
+    kpis: [["Members", "350+"], ["Classes a week", "40"], ["Rating", "4.9"]],
+    formTitle: "Claim your free class", formSub: "Tell us your goals — a coach will reach out to book your first session.",
+    placeholder: "Your goals and the times that work for you", button: "Book my free class", success: "You're in — a coach will reach out shortly.",
+    quotes: [["Stronger than I've ever been, and the coaches actually know my name.", "Dana W., member"], ["I was nervous to start. By week two it was the best part of my day.", "Marcus J., member"]],
+  },
+  yoga: {
+    trust: "Small classes · Every level · Drop-ins welcome",
+    cta2: "View schedule",
+    kpis: [["Classes a week", "25"], ["Students", "500+"], ["Rating", "4.9"]],
+    formTitle: "Book your first class", formSub: "Tell us what you're looking for — we'll save you a spot.",
+    placeholder: "Which class or time are you interested in?", button: "Request a spot", success: "Lovely — we'll confirm your spot shortly.",
+    quotes: [["It's the one hour of my week that's just for me. I leave lighter every time.", "Priya S., student"], ["Welcoming from the first class, even as a total beginner.", "Hannah C., student"]],
+  },
+  beauty: {
+    trust: "Licensed stylists · Premium products · Online booking",
+    cta2: "See services",
+    kpis: [["Happy clients", "2,500+"], ["Stylists", "6"], ["Rating", "4.9"]],
+    formTitle: "Book an appointment", formSub: "Pick a service and a few times — we'll confirm by text.",
+    placeholder: "Service, preferred stylist, and times that work", button: "Request appointment", success: "Thanks — we'll confirm your appointment shortly.",
+    quotes: [["Best cut I've had in years — and they actually listened to what I wanted.", "Taylor B., client"], ["I walk out feeling like a new person every single time.", "Renee F., client"]],
+  },
+  pets: {
+    trust: "Insured & vetted · Photo updates · Pet first-aid trained",
+    cta2: "See services",
+    kpis: [["Happy pets", "800+"], ["Walks a week", "150"], ["Rating", "5.0"]],
+    formTitle: "Book a visit", formSub: "Tell us about your pet and the dates you need — we'll confirm quickly.",
+    placeholder: "Your pet's name, breed, and the dates you need", button: "Request a visit", success: "Thanks — we'll be in touch to confirm.",
+    quotes: [["Our dog gets so excited when they arrive. The photo updates make my whole day.", "Morgan L., pet parent"], ["The only people we trust with our cats when we travel.", "Eli V., pet parent"]],
+  },
+  photo: {
+    trust: "Now booking · Online galleries · Relaxed sessions",
+    cta2: "See sessions",
+    kpis: [["Sessions shot", "400+"], ["Weddings", "120"], ["Rating", "5.0"]],
+    formTitle: "Check availability", formSub: "Share your date and idea — we'll reply with availability and packages.",
+    placeholder: "Your date, location, and what you'd like to capture", button: "Check my date", success: "Thanks — we'll reply with availability shortly.",
+    quotes: [["They made us feel completely at ease, and the photos are the best we've ever had.", "Jamie & Alex, couple"], ["Our new headshots doubled the replies on our proposals.", "Nina P., founder"]],
+  },
+  health: {
+    trust: "Accepting new patients · Same-week visits · Most insurance accepted",
+    cta2: "See services",
+    kpis: [["Patients cared for", "3,000+"], ["Years in practice", "12"], ["Rating", "4.9"]],
+    formTitle: "Request an appointment", formSub: "Tell us the reason for your visit — we'll call to confirm a time.",
+    placeholder: "Reason for visit and times that work for you", button: "Request appointment", success: "Thanks — our team will call to confirm.",
+    quotes: [["Warm, unrushed, and they explained everything clearly. I finally feel looked after.", "Robin H., patient"], ["Booking was easy and I was seen the same week.", "Carlos M., patient"]],
+  },
+};
+
+/** Profile for a business described by name + description, or null when nothing specific matches. */
+function profileFor(text, name) {
+  /* What they typed about the business beats words in its name ("Glow Studio" + "hair salon" is a salon). */
+  const pack = findPack(text) || (name ? findPack(name) : null);
+  if (!pack) return null;
+  const local = LOCAL[pack.id] || {};
+  return Object.assign(
+    {
+      id: pack.id,
+      badge: pack.badge,
+      sub: pack.sub,
+      cta: pack.cta,
+      sectionTitle: pack.sectionTitle,
+      sectionSub: pack.sectionSub,
+      features: pack.features,
+      trust: "Locally owned · Real people · Quick replies",
+      cta2: "See what we offer",
+      kpis: [["Happy customers", "1,200+"], ["Rating", "4.9"], ["Replies", "Same day"]],
+      formTitle: "Get in touch",
+      formSub: "We reply by phone or email — usually the same day.",
+      placeholder: "What can we help with?",
+      button: "Send message",
+      success: "Thanks — we'll be in touch shortly.",
+      quotes: GENERIC_QUOTES,
+    },
+    local
+  );
+}
+
+function quotesFor(packId) {
+  return (LOCAL[packId] && LOCAL[packId].quotes) || GENERIC_QUOTES;
+}
+
+function menuFor(packId) {
+  return (LOCAL[packId] && LOCAL[packId].menu) || null;
+}
+
+module.exports = { PACKS, TONES, copyFor, findPack, findTone, cleanTopic, cap, profileFor, quotesFor, menuFor, GENERIC_QUOTES };

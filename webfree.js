@@ -394,6 +394,35 @@ function sec(key, inner, extra) {
   return '    <section id="' + key + '" data-forge="' + key + '" style="margin-top:40px"' + (extra || "") + ">\n" + inner + "\n    </section>";
 }
 
+
+/* "add a menu with espresso, latte and cold brew ($4)" → [{name:"espresso"}, {name:"latte"}, {name:"cold brew", price:"$4"}] */
+function listItems(clause) {
+  const m = String(clause || "").match(/\b(?:with|including|featuring|listing|of|for|like|such as)\s*:?\s+(.+)$|:\s*(.+)$/i);
+  if (!m) return [];
+  let body = (m[1] || m[2] || "")
+    .replace(/\b(?:and\s+)?(?:their\s+|the\s+|some\s+)?(?:prices?|pricing|costs?|descriptions?)\s*$/i, "")
+    .replace(/\b(?:at|to) the (?:top|bottom).*$|\b(?:above|below|before|after)\s+.*$/i, "")
+    .replace(/[.!?]+$/, "")
+    .trim();
+  if (!/,|\band\b|&/.test(body)) return [];
+  const parts = body.split(/\s*,\s*(?:and\s+|&\s*)?|\s+(?:and|&)\s+/i).map(function (x) { return x.trim(); }).filter(Boolean);
+  if (parts.length < 2 || parts.length > 10) return [];
+  const out = [];
+  for (const raw of parts) {
+    const price = (raw.match(/\$\s?\d+(?:\.\d{1,2})?/) || [])[0];
+    const name = raw.replace(/\(?\s*(?:for|at|@)?\s*\$\s?\d+(?:\.\d{1,2})?\s*\)?/g, "").replace(/^(?:a|an|the|some)\s+/i, "").replace(/["“”]/g, "").trim();
+    if (!name || name.length > 40 || /\b(section|block|page|menu)\b/i.test(name)) return [];
+    out.push({ name: name, price: price ? price.replace(/\s/g, "") : null });
+  }
+  return out.slice(0, 8);
+}
+
+function packOf(ctx) {
+  if (ctx.meta && ctx.meta.pack) return ctx.meta.pack;
+  const p = copy.findPack(((ctx.meta && ctx.meta.name) || "") + " " + topicFromCtx(ctx));
+  return p ? p.id : null;
+}
+
 const BLOCKS = {
   team: function () {
     return sec(
@@ -452,11 +481,14 @@ const BLOCKS = {
       '      <div class="split">\n        <div>\n          <h2 class="section-title">About ' + name + '</h2>\n          <p class="soft">We started ' + name + " to make something simpler, friendlier, and genuinely useful. Today we help people every week — and we still answer every message ourselves.</p>\n          <p class=\"muted\">Replace this with your story: why you started, who you serve, and what makes you different.</p>\n        </div>\n        <div class=\"card\"><div class=\"kpi-label\">Since</div><div class=\"kpi\">2026</div><p class=\"muted\" style=\"margin:8px 0 0\">Independent and customer-funded.</p></div>\n      </div>"
     );
   },
-  services: function () {
+  services: function (ctx, clause) {
+    const named = listItems(clause);
     return sec(
       "services-extra",
       '      <h2 class="section-title">Services</h2>\n      <p class="section-sub">What we offer — edit names and descriptions.</p>\n      <div class="grid 3">\n' +
-        [["Consultation", "Understand your needs and map out a plan."], ["Full service", "We handle everything from start to finish."], ["Ongoing support", "Help whenever you need it, after launch."]]
+        (named.length
+          ? named.map(function (it) { return [esc(titleCase(it.name)), "Add a one-line description of what's included."]; })
+          : [["Consultation", "Understand your needs and map out a plan."], ["Full service", "We handle everything from start to finish."], ["Ongoing support", "Help whenever you need it, after launch."]])
           .map(function (s, i) {
             return '        <div class="card"><div class="feature-icon">' + (i + 1) + "</div><h3>" + s[0] + '</h3><p class="muted">' + s[1] + "</p></div>";
           })
@@ -508,13 +540,21 @@ const BLOCKS = {
         "\n      </div>"
     );
   },
-  menu: function () {
+  menu: function (ctx, clause) {
+    const named = listItems(clause);
+    const pack = packOf(ctx);
+    const packMenu = copy.menuFor(pack);
+    const fallback = packMenu || [["House special", "Chef's seasonal favorite", "$14"], ["Classic", "The one everyone orders", "$11"], ["Lighter option", "Fresh and simple", "$9"], ["Dessert", "Made in-house daily", "$7"]];
+    const samplePrices = ["$4.50", "$5.25", "$4.75", "$6", "$3.95", "$7", "$5.50", "$8"];
+    const items = named.length
+      ? named.map(function (it, i) { return [titleCase(it.name), "Add a short description", it.price || (packMenu && packMenu[i] && /^\$/.test(packMenu[i][2]) ? packMenu[i][2] : samplePrices[i % samplePrices.length])]; })
+      : fallback;
     return sec(
       "menu",
-      '      <h2 class="section-title">Menu</h2>\n      <p class="section-sub">Sample items — edit names and prices.</p>\n      <div class="card">\n' +
-        [["House special", "Chef's seasonal favorite", "$14"], ["Classic", "The one everyone orders", "$11"], ["Lighter option", "Fresh and simple", "$9"], ["Dessert", "Made in-house daily", "$7"]]
+      '      <h2 class="section-title">Menu</h2>\n      <p class="section-sub">' + (named.length ? "Prices are placeholders — set your real ones." : "Sample items — edit names and prices.") + '</p>\n      <div class="card">\n' +
+        items
           .map(function (m) {
-            return '        <div class="lead"><div><strong>' + m[0] + '</strong><div class="lead-meta">' + m[1] + '</div></div><div class="lead-fee">' + m[2] + "</div></div>";
+            return '        <div class="lead"><div><strong>' + esc(m[0]) + '</strong><div class="lead-meta">' + esc(m[1]) + '</div></div><div class="lead-fee">' + esc(m[2]) + "</div></div>";
           })
           .join("\n") +
         "\n      </div>"
@@ -949,10 +989,18 @@ rule("add-section", /\b(add|insert|include|create|put|need|want|give me|show)\b/
     if (named) break;
     if (!re.test(lower)) continue;
     if (new RegExp('data-forge="' + key + '"').test(ctx.html)) {
+      /* "add a menu with espresso, latte and cold brew" when a menu exists → swap in those items */
+      const existing = (key === "menu" || key === "services") && listItems(c).length ? findSections(ctx.html).find(function (s) { return s.forge === key; }) : null;
+      if (existing) {
+        ctx.html = ctx.html.slice(0, existing.start) + BLOCKS[key](ctx, c).replace(/^\s+/, "") + ctx.html.slice(existing.end);
+        ctx.htmlDirty = true;
+        ctx.changes.push({ action: "edit", file: "public/index.html", detail: "Updated " + key + " items" });
+        return true;
+      }
       ctx.changes.push({ action: "skip", detail: key + " already present" });
       return true;
     }
-    ctx.html = placeBlock(ctx.html, BLOCKS[key](ctx), c);
+    ctx.html = placeBlock(ctx.html, BLOCKS[key](ctx, c), c);
     ctx.htmlDirty = true;
     ctx.changes.push({ action: "insert", file: "public/index.html", detail: "Added " + key + " section" });
     return true;
@@ -1230,4 +1278,4 @@ function applyFreeform(ctx) {
   return ctx;
 }
 
-module.exports = { applyFreeform, clauses, quotes, findSections, replaceText, stripPlacement, placeBlock, COLORS };
+module.exports = { listItems, packOf, applyFreeform, clauses, quotes, findSections, replaceText, stripPlacement, placeBlock, COLORS };

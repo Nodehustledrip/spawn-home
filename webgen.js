@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const webcopy = require("./webcopy");
 
 const GENERATED_ROOT = process.env.BUILDS_DIR || path.join(__dirname, "data", "builds");
 
@@ -137,9 +138,9 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .hero .cta{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .badge{display:inline-flex;align-items:center;gap:6px;background:var(--badge-bg);color:var(--badge-fg);border:1px solid var(--badge-bd);border-radius:999px;padding:5px 12px;font-size:.75rem;font-weight:600;letter-spacing:.02em}
 .grid{display:grid;gap:16px}
-.grid.2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
-.grid.3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-.grid.4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.grid[class~="2"]{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.grid[class~="3"]{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.grid[class~="4"]{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 .feature-icon{width:40px;height:40px;border-radius:10px;background:color-mix(in srgb, var(--accent) 18%, var(--panel-2));color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;margin-bottom:12px}
 .kpi{font-size:2rem;font-weight:800;letter-spacing:-.02em;margin-top:6px}
 .kpi-label{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
@@ -334,6 +335,20 @@ function templateLanding(opts) {
   const { name, description, accent } = opts;
   const pay = monetizationBlock(opts);
   const year = new Date().getFullYear();
+  const P = opts.profile || null;
+  const feats = P
+    ? P.features.map(function (f) { return [escapeHtml(f[0]), escapeHtml(f[1])]; })
+    : [
+        ["Fast setup", "Up and running in minutes — no long onboarding or sales calls."],
+        ["Clear value", "Visitors understand what you do and why it matters in seconds."],
+        ["Works everywhere", "Looks sharp on phones, tablets, and big screens alike."],
+        ["Real support", "Talk to a person who can actually fix things, fast."],
+      ];
+  const qs = P ? P.quotes : [
+    ["Set up in an afternoon, and our whole team actually uses it every day.", "Jordan R."],
+    ["Clear pricing, fast support, and it just works. Exactly what we needed.", "Alex L."],
+  ];
+  const initials = function (n) { return escapeHtml(String(n).split(/[ ,.&]+/).filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join("")); };
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -347,24 +362,21 @@ function templateLanding(opts) {
   ${navChrome(name, `<a class="btn ghost sm" href="#features">Features</a><a class="btn sm" href="#pricing">Pricing</a>`)}
   <main class="wrap">
     <section class="hero">
-      <span class="badge">Ready to launch</span>
+      <span class="badge">${escapeHtml(P ? P.badge : "Now available")}</span>
       <h1 style="margin-top:16px">${escapeHtml(name)}</h1>
-      <p>${escapeHtml(description || "Ship a polished product page with clear pricing and a conversion-ready call to action.")}</p>
+      <p>${escapeHtml(description || (P ? P.sub : "A clear, fast way to get what you need — with simple pricing and real people behind it."))}</p>
       <div class="cta">
-        <a class="btn" href="#get-started">Get started</a>
+        <a class="btn" href="#get-started">${escapeHtml(P ? P.cta : "Get started")}</a>
         <a class="btn ghost" href="#features">See what's included</a>
       </div>
-      <div class="logo-row"><span>Acme Co</span><span>Northwind</span><span>Globex</span><span>Initech</span></div>
+${!P || /^(saas|agency|mobileapp|media|finance)$/.test(P.id) ? '<div class="logo-row"><span>Acme Co</span><span>Northwind</span><span>Globex</span><span>Initech</span></div>' : ""}
     </section>
 
     <section id="features" style="margin-top:12px">
-      <h2 class="section-title">Built to convert</h2>
-      <p class="section-sub">Everything visitors need to understand value and take action — without looking like a stub.</p>
+      <h2 class="section-title">${escapeHtml(P ? P.sectionTitle : "Why people choose us")}</h2>
+      <p class="section-sub">${escapeHtml(P ? P.sectionSub : "Sample feature cards — swap in what makes you different.")}</p>
       <div class="grid 2">
-        <div class="card"><div class="feature-icon">1</div><h3>Fast setup</h3><p class="muted">Runnable Express app with a static UI you can edit immediately.</p></div>
-        <div class="card"><div class="feature-icon">2</div><h3>Clear CTA</h3><p class="muted">Pricing and checkout hooks that route buyers where you want them.</p></div>
-        <div class="card"><div class="feature-icon">3</div><h3>Responsive</h3><p class="muted">Typography, spacing, and cards that hold up on phones and desktops.</p></div>
-        <div class="card"><div class="feature-icon">4</div><h3>Dark &amp; light</h3><p class="muted">Theme toggle with system preference and local persistence.</p></div>
+${feats.map(function (f, i) { return '        <div class="card"><div class="feature-icon">' + (i + 1) + "</div><h3>" + f[0] + '</h3><p class="muted">' + f[1] + "</p></div>"; }).join("\n")}
       </div>
     </section>
 
@@ -398,14 +410,7 @@ function templateLanding(opts) {
     </section>
 
     <section class="grid 2" style="margin-top:28px">
-      <div class="card">
-        <div class="row" style="margin-bottom:12px"><span class="avatar">JR</span><strong>Jordan R.</strong></div>
-        <p class="quote">We replaced a gray placeholder with this layout and started collecting leads the same afternoon.</p>
-      </div>
-      <div class="card">
-        <div class="row" style="margin-bottom:12px"><span class="avatar">AL</span><strong>Alex L.</strong></div>
-        <p class="quote">Dark/light toggle and real pricing cards made it feel like a finished product on day one.</p>
-      </div>
+${qs.slice(0, 2).map(function (q) { return '      <div class="card">\n        <div class="row" style="margin-bottom:12px"><span class="avatar">' + initials(q[1]) + "</span><strong>" + escapeHtml(q[1]) + '</strong></div>\n        <p class="quote">' + escapeHtml(q[0]) + "</p>\n      </div>"; }).join("\n")}
     </section>
 
     <div id="get-started">${pay || `
@@ -442,79 +447,157 @@ function templateLanding(opts) {
   return { "public/index.html": html, "public/styles.css": sharedCss(accent) };
 }
 
+function menuRows(items) {
+  return items
+    .map(function (m) {
+      return '        <div class="lead"><div><strong>' + escapeHtml(m[0]) + '</strong><div class="lead-meta">' + escapeHtml(m[1]) + '</div></div><div class="lead-fee">' + escapeHtml(m[2]) + "</div></div>";
+    })
+    .join("\n");
+}
+
+/* Default copy for trades / anything we can't place — matches the original Local Service starter. */
+const TRADES_LOCAL = {
+  badge: "Local &amp; trusted",
+  sub: "Reliable local service for homeowners and businesses — clear pricing, fast response, work done right.",
+  trust: "Licensed · Insured · Same-week availability",
+  cta: "Request a free estimate",
+  cta2: "View services",
+  sectionTitle: "What we handle",
+  features: [
+    ["Residential", "Repairs, installs, and seasonal maintenance for homes."],
+    ["Commercial", "Service calls and preventative plans for shops &amp; offices."],
+    ["Emergency", "Priority slots when something cannot wait."],
+    ["Free estimates", "Clear pricing before work begins — no surprise invoices."],
+  ],
+  featureIcons: ["R", "C", "E", "$"],
+  kpis: [["Avg. response", "&lt; 2 hrs", "During business hours"], ["Jobs completed", "1,240+", "Demo stats — replace with yours"], ["Rating", "4.9", "From local reviews"]],
+  areaTitle: "Service area",
+  areaText: "Your city and the surrounding communities — list the towns you cover so visitors know you'll come to them.",
+  areaNote: "Same-day quotes available for emergency calls before 2pm.",
+  quote: ["Showed up on time, explained the fix, left the place cleaner than they found it.", "Sam T., homeowner"],
+  formTitle: "Request a quote",
+  formSub: "We follow up by phone or email — usually within one business day.",
+  placeholder: "Describe the job, address, and preferred timing",
+  button: "Send request",
+  success: "Got it — someone will reach out shortly.",
+  titleSuffix: " | Local Service",
+  footer: "Serving your local area",
+};
+
+function localCopy(profile) {
+  if (!profile || profile.id === "trades") return Object.assign({}, TRADES_LOCAL, { pack: profile ? profile.id : null });
+  const k = profile.kpis || [];
+  return {
+    pack: profile.id,
+    badge: escapeHtml(profile.badge),
+    sub: profile.sub,
+    trust: profile.trust,
+    cta: profile.cta,
+    cta2: profile.cta2,
+    cta2Href: profile.cta2Href,
+    navServices: profile.navServices,
+    navServicesHref: profile.navServicesHref,
+    sectionTitle: profile.sectionTitle,
+    sectionSub: profile.sectionSub,
+    features: profile.features.map(function (f) { return [escapeHtml(f[0]), escapeHtml(f[1])]; }),
+    featureIcons: profile.features.map(function (f) { return escapeHtml(String(f[0]).charAt(0).toUpperCase()); }),
+    kpis: k.map(function (r, i) { return [escapeHtml(r[0]), escapeHtml(r[1]), i === 1 ? "Demo stats — replace with yours" : "Sample — swap in your real numbers"]; }),
+    areaTitle: "Where to find us",
+    areaText: "Add your address, neighborhood, or the area you serve — it's one of the first things visitors look for.",
+    areaNote: "Tip: add your hours and parking or delivery details here.",
+    quote: (profile.quotes && profile.quotes[0]) || ["Easy to work with, quick to reply, and genuinely great at what they do.", "Sam T., customer"],
+    formTitle: profile.formTitle,
+    formSub: profile.formSub,
+    placeholder: profile.placeholder,
+    button: profile.button,
+    success: profile.success,
+    menu: profile.menu || null,
+    titleSuffix: "",
+    footer: "Locally owned",
+  };
+}
+
 function templateLocalService(opts) {
   const { name, description, accent } = opts;
   const pay = monetizationBlock(opts);
   const year = new Date().getFullYear();
+  const L = localCopy(opts.profile);
+  const servicesHref = L.navServicesHref || "#services";
+  const menuBlock = L.menu
+    ? `
+    <section id="menu" data-forge="menu" style="margin-top:40px">
+      <h2 class="section-title">Menu</h2>
+      <p class="section-sub">Sample items — edit names and prices.</p>
+      <div class="card">
+${menuRows(L.menu)}
+      </div>
+    </section>
+`
+    : "";
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="${escapeHtml(description || name)}" />
-  <title>${escapeHtml(name)} | Local Service</title>
+  <title>${escapeHtml(name)}${L.titleSuffix}</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  ${navChrome(name, `<a class="btn ghost sm" href="#services">Services</a><a class="btn sm" href="#quote">Get a quote</a>`)}
+  ${navChrome(name, `<a class="btn ghost sm" href="${servicesHref}">${escapeHtml(L.navServices || "Services")}</a><a class="btn sm" href="#quote">${L.pack && L.pack !== "trades" ? escapeHtml(L.cta) : "Get a quote"}</a>`)}
   <main class="wrap">
     <section class="hero">
-      <span class="badge">Local &amp; trusted</span>
+      <span class="badge">${L.badge}</span>
       <h1 style="margin-top:16px">${escapeHtml(name)}</h1>
-      <p>${escapeHtml(description || "Reliable local service for homeowners and businesses — clear pricing, fast response, work done right.")}</p>
-      <p class="muted" style="margin-top:12px">Licensed · Insured · Same-week availability</p>
+      <p>${escapeHtml(description || L.sub)}</p>
+      <p class="muted" style="margin-top:12px">${escapeHtml(L.trust)}</p>
       <div class="cta">
-        <a class="btn" href="#quote">Request a free estimate</a>
-        <a class="btn ghost" href="#services">View services</a>
+        <a class="btn" href="#quote">${escapeHtml(L.cta)}</a>
+        <a class="btn ghost" href="${L.cta2Href || "#services"}">${escapeHtml(L.cta2)}</a>
       </div>
     </section>
 
     <section id="services" style="margin-top:8px">
-      <h2 class="section-title">What we handle</h2>
-      <p class="section-sub">Sample service cards — swap in your real offerings.</p>
+      <h2 class="section-title">${escapeHtml(L.sectionTitle)}</h2>
+      <p class="section-sub">${L.sectionSub ? escapeHtml(L.sectionSub) : "Sample service cards — swap in your real offerings."}</p>
       <div class="grid 2">
-        <div class="card"><div class="feature-icon">R</div><h3>Residential</h3><p class="muted">Repairs, installs, and seasonal maintenance for homes.</p></div>
-        <div class="card"><div class="feature-icon">C</div><h3>Commercial</h3><p class="muted">Service calls and preventative plans for shops &amp; offices.</p></div>
-        <div class="card"><div class="feature-icon">E</div><h3>Emergency</h3><p class="muted">Priority slots when something cannot wait.</p></div>
-        <div class="card"><div class="feature-icon">$</div><h3>Free estimates</h3><p class="muted">Clear pricing before work begins — no surprise invoices.</p></div>
+${L.features.map(function (f, i) { return '        <div class="card"><div class="feature-icon">' + L.featureIcons[i] + "</div><h3>" + f[0] + '</h3><p class="muted">' + f[1] + "</p></div>"; }).join("\n")}
       </div>
     </section>
-
+${menuBlock}
     <section class="grid 3" style="margin-top:24px">
-      <div class="card"><div class="kpi-label">Avg. response</div><div class="kpi">&lt; 2 hrs</div><p class="muted" style="margin-top:8px">During business hours</p></div>
-      <div class="card"><div class="kpi-label">Jobs completed</div><div class="kpi">1,240+</div><p class="muted" style="margin-top:8px">Demo stats — replace with yours</p></div>
-      <div class="card"><div class="kpi-label">Rating</div><div class="kpi">4.9</div><p class="muted" style="margin-top:8px">From local reviews</p></div>
+${L.kpis.map(function (k) { return '      <div class="card"><div class="kpi-label">' + k[0] + '</div><div class="kpi">' + k[1] + '</div><p class="muted" style="margin-top:8px">' + k[2] + "</p></div>"; }).join("\n")}
     </section>
 
     <section class="split" style="margin-top:28px">
       <div class="card">
-        <h2 class="section-title">Service area</h2>
-        <p class="muted">Cedar Rapids, Marion, Hiawatha, and surrounding Iowa communities. Call if you're nearby — we often travel.</p>
-        <div class="note" style="margin-top:16px">Same-day quotes available for emergency calls before 2pm.</div>
+        <h2 class="section-title">${L.areaTitle}</h2>
+        <p class="muted">${L.areaText}</p>
+        <div class="note" style="margin-top:16px">${L.areaNote}</div>
       </div>
       <div class="card">
         <h2 class="section-title">What customers say</h2>
-        <p class="quote" style="margin-top:12px">Showed up on time, explained the fix, left the place cleaner than they found it.</p>
-        <p class="muted" style="margin-top:10px">— Sam T., homeowner</p>
+        <p class="quote" style="margin-top:12px">${escapeHtml(L.quote[0])}</p>
+        <p class="muted" style="margin-top:10px">— ${escapeHtml(L.quote[1])}</p>
       </div>
     </section>
 
     <section id="quote" class="card" style="margin-top:28px">
-      <h2 class="section-title">Request a quote</h2>
-      <p class="muted">We follow up by phone or email — usually within one business day.</p>
+      <h2 class="section-title">${escapeHtml(L.formTitle)}</h2>
+      <p class="muted">${escapeHtml(L.formSub)}</p>
       <form id="leadForm" style="margin-top:16px">
         <div class="grid 2">
           <div class="field"><label>Name</label><input name="name" required /></div>
           <div class="field"><label>Phone</label><input name="phone" type="tel" /></div>
         </div>
         <div class="field"><label>Email</label><input name="email" type="email" required /></div>
-        <div class="field"><label>What do you need?</label><textarea name="message" rows="4" placeholder="Describe the job, address, and preferred timing"></textarea></div>
-        <button class="btn" type="submit">Send request</button>
+        <div class="field"><label>${L.pack && L.pack !== "trades" ? "Details" : "What do you need?"}</label><textarea name="message" rows="4" placeholder="${escapeHtml(L.placeholder)}"></textarea></div>
+        <button class="btn" type="submit">${escapeHtml(L.button)}</button>
       </form>
       <p id="leadMsg" class="muted" style="margin-top:12px"></p>
     </section>
     ${pay}
-    <footer><span>&copy; ${year} ${escapeHtml(name)} · Serving your local area</span><span>Built with Spawn</span></footer>
+    <footer><span>&copy; ${year} ${escapeHtml(name)} · ${L.footer}</span><span>Built with Spawn</span></footer>
   </main>
   ${themeToggleScript()}
   <script>
@@ -524,7 +607,7 @@ function templateLocalService(opts) {
       fetch('/api/lead', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), message: fd.get('message') }) })
         .then(function(r){return r.json()}).then(function(){
-          document.getElementById('leadMsg').textContent = 'Got it — someone will reach out shortly.';
+          document.getElementById('leadMsg').textContent = ${JSON.stringify(L.success).replace(/</g, "\\u003c")};
           e.target.reset();
         });
     });
@@ -817,6 +900,9 @@ function templateMarketplace(opts) {
   return { "public/index.html": html, "public/styles.css": sharedCss(accent) };
 }
 
+/* Templates whose copy adapts to the business described at creation (coffee shop, salon, gym…). */
+const PROFILE_TEMPLATES = { "landing-paywall": true, "local-service": true };
+
 const BUILDERS = {
   "landing-paywall": templateLanding,
   "local-service": templateLocalService,
@@ -848,7 +934,8 @@ function generate(body) {
   if (fs.existsSync(outDir)) fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
 
-  const opts = { name, slug, description, template, monetization, checkoutUrl, accent };
+  const profile = PROFILE_TEMPLATES[template] ? webcopy.profileFor(description, name) : null;
+  const opts = { name, slug, description, template, monetization, checkoutUrl, accent, profile };
   const files = BUILDERS[template](opts);
 
   writeFile(outDir, "package.json", packageJson(opts));
@@ -889,7 +976,8 @@ function createBuild(body, outRoot) {
   const outDir = path.join(root, id);
   if (fs.existsSync(outDir)) fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
-  const opts = { name, slug: id, description, template, monetization: "none", checkoutUrl: "", accent };
+  const profile = PROFILE_TEMPLATES[template] ? webcopy.profileFor(description, name) : null;
+  const opts = { name, slug: id, description, template, monetization: "none", checkoutUrl: "", accent, profile };
   const files = BUILDERS[template](opts);
   writeFile(outDir, "package.json", packageJson(opts));
   writeFile(outDir, "server.js", serverJs(opts));
@@ -901,6 +989,7 @@ function createBuild(body, outRoot) {
     updatedAt: new Date().toISOString(),
     generator: "Spawn",
     source: "web-build",
+    pack: profile ? profile.id : null,
   }, null, 2) + "\n");
   writeFile(outDir, ".gitignore", "node_modules/\n.env\n.DS_Store\n");
   writeFile(outDir, ".env.example", "PORT=3000\n");

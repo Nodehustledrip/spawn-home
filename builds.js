@@ -221,6 +221,21 @@ function summarizeBuild(id, meta) {
 const LIMITS_NOTE =
   "On-site Build creates, edits, previews, and exports a zip. A lasting public URL or custom domain still needs Spawn desktop (Ship → Open to the internet).";
 
+
+/* Builds made before 2026-10-06 shipped `.grid.2{…}` — an invalid selector browsers drop, so every
+ * multi-column grid collapsed to one column. Repair the cached stylesheet in place (idempotent). */
+function fixLegacyCss(root) {
+  try {
+    const p = path.join(root, "public", "styles.css");
+    const css = fs.readFileSync(p, "utf8");
+    if (!/\.grid\.[234]\{/.test(css)) return false;
+    fs.writeFileSync(p, css.replace(/\.grid\.([234])\{/g, '.grid[class~="$1"]{'));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function mount(app) {
   ensureDir();
   store.init().catch(function (err) {
@@ -367,6 +382,7 @@ function mount(app) {
     await store.init();
     const b = await loadOwned(req, res);
     if (!b) return;
+    fixLegacyCss(b.root);
     const out = buildzip.exportSite(b.root, readMeta(b.id) || {});
     dualWriteBuild("build_zip_downloaded", { sessionId: b.owner, id: b.id, bytes: out.buffer.length });
     res.setHeader("Content-Type", "application/zip");
@@ -413,6 +429,7 @@ function mount(app) {
           build: summarizeBuild(id),
         });
       }
+      fixLegacyCss(root);
       history.snapshot(root);
       let ai = null;
       if (wantAi) {
@@ -495,6 +512,7 @@ function mount(app) {
       })
       .then(function (source) {
         if (!source) return res.status(404).type("text").send("Preview not found");
+        fixLegacyCss(root);
         const pub = path.join(root, "public");
         if (!fs.existsSync(pub)) return res.status(404).type("text").send("No public assets");
         /* Soft X-Robots so previews are not indexed as real apps */
@@ -519,4 +537,4 @@ function mount(app) {
   });
 }
 
-module.exports = { mount, BUILDS_DIR, projectRoot, store };
+module.exports = { fixLegacyCss, mount, BUILDS_DIR, projectRoot, store };
