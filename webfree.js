@@ -8,6 +8,7 @@
  * applyFreeform(ctx) mutates ctx.html / ctx.css and pushes to ctx.changes.
  */
 const copy = require("./webcopy");
+const det = require("./webdetails");
 
 /* ---------------- utilities ---------------- */
 
@@ -76,7 +77,7 @@ function valueAfter(clause, triggerRe) {
 /** Split a message into clauses ("add FAQ and make it violet; then rename to X"). */
 function clauses(msg) {
   const verbs =
-    "add|make|change|set|rename|remove|delete|drop|hide|move|put|rewrite|use|center|swap|replace|insert|include|turn|give|update|create|switch|let|bump|increase|decrease|reduce";
+    "add|make|change|set|rename|remove|delete|drop(?!-in)|hide|move|put|rewrite|use|center|swap|replace|insert|include|turn|give|update|create|switch|let|bump|increase|decrease|reduce";
   return String(msg)
     .split(new RegExp("\\s*(?:;|\\n|\\bthen\\b|,\\s*(?:and\\s+)?(?=(?:" + verbs + ")\\b)|\\band\\s+(?=(?:" + verbs + ")\\b)|\\.\\s+(?=[A-Z]))\\s*", "i"))
     .map(function (c) {
@@ -474,12 +475,19 @@ const BLOCKS = {
       '      <p class="kpi-label" style="text-align:center">Trusted by teams at</p>\n      <div class="logo-row" style="justify-content:center;margin-top:12px"><span>Northwind</span><span>Globex</span><span>Initech</span><span>Umbrella</span><span>Hooli</span></div>'
     );
   },
-  about: function (ctx) {
+  about: function (ctx, clause) {
     const name = esc(brandName(ctx));
-    return sec(
-      "about",
-      '      <div class="split">\n        <div>\n          <h2 class="section-title">About ' + name + '</h2>\n          <p class="soft">We started ' + name + " to make something simpler, friendlier, and genuinely useful. Today we help people every week — and we still answer every message ourselves.</p>\n          <p class=\"muted\">Replace this with your story: why you started, who you serve, and what makes you different.</p>\n        </div>\n        <div class=\"card\"><div class=\"kpi-label\">Since</div><div class=\"kpi\">2026</div><p class=\"muted\" style=\"margin:8px 0 0\">Independent and customer-funded.</p></div>\n      </div>"
-    );
+    const story = det.storyFrom(clause);
+    const year = det.yearFrom(story || clause);
+    const kind = det.kindOf(ctx.meta);
+    const owned = kind === "product" ? "Independent and customer-funded." : "Locally owned and run.";
+    const side = year
+      ? '        <div class="card"><div class="kpi-label">Since</div><div class="kpi">' + year + '</div><p class="muted" style="margin:8px 0 0">' + owned + "</p></div>"
+      : '        <div class="card"><div class="kpi-label">' + (kind === "product" ? "Who we are" : "Who you'll meet") + '</div><p class="soft" style="margin:8px 0 0">' + (kind === "product" ? "A small team that answers every message ourselves." : "The owners — in person, most days.") + "</p></div>";
+    const body = story
+      ? '          <p class="soft">' + esc(story) + "</p>"
+      : '          <p class="soft">We started ' + name + " to make something simpler, friendlier, and genuinely useful — and we still answer every message ourselves.</p>\n          <p class=\"muted\">Tell Build your story to replace this, e.g. \u201cadd our story: we started in a garage in 2014\u201d.</p>";
+    return sec("about", '      <div class="split">\n        <div>\n          <h2 class="section-title">About ' + name + "</h2>\n" + body + "\n        </div>\n" + side + "\n      </div>");
   },
   services: function (ctx, clause) {
     const named = listItems(clause);
@@ -522,11 +530,9 @@ const BLOCKS = {
         "\n      </div>"
     );
   },
-  hours: function () {
-    return sec(
-      "hours",
-      '      <div class="split">\n        <div class="card">\n          <h2 class="section-title">Visit us</h2>\n          <p class="soft">123 Main Street<br />Your City, ST 00000</p>\n          <p><a class="btn ghost" href="#">Get directions</a></p>\n        </div>\n        <div class="card">\n          <h3>Hours</h3>\n          <table><tbody>\n            <tr><td>Mon – Fri</td><td>8am – 6pm</td></tr>\n            <tr><td>Saturday</td><td>9am – 4pm</td></tr>\n            <tr><td>Sunday</td><td class="muted">Closed</td></tr>\n          </tbody></table>\n        </div>\n      </div>'
-    );
+  hours: function (ctx, clause, given) {
+    const d = given || { hours: det.parseHours(clause), addr: det.parseAddress(clause) };
+    return hoursBlock(d.hours || [], d.addr || null);
   },
   benefits: function () {
     return sec(
@@ -587,6 +593,195 @@ const BLOCK_TRIGGERS = [
   ["guarantee", /\b(guarantee|money.?back|warranty)\b/],
   ["video", /\b(video|demo video)\b/],
 ];
+
+
+/* ---------------- hours / location / contact details ---------------- */
+
+function hoursTable(rows, sample) {
+  return (
+    "<table" + (sample ? ' data-sample="1"' : "") + "><tbody>\n" +
+    rows
+      .map(function (r) {
+        return "            <tr><td>" + esc(r[0]) + "</td><td" + (/^closed$/i.test(r[1]) ? ' class="muted"' : "") + ">" + esc(r[1]) + "</td></tr>";
+      })
+      .join("\n") +
+    "\n          </tbody></table>"
+  );
+}
+
+function directionsBtn(addr) {
+  return '<a class="btn ghost" href="https://www.google.com/maps/search/?api=1&amp;query=' + encodeURIComponent(addr) + '" target="_blank" rel="noopener">Get directions</a>';
+}
+
+const SAMPLE_HOURS = [["Mon – Fri", "8am – 6pm"], ["Saturday", "9am – 4pm"], ["Sunday", "Closed"]];
+
+function hoursBlock(hours, addr) {
+  const attr = addr ? ' data-addr="' + esc(addr) + '"' : "";
+  if (!hours.length && !addr) {
+    return sec(
+      "hours",
+      '      <div class="card">\n        <h2 class="section-title">Hours</h2>\n        ' + hoursTable(SAMPLE_HOURS, true) + '\n        <p class="muted" style="margin:12px 0 0">Sample hours — tell Build yours, e.g. \u201cour hours are Mon\u2013Fri 7am\u20133pm, Sat 8am\u2013noon\u201d, or \u201cour address is \u2026\u201d.</p>\n      </div>',
+      attr
+    );
+  }
+  const visit = addr
+    ? '        <div class="card">\n          <h2 class="section-title">Visit us</h2>\n          <p class="soft">' + esc(addr) + "</p>\n          <p>" + directionsBtn(addr) + "</p>\n        </div>"
+    : "";
+  const table = hours.length
+    ? '        <div class="card">\n          <h2 class="section-title">Hours</h2>\n          ' + hoursTable(hours) + "\n        </div>"
+    : "";
+  const inner = visit && table ? '      <div class="split">\n' + visit + "\n" + table + "\n      </div>" : (visit || table).replace(/^ {2}/gm, "").replace('<div class="card">', '<div class="card" style="max-width:560px">');
+  return sec("hours", inner, attr);
+}
+
+function rowsIn(chunk) {
+  if (/<table data-sample/.test(chunk)) return [];
+  const out = [];
+  const re = /<tr><td>([\s\S]*?)<\/td><td[^>]*>([\s\S]*?)<\/td><\/tr>/gi;
+  let m;
+  while ((m = re.exec(chunk))) out.push([stripTags(m[1]), stripTags(m[2])]);
+  return out;
+}
+
+function mergeRows(old, next) {
+  if (!next.length) return old;
+  const out = old.slice();
+  next.forEach(function (r) {
+    const i = out.findIndex(function (o) { return o[0].toLowerCase() === r[0].toLowerCase(); });
+    if (i === -1) out.push(r);
+    else out[i] = r;
+  });
+  /* restating the whole week replaces it */
+  return next.length >= 2 ? next : out;
+}
+
+function attrIn(chunk, name) {
+  const m = chunk.match(new RegExp(name + '="([^"]*)"'));
+  return m ? stripTags(m[1]) : null;
+}
+
+/** The local-service template's "Where to find us" card (or one already filled by Build). */
+function whereCard(html) {
+  const secs = findSections(html);
+  for (const s of secs) {
+    if (!/data-forge="where"|>Where to find us</i.test(s.inner)) continue;
+    for (const r of cardRanges(s.inner)) {
+      const chunk = s.inner.slice(r.start, r.end);
+      if (/data-forge="where"|>Where to find us</i.test(chunk)) return { start: s.start + r.start, end: s.start + r.end, chunk: chunk };
+    }
+  }
+  return null;
+}
+
+/** Put address + hours where visitors look for them; returns true when placed. */
+function applyLocation(ctx, hours, addr, clause) {
+  const changes = [];
+  if (hours.length) changes.push("Hours → " + hours.map(function (r) { return r[0] + " " + r[1]; }).join(" · "));
+  if (addr) changes.push("Address → " + addr + " (with directions link)");
+  const w = whereCard(ctx.html);
+  if (w) {
+    const rows = mergeRows(rowsIn(w.chunk), hours);
+    const a = addr || attrIn(w.chunk, "data-addr");
+    const h2 = (w.chunk.match(/<h2[^>]*>[\s\S]*?<\/h2>/i) || ['<h2 class="section-title">Where to find us</h2>'])[0];
+    const parts = ['      <div class="card" data-forge="where"' + (a ? ' data-addr="' + esc(a) + '"' : "") + ">", "        " + h2];
+    if (a) parts.push('        <p class="soft" style="margin:0">' + esc(a) + "</p>");
+    else parts.push('        <p class="muted">Add your address — say \u201cour address is \u2026\u201d.</p>');
+    if (rows.length) parts.push('        <div style="margin-top:14px">' + hoursTable(rows) + "</div>");
+    if (a) parts.push('        <p style="margin-top:16px">' + directionsBtn(a) + "</p>");
+    parts.push("      </div>");
+    ctx.html = ctx.html.slice(0, w.start) + parts.join("\n").replace(/^ {6}/, "") + ctx.html.slice(w.end);
+  } else {
+    const ex = findSections(ctx.html).find(function (s) { return s.forge === "hours"; });
+    if (ex) {
+      const rows = mergeRows(rowsIn(ex.inner), hours);
+      const a = addr || attrIn(ex.open, "data-addr");
+      ctx.html = ctx.html.slice(0, ex.start) + hoursBlock(rows, a).replace(/^\s+/, "") + ctx.html.slice(ex.end);
+    } else {
+      ctx.html = placeBlock(ctx.html, hoursBlock(hours, addr), clause);
+    }
+  }
+  ctx.htmlDirty = true;
+  changes.forEach(function (d) { ctx.changes.push({ action: "edit", file: "public/index.html", detail: d }); });
+}
+
+function infoLinks(info) {
+  const out = [];
+  if (info.phone) out.push('<a class="btn ghost sm" href="' + esc(info.phone.href) + '">Call ' + esc(info.phone.label) + "</a>");
+  if (info.email) out.push('<a class="btn ghost sm" href="mailto:' + esc(info.email) + '">' + esc(info.email) + "</a>");
+  if (info.addr) out.push('<a class="btn ghost sm" href="https://www.google.com/maps/search/?api=1&amp;query=' + encodeURIComponent(info.addr) + '" target="_blank" rel="noopener">' + esc(info.addr) + "</a>");
+  return '<p class="row" data-forge="contact-info" style="margin:14px 0 0">' + out.join(" ") + "</p>";
+}
+
+function readInfo(chunk) {
+  const tel = chunk.match(/href="(tel:[^"]+)">Call ([^<]+)</);
+  const mail = chunk.match(/href="mailto:([^"]+)"/);
+  const map = chunk.match(/maps\/search[^"]*"[^>]*>([^<]+)</);
+  return { phone: tel ? { href: tel[1], label: stripTags(tel[2]) } : null, email: mail ? mail[1] : null, addr: map ? stripTags(map[1]) : null };
+}
+
+/** Tap-to-call / mailto chips inside the page's form section (or a new contact card). */
+function applyContactInfo(ctx, info, clause) {
+  const secs = findSections(ctx.html);
+  const target = secs.find(function (s) { return /data-forge="contact-info"/.test(s.inner); }) || secs.find(function (s) { return !s.hero && /<form\b/i.test(s.inner) && !/data-forge-newsletter/.test(s.inner); });
+  let next;
+  if (target) {
+    let inner = target.inner;
+    const old = inner.match(/<p class="row" data-forge="contact-info"[\s\S]*?<\/p>/);
+    if (old) {
+      const prev = readInfo(old[0]);
+      const merged = { phone: info.phone || prev.phone, email: info.email || prev.email, addr: info.addr || prev.addr };
+      inner = inner.replace(old[0], infoLinks(merged));
+    } else {
+      const strip = infoLinks(info);
+      const fi = inner.search(/<form\b/i);
+      const head = inner.slice(0, fi);
+      const pm = head.match(/<p class="muted"[^>]*>[\s\S]*?<\/p>(?![\s\S]*<p class="muted")/);
+      if (pm) inner = inner.replace(pm[0], pm[0] + "\n      " + strip);
+      else {
+        let at = fi;
+        while (at > 0 && /[ \t]/.test(inner[at - 1])) at--;
+        inner = inner.slice(0, at) + "      " + strip + "\n" + inner.slice(at);
+      }
+    }
+    next = ctx.html.slice(0, target.start) + inner + ctx.html.slice(target.end);
+  } else {
+    const block =
+      '    <section id="contact" data-forge="contact" class="card" style="margin-top:40px">\n      <h2 class="section-title">Get in touch</h2>\n      <p class="muted">Call, email, or stop by — we\u2019d love to hear from you.</p>\n      ' +
+      infoLinks(info) +
+      "\n    </section>";
+    next = placeBlock(ctx.html, block, clause);
+  }
+  if (next === ctx.html) return false;
+  ctx.html = next;
+  ctx.htmlDirty = true;
+  if (info.phone) ctx.changes.push({ action: "edit", file: "public/index.html", detail: "Phone → " + info.phone.label + " (tap to call)" });
+  if (info.email) ctx.changes.push({ action: "edit", file: "public/index.html", detail: "Email → " + info.email + " (tap to email)" });
+  if (info.addr) ctx.changes.push({ action: "edit", file: "public/index.html", detail: "Address → " + info.addr });
+  return true;
+}
+
+/* Common FAQ topics → a sensible starter answer (kept short; owners edit). */
+const FAQ_ANSWERS = [
+  [/deliver/i, "Yes, nearby — tell us your address in the form and we'll confirm delivery time and any fee."],
+  [/parking|park\b/i, "Free street parking is usually easy to find right outside."],
+  [/gluten|vegan|dairy|allerg|dietary|nut/i, "Ask us — we'll tell you what's available that day and what we can make to order."],
+  [/custom|special order|large order|bulk|catering|cater/i, "We do. Tell us the date, quantity, and any details, and we'll confirm pricing."],
+  [/order (?:online|ahead)|pre-?order|pickup|pick up/i, "Yes — send your order through the form and we'll have it ready when you arrive."],
+  [/book|appointment|reserv|schedule/i, "Use the form on this page or call us — we'll confirm a time that works for you."],
+  [/cancel|refund/i, "Plans change — just let us know as early as you can and we'll sort it out."],
+  [/pay|card|cash|venmo/i, "We take all major cards, cash, and tap-to-pay."],
+  [/insurance/i, "We accept most major plans. Call us with your provider and we'll check for you."],
+  [/price|cost|how much|quote|estimate/i, "You'll get a clear price up front, before any work starts — no surprises."],
+  [/area|where|locat|serve/i, "Tell us where you are — we'll let you know right away if we can help."],
+  [/hours|open|when/i, "Our hours are listed on this page — or call and we'll pick up."],
+  [/gift card/i, "Yes — ask in person or send us a message and we'll set one up."],
+  [/kid|child|family/i, "Absolutely — families are always welcome."],
+];
+
+function faqAnswer(q) {
+  const hit = FAQ_ANSWERS.find(function (a) { return a[0].test(q); });
+  return hit ? hit[1] : null;
+}
 
 /* ---------------- hero helpers ---------------- */
 
@@ -805,6 +1000,51 @@ rule("nav-link", /\b(nav|navigation|menu|header)\s+(?:link|item|button)\b|\badd 
   return true;
 });
 
+/* Answer an FAQ question: answer "Do you deliver?" with Yes, within 5 miles */
+rule("faq-answer", /\banswer\b/i, function (ctx, c) {
+  const q = quotes(c);
+  if (!q.length) return false;
+  const after = c.slice(c.lastIndexOf(q[0]) + q[0].length).replace(/^["”'’]/, "");
+  const am = after.match(/^\s*(?:with|:|to|as|=|by saying|saying)\s+(.+)$/i);
+  const ans = q[1] || (am && am[1].replace(/^["“']|["”']$/g, "").trim());
+  if (!ans) return false;
+  const want = q[0].replace(/[?.!]+$/, "").toLowerCase();
+  const re = /(<details\b[^>]*>\s*<summary[^>]*>)([\s\S]*?)(<\/summary>\s*<p\b[^>]*>)([\s\S]*?)(<\/p>)/gi;
+  let hit = false;
+  const next = ctx.html.replace(re, function (m, a, sum, b, _old, e) {
+    if (hit || stripTags(sum).replace(/[?.!]+$/, "").toLowerCase().indexOf(want) === -1) return m;
+    hit = true;
+    return a + sum + b.replace(/ data-placeholder="1"/, "") + esc(det.sentence(ans)) + e;
+  });
+  if (!hit) {
+    ctx.notes.push('No FAQ question matching "' + q[0] + '" — add it with: add an FAQ: ' + q[0]);
+    return true;
+  }
+  ctx.html = next;
+  ctx.htmlDirty = true;
+  ctx.changes.push({ action: "edit", file: "public/index.html", detail: 'Answered "' + q[0] + '"' });
+  return true;
+});
+
+/* Real business details typed into chat: hours, address, phone, email */
+rule("details", /\d|@|\b(address|located|hours|open|closed)\b/i, function (ctx, c) {
+  const lower = c.toLowerCase();
+  if (quotes(c).length >= 2) return false;
+  if (/\b(remove|delete|hide|drop(?!-in)|get rid of)\b/.test(lower)) return false;
+  if (/\b(headline|heading|subtitle|tagline|badge|button|cta|footer)\b/.test(lower)) return false;
+  const placeWords = /\b(hours|open|opening|closed|location|address|located|phone|call|text|email|e-mail|contact|find us|visit)\b/.test(lower);
+  if (/\b(about|story|who we are|faqs?|questions|pricing|plans?|tiers?|packages?|menu|team|gallery|testimonials?|reviews?|stats)\b/.test(lower) && !placeWords) return false;
+  const hours = det.parseHours(c);
+  const phone = det.parsePhone(c);
+  const email = det.parseEmail(c);
+  const addr = det.parseAddress(c);
+  if (!hours.length && !phone && !email && !addr) return false;
+  const hasPlace = hours.length || (addr && (whereCard(ctx.html) || /\b(hours|location|visit|find us|directions)\b/.test(lower) || findSections(ctx.html).some(function (s) { return s.forge === "hours"; })));
+  if (hasPlace) applyLocation(ctx, hours, addr, c);
+  if (phone || email || (addr && !hasPlace)) applyContactInfo(ctx, { phone: phone, email: email, addr: hasPlace ? null : addr }, c);
+  return true;
+});
+
 /* Topic / industry rewrite of hero + cards */
 rule(
   "rewrite",
@@ -837,6 +1077,8 @@ rule(
 
 /* Tone change without explicit rewrite verb */
 rule("tone", /\b(more|less|sound|tone|voice)\b[\s\S]*\b(professional|formal|corporate|friendly|casual|warm|playful|fun|funny|bold|punchy|confident|exciting|luxury|luxurious|premium|elegant|minimal|concise|shorter|simpler|persuasive)\b|\bmake (?:the )?(?:copy|text|wording|it)\s+(?:sound\s+)?(?:more\s+)?(professional|formal|friendly|casual|playful|fun|bold|punchy|confident|luxurious|premium|elegant|minimal|concise|shorter|simpler|persuasive)\b/i, function (ctx, c) {
+  /* "make the font more elegant" is a typography ask — leave it to the font rule, keep their headline */
+  if (/\b(font|fonts|typeface|typography|lettering|letters)\b/i.test(c)) return false;
   const tone = copy.findTone(c);
   if (!tone) return false;
   const set = copy.copyFor(topicFromCtx(ctx), tone, { headline: currentHeadline(ctx.html) });
@@ -847,7 +1089,7 @@ rule("tone", /\b(more|less|sound|tone|voice)\b[\s\S]*\b(professional|formal|corp
 });
 
 /* Remove things */
-rule("remove", /\b(remove|delete|drop|hide|get rid of|take out|kill|lose)\b/i, function (ctx, c) {
+rule("remove", /\b(remove|delete|drop(?!-in)|hide|get rid of|take out|kill|lose)\b/i, function (ctx, c) {
   const lower = c.toLowerCase();
   if (/theme.?toggle|dark mode (?:button|toggle)|light mode (?:button|toggle)/.test(lower)) {
     setRule(ctx, "hide-theme-toggle", ".theme-toggle{display:none}", "Hid theme toggle");
@@ -988,6 +1230,11 @@ rule("add-section", /\b(add|insert|include|create|put|need|want|give me|show)\b/
   for (const [key, re] of BLOCK_TRIGGERS) {
     if (named) break;
     if (!re.test(lower)) continue;
+    if (key === "hours" && whereCard(ctx.html)) {
+      ctx.notes.push("Your page already has a \u201cWhere to find us\u201d card — tell Build the details, e.g. \u201cour hours are Mon\u2013Fri 7am\u20133pm\u201d or \u201cour address is 210 2nd Ave SE, Cedar Rapids\u201d.");
+      ctx.changes.push({ action: "skip", detail: "location card already present" });
+      return true;
+    }
     if (new RegExp('data-forge="' + key + '"').test(ctx.html)) {
       /* "add a menu with espresso, latte and cold brew" when a menu exists → swap in those items */
       const existing = (key === "menu" || key === "services") && listItems(c).length ? findSections(ctx.html).find(function (s) { return s.forge === key; }) : null;
@@ -1010,6 +1257,12 @@ rule("add-section", /\b(add|insert|include|create|put|need|want|give me|show)\b/
     c.match(/\b(?:add|insert|include|create)\s+(?:a\s+|an\s+|the\s+)?(?:new\s+)?["“']?([a-z0-9][^"”']{1,50}?)["”']?\s+(?:section|block)\b/i);
   if (!g) return false;
   let topic = g[1].replace(/\b(?:at the top|to the top|at the bottom|above .*|below .*|before .*|after .*)$/i, "").trim();
+  let said = null;
+  const colon = topic.match(/^([^:—–]{2,50})\s*[:—–]\s*(.{4,})$/);
+  if (colon) {
+    topic = colon[1].trim();
+    said = det.sentence(colon[2]);
+  }
   if (!topic || topic.length < 2) return false;
   const heading = titleCase(topic.replace(/^(?:our|my)\s+/i, "Our "));
   const key = "s-" + slug(topic);
@@ -1023,7 +1276,9 @@ rule("add-section", /\b(add|insert|include|create|put|need|want|give me|show)\b/
   const n = items ? Math.min(6, Number(nmap[items[1].toLowerCase()] || items[1]) || 3) : plural ? 3 : 0;
   const brand = esc(brandName(ctx));
   let body;
-  if (n) {
+  if (said) {
+    body = '      <div class="card">\n        <p class="soft" style="margin:0;font-size:1.05rem">' + esc(said) + "</p>\n      </div>";
+  } else if (n) {
     const cards = [];
     for (let i = 1; i <= n; i++) {
       cards.push('        <div class="card"><div class="feature-icon">' + i + "</div><h3>Point " + i + '</h3><p class="muted">One or two sentences about this — ask Build to change any line.</p></div>');
@@ -1278,4 +1533,4 @@ function applyFreeform(ctx) {
   return ctx;
 }
 
-module.exports = { listItems, packOf, applyFreeform, clauses, quotes, findSections, replaceText, stripPlacement, placeBlock, COLORS };
+module.exports = { listItems, packOf, applyFreeform, clauses, quotes, findSections, replaceText, stripPlacement, placeBlock, faqAnswer, COLORS };

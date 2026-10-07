@@ -1,5 +1,10 @@
 "use strict";
 
+/* Their description, tidied for the hero: "neighborhood bakery" → "Neighborhood bakery." */
+function heroLine(d) {
+  return require("./webdetails").sentence(d || "");
+}
+
 const fs = require("fs");
 const path = require("path");
 const webcopy = require("./webcopy");
@@ -364,7 +369,7 @@ function templateLanding(opts) {
     <section class="hero">
       <span class="badge">${escapeHtml(P ? P.badge : "Now available")}</span>
       <h1 style="margin-top:16px">${escapeHtml(name)}</h1>
-      <p>${escapeHtml(description || (P ? P.sub : "A clear, fast way to get what you need — with simple pricing and real people behind it."))}</p>
+      <p>${escapeHtml(heroLine(description) || (P ? P.sub : "A clear, fast way to get what you need — with simple pricing and real people behind it."))}</p>
       <div class="cta">
         <a class="btn" href="#get-started">${escapeHtml(P ? P.cta : "Get started")}</a>
         <a class="btn ghost" href="#features">See what's included</a>
@@ -549,7 +554,7 @@ ${menuRows(L.menu)}
     <section class="hero">
       <span class="badge">${L.badge}</span>
       <h1 style="margin-top:16px">${escapeHtml(name)}</h1>
-      <p>${escapeHtml(description || L.sub)}</p>
+      <p>${escapeHtml(heroLine(description) || L.sub)}</p>
       <p class="muted" style="margin-top:12px">${escapeHtml(L.trust)}</p>
       <div class="cta">
         <a class="btn" href="#quote">${escapeHtml(L.cta)}</a>
@@ -635,7 +640,7 @@ function templateDashboard(opts) {
   <main class="wrap">
     <section class="hero" style="padding-top:28px;padding-bottom:8px">
       <h1 style="font-size:clamp(1.6rem,3vw,2.2rem)">${escapeHtml(name)}</h1>
-      <p>${escapeHtml(description || "Operational dashboard for tracking work, revenue, and open tasks.")}</p>
+      <p>${escapeHtml(heroLine(description) || "Operational dashboard for tracking work, revenue, and open tasks.")}</p>
     </section>
 
     <section class="grid 4" style="margin-top:8px">
@@ -709,7 +714,7 @@ function templateContentFeed(opts) {
     <section class="hero">
       <span class="badge">Newsletter</span>
       <h1 style="margin-top:16px">${escapeHtml(name)}</h1>
-      <p>${escapeHtml(description || "A news-style content feed with featured stories and an email subscribe form.")}</p>
+      <p>${escapeHtml(heroLine(description) || "A news-style content feed with featured stories and an email subscribe form.")}</p>
     </section>
 
     <section class="split" id="latest">
@@ -794,7 +799,7 @@ function templateMarketplace(opts) {
     <section class="hero">
       <span class="badge">Leads marketplace</span>
       <h1 style="margin-top:16px">${escapeHtml(name)}</h1>
-      <p>${escapeHtml(description || "Buyers post jobs free. Pros browse the board and unlock contact details when a lead is a fit.")}</p>
+      <p>${escapeHtml(heroLine(description) || "Buyers post jobs free. Pros browse the board and unlock contact details when a lead is a fit.")}</p>
       <div class="cta">
         <a class="btn" href="#post">Post a job free</a>
         <a class="btn ghost" href="#board">View open leads</a>

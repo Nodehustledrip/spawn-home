@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const webfree = require("./webfree");
 const copy = require("./webcopy");
+const det = require("./webdetails");
 
 const ACCENTS = {
   teal: "#5eead4",
@@ -69,56 +70,120 @@ function replaceTitle(html, title) {
   return out;
 }
 
-function pricingSection() {
+/** Where "choose a plan" buttons should go: the page's own form section when it has one. */
+function formHref(html) {
+  const secs = webfree.findSections(html || "");
+  const f = secs.find(function (x) { return !x.hero && x.id && /<form\b/i.test(x.inner) && !/data-forge-newsletter/.test(x.inner); });
+  return f ? "#" + f.id : /id="get-started"/.test(html || "") ? "#get-started" : "#contact";
+}
+
+function tierCard(t, href, popular) {
+  const esc = escapeHtml;
+  return `        <div class="card" style="background:var(--bg,#0b0f14)${popular ? ";border-color:var(--accent,#5eead4)" : ""}">
+          ${popular ? '<span class="badge">Popular</span>\n          ' : ""}<h3>${esc(t.name)}</h3>
+          <p style="font-size:1.8rem;font-weight:800;margin:8px 0">${t.price ? esc(t.price) : '<span class="muted" style="font-size:1rem;font-weight:600">Ask us</span>'}${t.unit ? '<span class="muted" style="font-size:1rem">/' + esc(t.unit) + "</span>" : ""}</p>
+          <ul class="muted" style="margin:8px 0 0;padding-left:18px;line-height:1.5">
+            ${t.items.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("")}
+          </ul>
+          <p style="margin-top:14px"><a class="btn${popular ? "" : " ghost"}" href="${href}">${esc(t.cta || "Choose " + t.name)}</a></p>
+        </div>`;
+}
+
+/* Pricing that fits the business: their tiers when named, else food / local-service / product defaults. */
+function pricingSection(meta, clause, html) {
+  const kind = det.kindOf(meta);
+  const href = formHref(html);
+  const pack = meta && meta.pack ? copy.PACKS.find(function (p) { return p.id === meta.pack; }) : null;
+  const feats = (pack ? pack.features : []).map(function (f) { return f[0]; });
+  let tiers;
+  let title = "Simple pricing";
+  let sub = "Pick a tier — swap prices and features for yours.";
+  const named = det.tiersFrom(clause);
+  if (named.length) {
+    const unit = (named.find(function (t) { return t.unit; }) || {}).unit || null;
+    const f = feats.length >= 3 ? feats : null;
+    const perks = {
+      product: [["Core features", "Email support"], ["Priority support", "Team seats"], ["Dedicated onboarding", "Custom terms"]],
+      food: [["Pickup in store", "Ready in 48 hours"], ["Custom message & colors", "Local delivery"], ["Tasting & planning call", "Delivery and setup"]],
+      service: f ? [[f[0], f[3] || "Clear quote up front"], [f[1]], [f[2]]] : [["Consultation", "Clear quote up front"], ["Full service", "Priority scheduling"], ["Ongoing support", "Follow-up included"]],
+    }[kind];
+    tiers = named.map(function (t, i) {
+      const p = perks[Math.min(i, perks.length - 1)];
+      const items = i === 0 ? p.slice() : ["Everything in " + named[i - 1].name].concat(p);
+      return { name: t.name, price: t.price, unit: t.unit || (t.price && kind === "product" ? unit : null), items: items };
+    });
+    title = kind === "product" ? "Choose your plan" : "Our prices";
+    sub = "Ask Build to change any name, price, or line.";
+  } else if (kind === "food") {
+    title = "Custom orders & catering";
+    sub = "Starting prices — final quote depends on your order.";
+    tiers = [
+      { name: "Small order", price: "from $40", items: ["Serves 6–8", "Ready in 48 hours", "Pickup in store"], cta: "Start an order" },
+      { name: "Party", price: "from $90", items: ["Serves 15–20", "Custom message & colors", "Pickup or local delivery"], cta: "Plan a party order" },
+      { name: "Event", price: "from $200", items: ["Serves 40+", "Tasting & planning call", "Delivery and setup"], cta: "Talk to us" },
+    ];
+  } else if (kind === "service") {
+    title = "Packages";
+    sub = "Starting prices — you'll get a clear quote before anything starts.";
+    const f = feats.length >= 3 ? feats : ["Consultation", "Full service", "Ongoing support"];
+    tiers = [
+      { name: "Essential", price: "from $49", items: [f[0], "Clear quote up front"], cta: "Book Essential" },
+      { name: "Standard", price: "from $99", items: [f[0], f[1], "Priority scheduling"], cta: "Book Standard" },
+      { name: "Premium", price: "from $179", items: ["Everything in Standard", f[2], "Follow-up included"], cta: "Book Premium" },
+    ];
+  } else {
+    tiers = [
+      { name: "Starter", price: "$9", unit: "mo", items: ["1 project", "Email support", "Basic analytics"] },
+      { name: "Pro", price: "$29", unit: "mo", items: ["Unlimited projects", "Priority support", "Team seats (5)"] },
+      { name: "Business", price: "$79", unit: "mo", items: ["Everything in Pro", "SSO-ready hooks", "Custom domains help"], cta: "Talk to sales" },
+    ];
+  }
+  const pop = tiers.length >= 3 ? 1 : -1;
   return `    <section id="pricing" class="card" style="margin-top:24px" data-forge="pricing">
       <span class="badge">Pricing</span>
-      <h2 style="margin:10px 0 8px">Simple pricing</h2>
-      <p class="muted">Pick a tier — swap prices and features for yours.</p>
-      <div class="grid 3" style="margin-top:16px">
-        <div class="card" style="background:var(--bg,#0b0f14)">
-          <h3>Starter</h3>
-          <p style="font-size:1.8rem;font-weight:800;margin:8px 0">$9<span class="muted" style="font-size:1rem">/mo</span></p>
-          <ul class="muted" style="margin:8px 0 0;padding-left:18px;line-height:1.5">
-            <li>1 project</li><li>Email support</li><li>Basic analytics</li>
-          </ul>
-          <p style="margin-top:14px"><a class="btn ghost" href="#get-started">Choose Starter</a></p>
-        </div>
-        <div class="card" style="background:var(--bg,#0b0f14);border-color:var(--accent,#5eead4)">
-          <span class="badge">Popular</span>
-          <h3>Pro</h3>
-          <p style="font-size:1.8rem;font-weight:800;margin:8px 0">$29<span class="muted" style="font-size:1rem">/mo</span></p>
-          <ul class="muted" style="margin:8px 0 0;padding-left:18px;line-height:1.5">
-            <li>Unlimited projects</li><li>Priority support</li><li>Team seats (5)</li>
-          </ul>
-          <p style="margin-top:14px"><a class="btn" href="#get-started">Choose Pro</a></p>
-        </div>
-        <div class="card" style="background:var(--bg,#0b0f14)">
-          <h3>Business</h3>
-          <p style="font-size:1.8rem;font-weight:800;margin:8px 0">$79<span class="muted" style="font-size:1rem">/mo</span></p>
-          <ul class="muted" style="margin:8px 0 0;padding-left:18px;line-height:1.5">
-            <li>Everything in Pro</li><li>SSO-ready hooks</li><li>Custom domains help</li>
-          </ul>
-          <p style="margin-top:14px"><a class="btn ghost" href="#contact">Talk to sales</a></p>
-        </div>
+      <h2 style="margin:10px 0 8px">${escapeHtml(title)}</h2>
+      <p class="muted">${escapeHtml(sub)}</p>
+      <div class="grid ${Math.min(tiers.length, 4)}" style="margin-top:16px">
+${tiers.map(function (t, i) { return tierCard(t, href, i === pop); }).join("\n")}
       </div>
     </section>`;
 }
 
-function faqSection() {
+const FAQ_DEFAULTS = {
+  food: [
+    ["Can I order ahead for pickup?", "Yes — send your order through the form and we'll have it ready when you arrive."],
+    ["Do you take custom or large orders?", "We do. Tell us the date and quantity and we'll confirm details and pricing."],
+    ["Do you have options for dietary needs?", "Ask us — we'll tell you what's available that day and what we can make to order."],
+  ],
+  service: [
+    ["How do I book?", "Use the form on this page or give us a call — we'll confirm a time that works for you."],
+    ["What areas do you serve?", "Tell us where you are — we'll let you know right away if we can help."],
+    ["How does pricing work?", "You'll get a clear price up front, before anything starts. No surprises."],
+  ],
+  product: [
+    ["How do I get started?", "Create an account, pick a plan, and you are live in minutes."],
+    ["Can I cancel anytime?", "Yes. No long-term contracts."],
+    ["Do you offer support?", "Email support is included on every plan."],
+  ],
+};
+
+function faqItem(q, a, first) {
+  const esc = escapeHtml;
+  return `      <details class="faq-item feed-item"${first ? " open" : ""} style="margin-top:${first ? 10 : 8}px">
+        <summary style="cursor:pointer;font-weight:600">${esc(q)}</summary>
+        <p class="muted"${a ? "" : ' data-placeholder="1"'} style="margin:8px 0 0">${esc(a || "Add your answer — say: answer “" + q + "” with …")}</p>
+      </details>`;
+}
+
+/* FAQ that fits the business; their own questions when they list them. */
+function faqSection(meta, clause) {
+  const asked = det.questionsFrom(clause);
+  const items = asked.length
+    ? asked.map(function (q) { return [q, webfree.faqAnswer(q)]; })
+    : FAQ_DEFAULTS[det.kindOf(meta)];
   return `    <section id="faq" class="card" style="margin-top:24px" data-forge="faq">
       <h2>FAQ</h2>
-      <details class="faq-item feed-item" open style="margin-top:10px">
-        <summary style="cursor:pointer;font-weight:600">How do I get started?</summary>
-        <p class="muted" style="margin:8px 0 0">Create an account, pick a plan, and you are live in minutes.</p>
-      </details>
-      <details class="faq-item feed-item" style="margin-top:8px">
-        <summary style="cursor:pointer;font-weight:600">Can I cancel anytime?</summary>
-        <p class="muted" style="margin:8px 0 0">Yes. No long-term contracts.</p>
-      </details>
-      <details class="faq-item feed-item" style="margin-top:8px">
-        <summary style="cursor:pointer;font-weight:600">Do you offer support?</summary>
-        <p class="muted" style="margin:8px 0 0">Email support is included on every plan.</p>
-      </details>
+${items.map(function (it, i) { return faqItem(it[0], it[1], i === 0); }).join("\n")}
     </section>`;
 }
 
@@ -291,8 +356,10 @@ function applyEdit(projectRoot, message, opts) {
   }
 
   let packId = null;
+  let fmeta = null;
   try {
     const fm = JSON.parse(readText(projectRoot, "forge.json"));
+    fmeta = fm;
     packId = fm.pack || null;
     if (!packId) {
       const fp = copy.findPack((fm.name || "") + " " + (fm.description || "") + " " + (fm.topic || ""));
@@ -304,9 +371,18 @@ function applyEdit(projectRoot, message, opts) {
   // Colors, CTA text, and hero copy are handled by webfree (freeform offline rules).
   webfree.clauses(msg).forEach(function (clause) {
     const lc = webfree.stripPlacement(clause.toLowerCase());
-    if (/\b(remove|delete|drop|hide|move|put|place|get rid of|take out|reorder)\b/.test(lc)) return;
+    if (/\b(remove|delete|drop(?!-in)|hide|move|put|place|get rid of|take out|reorder)\b/.test(lc)) return;
     function add(key, block) {
       if (html.includes('data-forge="' + key + '"') || html.includes('id="' + key + '"')) {
+        /* "add an FAQ: do you deliver? …" / "pricing with Basic $20, Pro $50" when one exists → use their items */
+        const theirs = (key === "faq" && det.questionsFrom(clause).length) || (key === "pricing" && det.tiersFrom(clause).length);
+        const ex = theirs && webfree.findSections(html).find(function (s) { return s.forge === key || s.id === key; });
+        if (ex) {
+          html = html.slice(0, ex.start) + block.replace(/^\s+/, "") + html.slice(ex.end);
+          htmlDirty = true;
+          changes.push({ action: "edit", file: indexPath, detail: key === "faq" ? "FAQ → your questions" : "Pricing → your tiers" });
+          return;
+        }
         changes.push({ action: "skip", detail: key + " already present" });
         return;
       }
@@ -314,12 +390,16 @@ function applyEdit(projectRoot, message, opts) {
       htmlDirty = true;
       changes.push({ action: "insert", file: indexPath, detail: "Added " + key });
     }
-    if (/\b(pricing|price plans?|pricing table)\b/.test(lc) && !/pricing page/.test(lc)) add("pricing", pricingSection());
-    if (/\bfaqs?\b|frequently asked/.test(lc)) add("faq", faqSection());
+    if (/\b(pricing|price plans?|pricing table)\b/.test(lc) && !/pricing page/.test(lc) && !/\bfaqs?\b|frequently asked|\banswer\b/.test(lc)) add("pricing", pricingSection(Object.assign({}, fmeta, { pack: packId }), clause, html));
+    if (/\bfaqs?\b|frequently asked/.test(lc)) add("faq", faqSection(Object.assign({}, fmeta, { pack: packId }), clause));
     if (/testimonial|reviews? section|social proof|add reviews|customer reviews/.test(lc)) add("testimonials", testimonialsSection(packId, html));
     if (/add (?:a |some )?features?|features? (?:section|grid)|feature (?:grid|cards)/.test(lc)) add("features", featuresSection());
     if (/\bstats\b|\bstat (?:row|section)\b|counters? row|\btraction\b|add (?:stats|counters)/.test(lc)) add("stats", statsSection());
-    if (/contact (form|section)|add (?:a )?contact|lead form|lead capture|signup form/.test(lc)) add("contact", contactSection());
+    if (/contact (form|section)|add (?:a )?contact|lead form|lead capture|signup form/.test(lc)) {
+      const hasForm = webfree.findSections(html).some(function (s) { return !s.hero && /<form\b/i.test(s.inner) && !/data-forge-newsletter/.test(s.inner); });
+      if (!hasForm) add("contact", contactSection());
+      else if (!/\d{3}|@|address/.test(lc)) changes.push({ action: "skip", detail: "contact form already present" });
+    }
     if (/\bcta\b|call to action|get started banner/.test(lc) && /\b(add|insert|include|create|banner|section)\b/.test(lc) && !/\b(swap|change|set|rename|update)\b|\bcta (?:to|text)\b|button (?:to|say)/.test(lc)) {
       const m = clause.match(/(?:cta|banner)[:\s]+["']?([^"'\n]+)["']?/i);
       let label = m ? m[1].trim() : "Get started today";
@@ -348,7 +428,9 @@ function applyEdit(projectRoot, message, opts) {
         escapeHtml(appName) +
         '</div><div class="nav-links"><a class="btn ghost sm" href="./">Home</a></div></nav>' +
         '<main class="wrap"><section class="hero"><h1>About</h1>' +
-        "<p>Tell your story here. This page was added from Build chat.</p></section></main></body></html>\n";
+        "<p>" +
+        escapeHtml(det.storyFrom(msg) || "Tell Build your story to fill this page, e.g. \u201cadd an about page: we started in a garage in 2014\u201d.") +
+        "</p></section></main></body></html>\n";
       writeText(projectRoot, aboutRel, about);
       changes.push({ action: "create", file: aboutRel, detail: "Added about page" });
       if (!/href=["']\.\/about\.html["']|href=["']about\.html["']/.test(html)) {
@@ -382,7 +464,7 @@ function applyEdit(projectRoot, message, opts) {
     r = ensureOnce(html, "testimonials", testimonialsSection(packId, html), changes, indexPath);
     html = r.html;
     htmlDirty = htmlDirty || r.dirty;
-    r = ensureOnce(html, "faq", faqSection(), changes, indexPath);
+    r = ensureOnce(html, "faq", faqSection(Object.assign({}, fmeta, { pack: packId }), ""), changes, indexPath);
     html = r.html;
     htmlDirty = htmlDirty || r.dirty;
   }
@@ -441,7 +523,7 @@ function applyEdit(projectRoot, message, opts) {
     return {
       ok: true,
       mode: "offline",
-      reply: (notes ? notes + " " : "") + "Already in place — try another edit (or say “undo”).",
+      reply: notes || "Already in place — try another edit (or say “undo”).",
       changes: changes,
     };
   }
