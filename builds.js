@@ -14,6 +14,7 @@ const crypto = require("crypto");
 const express = require("express");
 const webgen = require("./webgen");
 const webedit = require("./webedit");
+const webfree = require("./webfree");
 const buildai = require("./buildai");
 const history = require("./buildhistory");
 const store = require("./buildstore");
@@ -236,6 +237,37 @@ function fixLegacyCss(root) {
   }
 }
 
+/* Builds made before 2026-10-07: reword bot copy and swap untouched "Project N" gallery
+ * placeholders for business-fit tiles. Idempotent; only rewrites a page when something changed. */
+function fixLegacyCopy(root) {
+  let changed = false;
+  try {
+    const pub = path.join(root, "public");
+    let meta = {};
+    try {
+      meta = JSON.parse(fs.readFileSync(path.join(root, "forge.json"), "utf8")) || {};
+    } catch (_) {}
+    fs.readdirSync(pub).forEach(function (f) {
+      if (!/\.html$/i.test(f)) return;
+      const p = path.join(pub, f);
+      const html = fs.readFileSync(p, "utf8");
+      if (!/not a bot|>Project 1<\/p>/.test(html)) return;
+      const next = webfree.repairLegacyHtml(html, meta);
+      if (next !== html) {
+        fs.writeFileSync(p, next);
+        changed = true;
+      }
+    });
+  } catch (_) {}
+  return changed;
+}
+
+function fixLegacy(root) {
+  const a = fixLegacyCss(root);
+  const b = fixLegacyCopy(root);
+  return a || b;
+}
+
 function mount(app) {
   ensureDir();
   store.init().catch(function (err) {
@@ -382,7 +414,7 @@ function mount(app) {
     await store.init();
     const b = await loadOwned(req, res);
     if (!b) return;
-    fixLegacyCss(b.root);
+    fixLegacy(b.root);
     const out = buildzip.exportSite(b.root, readMeta(b.id) || {});
     dualWriteBuild("build_zip_downloaded", { sessionId: b.owner, id: b.id, bytes: out.buffer.length });
     res.setHeader("Content-Type", "application/zip");
@@ -429,7 +461,7 @@ function mount(app) {
           build: summarizeBuild(id),
         });
       }
-      fixLegacyCss(root);
+      fixLegacy(root);
       history.snapshot(root);
       let ai = null;
       if (wantAi) {
@@ -513,6 +545,7 @@ function mount(app) {
       .then(function (source) {
         if (!source) return res.status(404).type("text").send("Preview not found");
         fixLegacyCss(root);
+        if (req.path === "/" || req.path === "" || /\.html$/i.test(req.path)) fixLegacyCopy(root);
         const pub = path.join(root, "public");
         if (!fs.existsSync(pub)) return res.status(404).type("text").send("No public assets");
         /* Soft X-Robots so previews are not indexed as real apps */
@@ -537,4 +570,4 @@ function mount(app) {
   });
 }
 
-module.exports = { fixLegacyCss, mount, BUILDS_DIR, projectRoot, store };
+module.exports = { fixLegacyCss, fixLegacyCopy, mount, BUILDS_DIR, projectRoot, store };

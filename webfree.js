@@ -9,6 +9,7 @@
  */
 const copy = require("./webcopy");
 const det = require("./webdetails");
+const gallery = require("./webgallery");
 
 /* ---------------- utilities ---------------- */
 
@@ -424,6 +425,13 @@ function packOf(ctx) {
   return p ? p.id : null;
 }
 
+/* "Why choose us" — never mention bots/AI in generated-site copy. */
+const BENEFITS = {
+  food: [["✓", "Made fresh daily", "Small batches, prepared every single day."], ["✓", "Real ingredients", "Simple, honest ingredients — nothing artificial."], ["✓", "Order ahead", "Call or message and we'll have it ready."], ["✓", "Friendly faces", "Talk to a real person — we know our regulars by name."]],
+  service: [["✓", "Fast turnaround", "Most requests handled within 24 hours."], ["✓", "Satisfaction guaranteed", "Not happy? We make it right."], ["✓", "Transparent pricing", "Know the cost up front."], ["✓", "Real support", "Talk to a real person, every time."]],
+  product: [["✓", "Quick to start", "Up and running in minutes, not weeks."], ["✓", "Satisfaction guaranteed", "Not happy? We make it right."], ["✓", "Transparent pricing", "Know the cost up front."], ["✓", "Real support", "Talk to a real person, every time."]],
+};
+
 const BLOCKS = {
   team: function () {
     return sec(
@@ -456,17 +464,11 @@ const BLOCKS = {
     ) +
       "\n    <script>\n      (function(){var f=document.querySelector('[data-forge-newsletter]');if(!f)return;f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f);fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:fd.get('email'),source:'newsletter'})}).finally(function(){var m=document.querySelector('[data-forge-newsletter-msg]');if(m)m.textContent='Thanks — you are subscribed.';f.reset();});});})();\n    </script>";
   },
-  gallery: function () {
-    const g = ["135deg,var(--accent),#818cf8", "160deg,#f472b6,var(--accent)", "200deg,#fbbf24,#fb7185", "120deg,#34d399,#60a5fa", "45deg,#a78bfa,#f472b6", "90deg,var(--accent),#fbbf24"];
+  gallery: function (ctx, clause) {
+    const g = gallery.galleryFor({ pack: packOf(ctx), text: ((ctx.meta && ctx.meta.name) || "") + " " + topicFromCtx(ctx), items: listItems(clause) });
     return sec(
       "gallery",
-      '      <h2 class="section-title">Gallery</h2>\n      <p class="section-sub">Placeholder tiles — replace with your own images.</p>\n      <div class="grid 3">\n' +
-        g
-          .map(function (x, i) {
-            return '        <div class="card" style="padding:0;overflow:hidden"><div style="aspect-ratio:4/3;background:linear-gradient(' + x + ')"></div><p class="muted" style="margin:0;padding:12px 16px">Project ' + (i + 1) + "</p></div>";
-          })
-          .join("\n") +
-        "\n      </div>"
+      '      <h2 class="section-title">' + esc(g.title) + '</h2>\n      <p class="section-sub">' + esc(g.sub) + "</p>\n" + gallery.tilesHtml(g, "      ")
     );
   },
   logos: function () {
@@ -534,11 +536,11 @@ const BLOCKS = {
     const d = given || { hours: det.parseHours(clause), addr: det.parseAddress(clause) };
     return hoursBlock(d.hours || [], d.addr || null);
   },
-  benefits: function () {
+  benefits: function (ctx) {
     return sec(
       "benefits",
       '      <h2 class="section-title">Why choose us</h2>\n      <div class="grid 2">\n' +
-        [["✓", "Fast turnaround", "Most requests handled within 24 hours."], ["✓", "Satisfaction guaranteed", "Not happy? We make it right."], ["✓", "Transparent pricing", "Know the cost up front."], ["✓", "Real support", "Talk to a person, not a bot."]]
+        (BENEFITS[det.kindOf(ctx && ctx.meta)] || BENEFITS.service)
           .map(function (b) {
             return '        <div class="card"><div class="feature-icon">' + b[0] + "</div><h3>" + b[1] + '</h3><p class="muted">' + b[2] + "</p></div>";
           })
@@ -1223,7 +1225,7 @@ rule("add-section", /\b(add|insert|include|create|put|need|want|give me|show)\b/
   const lower = stripPlacement(c.toLowerCase());
   if (/\b(page)\b/.test(lower) && !/\bsection\b/.test(lower)) return false;
   if (/\b(columns?|col)\b/.test(lower) && !/\bsection\b/.test(lower)) return false;
-  if (/\b(link|button|image|photo|picture|illustration|animation|shadow|gradient|font|color|colour)\b/.test(lower) && !/\bsection\b/.test(lower)) return false;
+  if (/\b(link|button|image|photo|picture|illustration|animation|shadow|gradient|font|color|colour)\b/.test(lower) && !/\b(section|gallery|portfolio)\b/.test(lower)) return false;
   /* existing offline rules already cover these */
   if (/\b(pricing|faq|testimonials?|reviews?|stats|counters|traction|contact|cta|call to action|lead form|signup form|features?)\b/.test(lower) && !/\babout\b/.test(lower)) return false;
   const named = /\b(?:section|block)\s+(?:called|titled|named|that says)\b/i.test(c);
@@ -1237,7 +1239,7 @@ rule("add-section", /\b(add|insert|include|create|put|need|want|give me|show)\b/
     }
     if (new RegExp('data-forge="' + key + '"').test(ctx.html)) {
       /* "add a menu with espresso, latte and cold brew" when a menu exists → swap in those items */
-      const existing = (key === "menu" || key === "services") && listItems(c).length ? findSections(ctx.html).find(function (s) { return s.forge === key; }) : null;
+      const existing = (key === "menu" || key === "services" || key === "gallery") && listItems(c).length ? findSections(ctx.html).find(function (s) { return s.forge === key; }) : null;
       if (existing) {
         ctx.html = ctx.html.slice(0, existing.start) + BLOCKS[key](ctx, c).replace(/^\s+/, "") + ctx.html.slice(existing.end);
         ctx.htmlDirty = true;
@@ -1533,4 +1535,16 @@ function applyFreeform(ctx) {
   return ctx;
 }
 
-module.exports = { listItems, packOf, applyFreeform, clauses, quotes, findSections, replaceText, stripPlacement, placeBlock, faqAnswer, COLORS };
+/* Builds made before 2026-10-07 shipped "Talk to a person, not a bot." and six "Project N" placeholder
+ * gallery tiles. Repair untouched copies in place (idempotent; edited galleries are left alone). */
+function repairLegacyHtml(html, meta) {
+  let out = String(html || "");
+  out = out.replace(/Talk to a person, not a bot\./g, "Talk to a real person, every time.");
+  out = out.replace(/<section id="gallery" data-forge="gallery"[^>]*>[\s\S]*?<\/section>/, function (block) {
+    if (!/Placeholder tiles/.test(block) || !/>Project 1<\/p>/.test(block) || !/>Project 6<\/p>/.test(block)) return block;
+    return BLOCKS.gallery({ html: out, meta: meta || {} }, "").replace(/^\s+/, "");
+  });
+  return out;
+}
+
+module.exports = { repairLegacyHtml, listItems, packOf, applyFreeform, clauses, quotes, findSections, replaceText, stripPlacement, placeBlock, faqAnswer, COLORS };

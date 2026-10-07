@@ -279,6 +279,8 @@ const SYSTEM = [
   "- Allowed paths: public/<name>.html and public/<name>.css only. No JavaScript files.",
   "- Do NOT add <script> tags, inline event handlers (onclick=…), javascript: URLs, iframes, objects, or embeds.",
   "- Keep existing scripts, forms, and links working. Keep HTML valid.",
+  "- Visitor-facing copy must never mention bots, chatbots, AI, automation tools, website builders, or that the site was generated. Say 'a real person' / 'our team' instead of contrasting with bots.",
+  "- Galleries: never use 'Project 1'-style placeholders or hotlinked/stock image URLs. Use captioned tiles that fit the business, with CSS gradient/pattern art or small inline SVG, matching the existing design.",
   "- If the request is not a website change, or is unsafe, return empty patches/files and explain in reply.",
 ].join("\n");
 
