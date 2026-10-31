@@ -4,9 +4,11 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
+    "aws4fetch": "^1.0.20",
     "compression": "^1.8.2",
     "express": "^4.21.2",
     "pg": "^8.23.1"

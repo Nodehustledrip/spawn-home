@@ -121,6 +121,7 @@ app.use(function (req, res, next) {
 });
 app.use(compression());
 billing.mountWebhook(app); /* raw body — before express.json */
+require("./cloudpublish").mount(app); /* Spawn Cloud publish API — dormant (503) until CLOUD_PUBLISH_ENABLED + Cloudflare env exist */
 app.use(express.json({ limit: "32kb" }));
 app.use(function (_req, res, next) {
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
