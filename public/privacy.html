@@ -210,10 +210,12 @@
           <a href="https://stripe.com/privacy" rel="noopener">privacy policy</a>.
         </p>
         <p>
-          For Pro accounts, sign-in will be by email link: we store your email
-          address and the builds you save to your account, and send one-time
-          sign-in links through a transactional email provider. Free builds stay
-          session-only and need no account.
+          Accounts are optional and sign in by email link: we store your email
+          address, your plan, and the builds you save to your account, and send
+          one-time sign-in links through a transactional email provider. You
+          subscribe to Pro from your account on spawnapp.org; we store the Stripe
+          customer and subscription IDs linked to it, never card numbers. Builds
+          made without an account stay session-only.
         </p>
       </div>
     </section>
@@ -227,8 +229,10 @@
           use HttpOnly account-session cookies for waitlist signup.
         </p>
         <p>
-          When Pro sign-in launches, a signed-in Pro account will use a
-          session cookie to keep you logged in. We’ll keep this page current.
+          When you sign in, we set one HttpOnly session cookie
+          (<span class="mono">spawn_session</span>, 30 days) to keep you logged in.
+          Signing out deletes it. Stripe Checkout and the billing portal run on
+          Stripe’s own pages.
         </p>
       </div>
     </section>

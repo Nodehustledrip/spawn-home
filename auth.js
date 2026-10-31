@@ -234,6 +234,16 @@ function clientIp(req) {
   return String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.ip || "unknown";
 }
 
+/** Same-site relative path only (e.g. "/pricing?subscribe=monthly"); else "". */
+function safeNext(v) {
+  const s = String(v || "");
+  if (!s || s.length > 300) return "";
+  if (s[0] !== "/" || s[1] === "/" || s[1] === "\\") return "";
+  if (/[\u0000-\u001f\\]/.test(s)) return "";
+  if (/^\/(auth|api)\//.test(s)) return "";
+  return s;
+}
+
 function notAvailable(res) {
   return res.status(404).json({ ok: false, error: "Not available" });
 }
@@ -243,7 +253,7 @@ function mount(app, hooks) {
 
   app.get("/api/auth/config", function (_req, res) {
     res.setHeader("Cache-Control", "no-store");
-    res.json({ ok: true, enabled: enabled() });
+    res.json({ ok: true, enabled: enabled(), billing: !!(hooks.billingEnabled && hooks.billingEnabled()) });
   });
 
   app.post("/api/auth/request", async function (req, res) {
@@ -268,7 +278,8 @@ function mount(app, hooks) {
           email,
           String(TOKEN_MINUTES),
         ]);
-      await sendEmail(email, baseUrl(req) + "/auth/verify?token=" + token);
+      const next = safeNext((req.body && req.body.next));
+      await sendEmail(email, baseUrl(req) + "/auth/verify?token=" + token + (next ? "&next=" + encodeURIComponent(next) : ""));
       console.log("[auth] sign-in link sent");
     } catch (err) {
       console.error("[auth] request failed", err && err.message);
@@ -281,14 +292,18 @@ function mount(app, hooks) {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Referrer-Policy", "no-referrer");
     const token = String(req.query.token || "");
-    if (!/^[A-Za-z0-9_-]{32,64}$/.test(token)) return res.redirect(302, "/build?signin=invalid");
+    const next = safeNext(req.query.next);
+    const fail = function (why) {
+      return res.redirect(302, next ? "/signin?error=" + why + "&next=" + encodeURIComponent(next) : "/build?signin=" + why);
+    };
+    if (!/^[A-Za-z0-9_-]{32,64}$/.test(token)) return fail("invalid");
     try {
       const pool = store.getPool();
       const t = await pool.query(
         "UPDATE login_tokens SET used_at=now() WHERE token_hash=$1 AND used_at IS NULL AND expires_at > now() RETURNING email",
         [sha("t:" + token)]
       );
-      if (!t.rows.length) return res.redirect(302, "/build?signin=expired");
+      if (!t.rows.length) return fail("expired");
       const email = t.rows[0].email;
       const u = await pool.query(
         "INSERT INTO users (email) VALUES ($1) ON CONFLICT (email) DO UPDATE SET email=EXCLUDED.email RETURNING id",
@@ -302,10 +317,11 @@ function mount(app, hooks) {
       pool.query("DELETE FROM login_tokens WHERE expires_at < now() - interval '1 day'").catch(function () {});
       pool.query("DELETE FROM sessions WHERE expires_at < now()").catch(function () {});
       appendCookie(res, sessionCookie(sid, SESSION_DAYS * 24 * 60 * 60));
+      if (next) return res.redirect(302, next + (next.indexOf("?") === -1 ? "?" : "&") + "signed_in=1");
       return res.redirect(302, "/build?signed_in=1");
     } catch (err) {
       console.error("[auth] verify failed", err && err.message);
-      return res.redirect(302, "/build?signin=error");
+      return fail("error");
     }
   });
 
@@ -327,7 +343,16 @@ function mount(app, hooks) {
     const user = await currentUser(req);
     if (!user) return res.json({ ok: true, signedIn: false });
     const lim = limitsFor(user);
-    return res.json({ ok: true, signedIn: true, email: user.email, plan: lim.plan, limits: lim });
+    return res.json({
+      ok: true,
+      signedIn: true,
+      email: user.email,
+      plan: lim.plan,
+      limits: lim,
+      planStatus: user.plan_status || null,
+      periodEnd: user.current_period_end || null,
+      hasBilling: !!user.stripe_customer_id,
+    });
   });
 
   /* Move this browser's anonymous builds into the account (idempotent). */
@@ -345,4 +370,4 @@ function mount(app, hooks) {
   });
 }
 
-module.exports = { mount, enabled, configured, currentUser, ownerFor, limitsFor, isPro, editAllowed, setPlan, emailHtml };
+module.exports = { safeNext, mount, enabled, configured, currentUser, ownerFor, limitsFor, isPro, editAllowed, setPlan, emailHtml };

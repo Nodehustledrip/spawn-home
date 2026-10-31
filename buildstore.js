@@ -104,6 +104,7 @@ function init() {
             " current_period_end TIMESTAMPTZ" +
             ")"
         );
+        await pool.query("CREATE TABLE IF NOT EXISTS stripe_events (id TEXT PRIMARY KEY, type TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now())");
         await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS users_stripe_customer_idx ON users (stripe_customer_id) WHERE stripe_customer_id IS NOT NULL");
         await pool.query(
           "CREATE TABLE IF NOT EXISTS login_tokens (" +

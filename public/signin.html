@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Sign in or create your Spawn account with a one-time email link — no password." />
+  <meta name="theme-color" content="#0a0a0b" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:title" content="Sign in — Spawn" />
+  <meta property="og:description" content="Sign in or create your Spawn account with a one-time email link — no password." />
+  <meta property="og:url" content="https://spawnapp.org/signin" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Spawn" />
+  <meta property="og:image" content="https://spawnapp.org/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sign in — Spawn" />
+  <meta name="twitter:description" content="Sign in or create your Spawn account with a one-time email link — no password." />
+  <meta name="twitter:image" content="https://spawnapp.org/og.png" />
+  <title>Sign in — Spawn</title>
+  <link rel="canonical" href="https://spawnapp.org/signin" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; clip-path: inset(50%) !important;
+      white-space: nowrap !important; border: 0 !important;
+    }
+    .skip:focus, .skip:focus-visible {
+      position: fixed !important; width: auto !important; height: auto !important;
+      margin: 0 !important; padding: 0.5rem 0.85rem !important; overflow: visible !important;
+      clip: auto !important; clip-path: none !important; white-space: normal !important;
+      z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
+      background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
+    }
+  </style>
+  <link rel="preload" href="/styles.css" as="style" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Sign in — Spawn",
+    "description": "Sign in or create your Spawn account with a one-time email link — no password.",
+    "url": "https://spawnapp.org/signin",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Spawn",
+      "url": "https://spawnapp.org"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Spawn",
+    "url": "https://spawnapp.org"
+  }
+  </script>
+  <meta name="robots" content="noindex" />
+  <style>
+    .signin-wrap { max-width: 440px; margin: 0 auto; padding: 7.5rem 1.25rem 4rem; }
+    .signin-card { border: 1px solid var(--line, rgba(255,255,255,0.09)); background: rgba(255,255,255,0.025); border-radius: 16px; padding: 2rem 1.75rem; }
+    .signin-card h1 { margin: 0.35rem 0 0.5rem; font-size: 1.6rem; letter-spacing: -0.02em; }
+    .signin-card p { color: var(--muted, #a19d94); line-height: 1.55; margin: 0 0 1rem; font-size: 0.95rem; }
+    .signin-tabs { display: flex; gap: 0.25rem; background: rgba(255,255,255,0.04); border-radius: 999px; padding: 0.2rem; margin-bottom: 1.25rem; width: max-content; }
+    .signin-tabs button { border: 0; background: none; color: var(--muted, #a19d94); font: inherit; font-size: 0.85rem; padding: 0.4rem 0.95rem; border-radius: 999px; cursor: pointer; }
+    .signin-tabs button[aria-selected="true"] { background: rgba(255,255,255,0.09); color: #f2f0eb; }
+    .signin-form { display: grid; gap: 0.6rem; }
+    .signin-form input[type="email"] { font: inherit; padding: 0.75rem 0.85rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.3); color: inherit; }
+    .signin-form input[type="email"]:focus { outline: 2px solid rgba(212,165,116,0.45); outline-offset: 1px; border-color: #d4a574; }
+    .signin-form .btn-solid { width: 100%; justify-content: center; }
+    .signin-note { min-height: 1.2em; font-size: 0.85rem; margin: 0.5rem 0 0; color: var(--muted, #a19d94); }
+    .signin-note.is-error { color: #f0a08a; }
+    .signin-fine { font-size: 0.8rem !important; margin-top: 1.25rem !important; }
+    .signin-card [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/product">Product</a>
+      <a class="nav-link" href="/tour">Tour</a>
+      <a class="nav-link" href="/showcase">Showcase</a>
+      <a class="nav-link" href="/pricing">Pricing</a>
+      <a class="nav-link nav-cta" href="/build">Build</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/product">Product</a>
+    <a href="/tour">Tour</a>
+    <a href="/showcase">Showcase</a>
+    <a href="/build">Build an app</a>
+    <a href="/pricing">Pricing</a>
+    <span class="mobile-nav-label">More</span>
+    <a href="/why">Why</a>
+    <a href="/how">How it works</a>
+    <a href="/faq">FAQ</a>
+    <a href="/changelog">Changelog</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+
+  <main id="main" class="signin-wrap">
+    <section class="signin-card" aria-live="polite">
+      <div data-si-off hidden>
+        <p class="kicker">Accounts</p>
+        <h1>Sign-up opens shortly</h1>
+        <p>Spawn accounts aren’t switched on yet. You can keep building free on <a href="/build">/build</a> — no account needed — and download the zip to keep your work.</p>
+        <a class="btn-solid btn-wide" href="/build">Start building</a>
+      </div>
+      <div data-si-in hidden>
+        <p class="kicker">Signed in</p>
+        <h1>You’re signed in</h1>
+        <p>Signed in as <strong data-si-email></strong>.</p>
+        <a class="btn-solid btn-wide" href="/build" data-si-continue>Continue</a>
+      </div>
+      <div data-si-form hidden>
+        <div class="signin-tabs" role="tablist" aria-label="Sign in or sign up">
+          <button type="button" role="tab" aria-selected="true" data-si-tab="in">Sign in</button>
+          <button type="button" role="tab" aria-selected="false" data-si-tab="up">Create account</button>
+        </div>
+        <h1 data-si-title>Sign in to Spawn</h1>
+        <p data-si-copy>Enter your email and we’ll send a one-time sign-in link. No password to remember.</p>
+        <form class="signin-form" data-si-submit novalidate>
+          <label class="sr-only" for="si-email">Email</label>
+          <input id="si-email" type="email" name="email" required maxlength="254" placeholder="you@company.com" autocomplete="email" />
+          <button type="submit" class="btn-solid" data-si-btn>Email me a link</button>
+        </form>
+        <p class="signin-note" data-si-note role="status"></p>
+        <p class="signin-fine">New here? The same link creates your free account. By continuing you agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy</a> policy.</p>
+      </div>
+      <div data-si-sent hidden>
+        <p class="kicker">Check your email</p>
+        <h1>Link sent</h1>
+        <p>We sent a sign-in link to <strong data-si-sent-to></strong>. It works once and expires in 15 minutes. Open it in this browser to pick up where you left off.</p>
+        <button type="button" class="btn-ghost-gold btn-wide" data-si-retry>Use a different email</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/product">Product</a>
+      <a href="/tour">Tour</a>
+      <a href="/showcase">Showcase</a>
+      <a href="/how">How it works</a>
+      <a href="/why">Why</a>
+      <a href="/faq">FAQ</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/refund">Refunds</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/app.js" defer></script>
+  <script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    function safeNext(v) {
+      v = String(v || "");
+      if (!v || v.length > 300 || v[0] !== "/" || v[1] === "/" || v[1] === "\\" || /^\/(auth|api)\//.test(v)) return "";
+      return v;
+    }
+    var next = safeNext(q.get("next"));
+    var $ = function (s) { return document.querySelector(s); };
+    function show(which) {
+      ["off", "in", "form", "sent"].forEach(function (k) { $("[data-si-" + k + "]").hidden = k !== which; });
+    }
+    function note(msg, err) { var n = $("[data-si-note]"); n.textContent = msg || ""; n.classList.toggle("is-error", !!err); }
+    function tab(mode) {
+      document.querySelectorAll("[data-si-tab]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-si-tab") === mode ? "true" : "false"); });
+      $("[data-si-title]").textContent = mode === "up" ? "Create your Spawn account" : "Sign in to Spawn";
+      $("[data-si-copy]").textContent = mode === "up"
+        ? "Enter your email and we’ll send a link that creates your free account and signs you in. No password."
+        : "Enter your email and we’ll send a one-time sign-in link. No password to remember.";
+    }
+    document.querySelectorAll("[data-si-tab]").forEach(function (b) { b.addEventListener("click", function () { tab(b.getAttribute("data-si-tab")); }); });
+    if (q.get("mode") === "signup" || /subscribe=/.test(next)) tab("up");
+    $("[data-si-retry]").addEventListener("click", function () { show("form"); });
+    $("[data-si-submit]").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = String($("#si-email").value || "").trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return note("Enter a valid email address.", true);
+      var btn = $("[data-si-btn]"); btn.disabled = true; note("Sending…");
+      fetch("/api/auth/request", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email, next: next || undefined }) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d || !d.ok) return note((d && d.error) || "Could not send a link — try again.", true);
+          note(""); $("[data-si-sent-to]").textContent = email; show("sent");
+        })
+        .catch(function () { note("Network error — try again.", true); })
+        .finally(function () { btn.disabled = false; });
+    });
+    fetch("/api/auth/config", { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (cfg) {
+        if (!cfg || !cfg.enabled) return show("off");
+        return fetch("/api/me", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (me) {
+          if (me && me.signedIn) {
+            if (next) return location.replace(next);
+            $("[data-si-email]").textContent = me.email; show("in"); return;
+          }
+          show("form");
+          var err = q.get("error");
+          if (err) note(err === "expired" ? "That link has expired or was already used. Send a new one." : "That link didn’t work. Send a new one.", true);
+        });
+      })
+      .catch(function () { show("off"); });
+  })();
+  </script>
+</body>
+</html>

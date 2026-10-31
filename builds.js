@@ -305,7 +305,7 @@ async function claimInto(req, _res, user) {
 
 function mount(app) {
   ensureDir();
-  auth.mount(app, { claim: claimInto });
+  auth.mount(app, { claim: claimInto, billingEnabled: function () { return require("./billing").enabled(); } });
   store.init().catch(function (err) {
     console.error("[builds] store init failed", err && err.message);
   });

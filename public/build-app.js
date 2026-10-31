@@ -576,12 +576,19 @@
     $("[data-account-out]").hidden = signedIn;
     $("[data-account-sent]").hidden = true;
     $("[data-account-in]").hidden = !signedIn;
+    if (!signedIn && $("[data-account-billing]")) $("[data-account-billing]").hidden = true;
     var title = $("[data-list-title]");
     var sub = $("[data-list-sub]");
     if (signedIn) {
       $("[data-account-email]").textContent = me.email;
       var plan = $("[data-account-plan]");
       plan.textContent = me.plan === "pro" ? "Pro" : "Free";
+      var bill = $("[data-account-billing]");
+      if (bill && window._spawnBilling) {
+        bill.hidden = false;
+        $("[data-account-upgrade]").hidden = me.plan === "pro";
+        $("[data-account-manage]").hidden = !(me.plan === "pro" || me.hasBilling);
+      }
       if (title) title.textContent = "Your builds";
       if (sub) sub.textContent = "Saved to your account — open them from any browser where you sign in.";
     } else {
@@ -635,6 +642,30 @@
       })
       .then(function (cfg) {
         if (!cfg || !cfg.enabled) return false;
+        window._spawnBilling = !!cfg.billing;
+        var manage = $("[data-account-manage]");
+        if (manage)
+          manage.addEventListener("click", function () {
+            manage.disabled = true;
+            fetch("/api/billing/portal", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ return: "/build" }),
+            })
+              .then(function (r) {
+                return r.json();
+              })
+              .then(function (d) {
+                if (d && d.ok && d.url) return location.assign(d.url);
+                manage.disabled = false;
+                setAccountNote((d && d.error) || "Billing is unavailable right now.", true);
+              })
+              .catch(function () {
+                manage.disabled = false;
+                setAccountNote("Network error — try again.", true);
+              });
+          });
         var form = $("[data-account-form]");
         if (form) form.addEventListener("submit", onAccountSubmit);
         var retry = $("[data-account-retry]");

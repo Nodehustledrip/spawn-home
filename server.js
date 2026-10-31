@@ -6,6 +6,7 @@ const fs = require("fs");
 const app = express();
 const ai = require("./ai");
 const builds = require("./builds");
+const billing = require("./billing");
 const PORT = process.env.PORT || 3000;
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
@@ -109,6 +110,7 @@ function rateLimit(ip) {
 }
 
 app.use(compression());
+billing.mountWebhook(app); /* raw body — before express.json */
 app.use(express.json({ limit: "32kb" }));
 app.use(function (_req, res, next) {
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
@@ -137,7 +139,7 @@ app.use(function (_req, res, next) {
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 /* Clean marketing URLs: /how → how.html; /how.html → 301 /how */
-const CLEAN_PAGES = ["how", "product", "access", "privacy", "pricing", "terms", "refund", "faq", "changelog", "tour", "showcase", "why", "build", "404"];
+const CLEAN_PAGES = ["how", "product", "access", "privacy", "pricing", "terms", "refund", "faq", "changelog", "tour", "showcase", "why", "build", "signin", "404"];
 const CLEAN_SET = new Set(CLEAN_PAGES);
 
 /* Trailing slash → canonical (must run before page routes; Express non-strict
@@ -145,7 +147,7 @@ const CLEAN_SET = new Set(CLEAN_PAGES);
 app.use(function (req, res, next) {
   if (req.method !== "GET" && req.method !== "HEAD") return next();
   const pathOnly = (req.path || "").split("?")[0];
-  const m = pathOnly.match(/^\/(how|product|access|privacy|pricing|terms|refund|faq|changelog|tour|showcase|why|build|404)\/$/);
+  const m = pathOnly.match(/^\/(how|product|access|privacy|pricing|terms|refund|faq|changelog|tour|showcase|why|build|signin|404)\/$/);
   if (m && CLEAN_SET.has(m[1])) {
     return res.redirect(301, "/" + m[1]);
   }
@@ -192,6 +194,7 @@ app.use(
 );
 ai.mount(app);
 builds.mount(app);
+billing.mount(app);
 
 app.get("/api/health", (_req, res) =>
   res.json({ ok: true, app: "Spawn Home", waitlist: true, builds: true, buildStorage: builds.store.mode() })

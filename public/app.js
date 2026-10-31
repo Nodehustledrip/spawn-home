@@ -475,3 +475,39 @@
     });
   }
 })();
+
+/* Account state in the nav — only when accounts are switched on. */
+(function () {
+  "use strict";
+  var nav = document.querySelector(".nav");
+  var cta = nav && nav.querySelector(".nav-cta");
+  if (!nav || !cta || !window.fetch) return;
+  fetch("/api/auth/config", { credentials: "same-origin", cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (cfg) {
+      if (!cfg || !cfg.enabled) return null;
+      return fetch("/api/me", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); });
+    })
+    .then(function (me) {
+      if (!me) return;
+      var a = document.createElement("a");
+      a.className = "nav-link nav-account";
+      if (me.signedIn) {
+        a.href = "/build";
+        a.textContent = me.plan === "pro" ? "Account · Pro" : "Account";
+        a.title = me.email || "";
+      } else {
+        var here = location.pathname + location.search;
+        a.href = location.pathname === "/signin" ? "/signin" : "/signin?next=" + encodeURIComponent(here);
+        a.textContent = "Sign in";
+      }
+      nav.insertBefore(a, cta);
+      var mob = document.querySelector("[data-mobile-nav]");
+      if (mob) {
+        var m = a.cloneNode(true);
+        m.className = "";
+        mob.insertBefore(m, mob.firstChild);
+      }
+    })
+    .catch(function () {});
+})();
