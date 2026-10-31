@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn pricing: Free today — templates, live preview, chat edits, zip download. Pro coming soon at $12/month or $120/year with saved builds and email sign-in." />
+  <meta name="description" content="Spawn pricing: Free today — templates, live preview, chat edits, zip download. Founding Pro on sale now at $12/month or $120/year — saved builds and email sign-in as they launch." />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Pricing — Spawn" />
-  <meta property="og:description" content="Spawn pricing: Free today — templates, live preview, chat edits, zip download. Pro coming soon at $12/month or $120/year with saved builds and email sign-in." />
+  <meta property="og:description" content="Spawn pricing: Free today — templates, live preview, chat edits, zip download. Founding Pro on sale now at $12/month or $120/year — saved builds and email sign-in as they launch." />
   <meta property="og:url" content="https://spawnapp.org/pricing" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -19,7 +19,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Pricing — Spawn" />
-  <meta name="twitter:description" content="Spawn pricing: Free today — templates, live preview, chat edits, zip download. Pro coming soon at $12/month or $120/year with saved builds and email sign-in." />
+  <meta name="twitter:description" content="Spawn pricing: Free today — templates, live preview, chat edits, zip download. Founding Pro on sale now at $12/month or $120/year — saved builds and email sign-in as they launch." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Pricing — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/pricing" />
@@ -49,7 +49,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "Pricing — Spawn",
-    "description": "Spawn pricing: Free plan available now; Pro coming soon at $12/month or $120/year.",
+    "description": "Spawn pricing: Free plan available now; Founding Pro available now at $12/month or $120/year.",
     "url": "https://spawnapp.org/pricing",
     "isPartOf": {
       "@type": "WebSite",
@@ -109,10 +109,21 @@
       <h1>Free to build. Pro when you want to keep it.</h1>
       <p class="lead">
         Everything on <a href="/build">/build</a> is free today. Pro adds an
-        account, saved builds, and higher limits — it’s coming soon, and there’s
-        no checkout yet.
+        account, saved builds, and higher limits. Subscribe today and you’re a
+        Founding Pro member.
       </p>
     </header>
+
+    <section class="plan-welcome" id="welcome" hidden aria-live="polite">
+      <p class="kicker">Welcome to Founding Pro</p>
+      <h2>Thank you — you’re in.</h2>
+      <p>Your subscription is active. A receipt from Degen Social is on its way to the email you used at checkout.</p>
+      <ul class="plan-list">
+        <li>Priority email support starts now — just reply to your receipt.</li>
+        <li>When email sign-in launches, sign in with that same email and your Pro features unlock automatically.</li>
+        <li>Keep building free on <a href="/build">/build</a> in the meantime.</li>
+      </ul>
+    </section>
 
     <div class="plan-grid">
       <section class="plan-card" aria-labelledby="plan-free-h">
@@ -130,24 +141,29 @@
       </section>
 
       <section class="plan-card plan-card-pro" aria-labelledby="plan-pro-h">
-        <p class="plan-kicker">Pro <span class="plan-soon">Coming soon</span></p>
+        <p class="plan-kicker">Pro <span class="plan-soon">Founding members</span></p>
         <h2 id="plan-pro-h" class="plan-price">$12<span>/mo</span></h2>
-        <p class="plan-sub">or $120/year (two months free)</p>
+        <p class="plan-sub">or $120/year — save 2 months</p>
         <ul class="plan-list">
+          <li>Founding Pro membership starts today</li>
           <li>Sign in with an email link — no password</li>
-          <li>About 25 builds saved to your account, with undo history</li>
-          <li>Higher daily limits</li>
+          <li>25 builds saved to your account, with undo history</li>
+          <li>300 edits a day</li>
           <li>Unlimited zip downloads</li>
-          <li>Priority email support</li>
+          <li>Priority email support, starting now</li>
           <li>Desktop app for going live, once it’s publicly downloadable — your PC has to stay on to keep a site up</li>
         </ul>
-        <a class="btn-solid btn-wide" href="/access">Notify me when Pro launches</a>
+        <div class="plan-buy">
+          <a class="btn-solid btn-wide plan-sub-btn" href="https://buy.stripe.com/eVq4gy2G8cgibyK3ds2Ji01" rel="noopener" data-plan="pro_monthly">Subscribe — $12/month</a>
+          <a class="btn-ghost-gold btn-wide plan-sub-btn" href="https://buy.stripe.com/cNi00ibcEbceauG6pE2Ji02" rel="noopener" data-plan="pro_yearly">Subscribe yearly — $120 <span class="plan-save">save 2 months</span></a>
+        </div>
+        <p class="plan-note">Sign-in, saved builds, and higher limits unlock on the email you use at checkout when sign-in launches — soon. We’ll email you when it’s on.</p>
       </section>
     </div>
 
     <p class="plan-fine">
-      Pro isn’t on sale yet — no card is taken anywhere on this site today.
-      When it launches, Pro will be billed by Degen Social. See
+      Secure checkout by Stripe. Billed by Degen Social. Cancel anytime, and
+      if Pro isn’t for you, ask within 7 days for a full refund. See
       <a href="/terms">Terms</a> and <a href="/refund">Refunds</a>.
     </p>
 
@@ -172,5 +188,19 @@
 
   <script src="/analytics.js" defer></script>
   <script src="/app.js" defer></script>
+  <script>
+  (function () {
+    if (/[?&]welcome=1\b/.test(location.search)) {
+      var w = document.getElementById("welcome");
+      if (w) { w.hidden = false; }
+      if (window.posthog && posthog.capture) posthog.capture("pro_checkout_returned");
+    }
+    document.querySelectorAll(".plan-sub-btn").forEach(function (a) {
+      a.addEventListener("click", function () {
+        try { if (window.posthog && posthog.capture) posthog.capture("pro_subscribe_click", { plan: a.getAttribute("data-plan") }); } catch (e) {}
+      });
+    });
+  })();
+  </script>
 </body>
 </html>

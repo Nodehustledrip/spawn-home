@@ -6581,3 +6581,12 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .plan-list { margin: 0.4rem 0 0.8rem; padding-left: 1.1rem; line-height: 1.6; flex: 1; }
 .plan-list li { margin-bottom: 0.3rem; }
 .plan-fine { color: var(--muted); font-size: 0.85rem; line-height: 1.55; }
+
+.plan-buy { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.4rem; }
+.btn-ghost-gold { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem 1.1rem; border-radius: 12px; border: 1px solid rgba(212,165,116,0.55); color: #e8c9a0; text-decoration: none; font-weight: 600; transition: background .15s, transform .15s; }
+.btn-ghost-gold:hover { background: rgba(212,165,116,0.1); color: #f1d7b3; transform: translateY(-1px); }
+.plan-save { font-size: 0.7rem; padding: 0.12rem 0.5rem; border-radius: 999px; background: rgba(212,165,116,0.16); color: #d4a574; }
+.plan-note { color: var(--muted); font-size: 0.82rem; line-height: 1.5; margin-top: 0.7rem; }
+.plan-welcome { margin: 0 0 1.6rem; padding: 1.4rem 1.5rem; border-radius: 18px; border: 1px solid rgba(212,165,116,0.45); background: linear-gradient(180deg, rgba(212,165,116,0.1), rgba(255,255,255,0.02)); }
+.plan-welcome h2 { margin: 0.2rem 0 0.5rem; }
+.plan-welcome[hidden] { display: none; }
