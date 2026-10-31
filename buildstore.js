@@ -53,7 +53,7 @@ function init() {
     return initPromise;
   }
   /* Render internal URLs (no host suffix) don't use TLS; external ones need it. */
-  const needsSsl = /\.render\.com|sslmode=require/i.test(url);
+  const needsSsl = /\.render\.com|neon\.tech|sslmode=require/i.test(url) && !/sslmode=disable/i.test(url);
   pool = new Pool({
     connectionString: url,
     ssl: needsSsl ? { rejectUnauthorized: false } : false,
@@ -82,6 +82,38 @@ function init() {
             ")"
         );
         await pool.query("CREATE INDEX IF NOT EXISTS builds_owner_idx ON builds (owner, updated_at DESC)");
+        /* Accounts (email magic-link sign-in). Harmless when auth is off. */
+        await pool.query(
+          "CREATE TABLE IF NOT EXISTS users (" +
+            " id BIGSERIAL PRIMARY KEY," +
+            " email TEXT NOT NULL UNIQUE," +
+            " created_at TIMESTAMPTZ NOT NULL DEFAULT now()," +
+            " plan TEXT NOT NULL DEFAULT 'free'," +
+            " stripe_customer_id TEXT," +
+            " stripe_subscription_id TEXT," +
+            " plan_status TEXT," +
+            " current_period_end TIMESTAMPTZ" +
+            ")"
+        );
+        await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS users_stripe_customer_idx ON users (stripe_customer_id) WHERE stripe_customer_id IS NOT NULL");
+        await pool.query(
+          "CREATE TABLE IF NOT EXISTS login_tokens (" +
+            " token_hash TEXT PRIMARY KEY," +
+            " email TEXT NOT NULL," +
+            " created_at TIMESTAMPTZ NOT NULL DEFAULT now()," +
+            " expires_at TIMESTAMPTZ NOT NULL," +
+            " used_at TIMESTAMPTZ" +
+            ")"
+        );
+        await pool.query(
+          "CREATE TABLE IF NOT EXISTS sessions (" +
+            " id_hash TEXT PRIMARY KEY," +
+            " user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE," +
+            " created_at TIMESTAMPTZ NOT NULL DEFAULT now()," +
+            " expires_at TIMESTAMPTZ NOT NULL" +
+            ")"
+        );
+        await pool.query("CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions (user_id)");
         ready = true;
         console.log("[buildstore] postgres ready");
         return true;
@@ -315,6 +347,41 @@ async function remove(id, root) {
   } catch (_) {}
 }
 
+/** Move builds from anonymous owner keys to an account owner, up to `room` builds. */
+async function claim(fromOwners, toOwner, buildsDir, room) {
+  fromOwners = (fromOwners || []).filter(Boolean);
+  if (!fromOwners.length || room <= 0) return [];
+  let ids = [];
+  if (ready) {
+    const r = await pool.query(
+      "UPDATE builds SET owner=$1 WHERE id IN (SELECT id FROM builds WHERE owner = ANY($2::text[]) ORDER BY updated_at DESC LIMIT $3) RETURNING id",
+      [toOwner, fromOwners, room]
+    );
+    ids = r.rows.map(function (x) {
+      return x.id;
+    });
+  } else {
+    ids = diskBuilds(buildsDir)
+      .filter(function (b) {
+        return fromOwners.indexOf(b.owner) !== -1;
+      })
+      .slice(0, room)
+      .map(function (b) {
+        return b.id;
+      });
+  }
+  ids.forEach(function (id) {
+    try {
+      fs.writeFileSync(path.join(buildsDir, id, ".owner"), toOwner, "utf8");
+    } catch (_) {}
+  });
+  return ids;
+}
+
+function getPool() {
+  return ready ? pool : null;
+}
+
 async function health() {
   if (!ready) return { mode: "disk", durable: false, error: initError ? String(initError.message || initError) : undefined };
   try {
@@ -335,6 +402,8 @@ module.exports = {
   countByOwner,
   countAll,
   remove,
+  claim,
+  getPool,
   health,
   serialize,
   publicBytes,

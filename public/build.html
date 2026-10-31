@@ -42,6 +42,28 @@
       z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
       background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
     }
+    .build-account { display: grid; gap: 0.6rem; }
+    .build-account[hidden], .build-account [hidden] { display: none !important; }
+    .build-account-title { margin: 0; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+    .build-account-copy { margin: 0; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+    .build-account-form { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+    .build-account-copy + .build-account-copy, .build-account-title + .build-account-copy { margin-top: 0.3rem; }
+    .build-account-form input[type="email"] {
+      flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--line-strong);
+      border-radius: 8px; color: var(--text); padding: 0.6rem 0.75rem; font: inherit; font-size: 0.9rem;
+    }
+    .build-account-form input[type="email"]:focus { outline: 2px solid rgba(212,165,116,0.45); outline-offset: 1px; border-color: var(--accent); }
+    .build-account-form .btn-solid { width: 100%; justify-content: center; padding: 0.6rem 0.95rem; font-size: 0.88rem; }
+    .build-account-note:empty { display: none; }
+    .build-account-note { margin: 0; font-size: 0.8rem; color: var(--muted); min-height: 1em; }
+    .build-account-note.is-error { color: #f0a08a; }
+    .build-account-sent { display: flex; gap: 0.7rem; align-items: flex-start; }
+    .build-account-sent .dot-ok { width: 8px; height: 8px; margin-top: 0.42rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-dim); flex-shrink: 0; }
+    .build-account-who { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+    .build-account-email { font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .build-account-plan { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-dim); border-radius: 999px; padding: 0.15rem 0.5rem; margin-left: 0.4rem; }
+    .build-account-link { background: none; border: 0; padding: 0; font: inherit; font-size: 0.82rem; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .build-account-link:hover { color: var(--text); }
   </style>
   <link rel="preload" href="/styles.css?v=20261006" as="style" />
   <link rel="stylesheet" href="/styles.css?v=20261006" />
@@ -106,6 +128,29 @@
         <p>Going live from your own PC comes with the desktop app in <a href="/pricing">Pro (coming soon)</a>.</p>
       </div>
 
+      <section class="build-panel build-account" data-account hidden aria-label="Account">
+        <div data-account-out>
+          <p class="build-account-title">Sign in to save your builds</p>
+          <p class="build-account-copy">Keep your builds in an account instead of just this session. We’ll email you a one-time sign-in link — no password.</p>
+          <form class="build-account-form" data-account-form novalidate>
+            <label class="sr-only" for="build-email">Email</label>
+            <input id="build-email" type="email" name="email" required maxlength="254" placeholder="you@company.com" autocomplete="email" data-account-email-input />
+            <button type="submit" class="btn-solid" data-account-submit>Email me a link</button>
+          </form>
+          <p class="build-account-note" data-account-note role="status" aria-live="polite"></p>
+        </div>
+        <div class="build-account-sent" data-account-sent hidden>
+          <span class="dot-ok" aria-hidden="true"></span>
+          <div>
+            <p class="build-account-title">Check your email</p>
+            <p class="build-account-copy">We sent a sign-in link to <strong data-account-sent-to></strong>. It works once and expires in 15 minutes. <button type="button" class="build-account-link" data-account-retry>Use a different email</button></p>
+          </div>
+        </div>
+        <div class="build-account-who" data-account-in hidden>
+          <span class="build-account-email"><span data-account-email></span><span class="build-account-plan" data-account-plan></span></span>
+          <button type="button" class="build-account-link" data-account-logout>Sign out</button>
+        </div>
+      </section>
       <section class="build-panel" data-create-panel>
         <h2 class="build-h2">New project</h2>
         <form class="build-form" data-create-form novalidate>
@@ -131,10 +176,10 @@
 
       <section class="build-panel" data-list-panel>
         <div class="build-panel-head">
-          <h2 class="build-h2">This session</h2>
+          <h2 class="build-h2" data-list-title>This session</h2>
           <span class="build-count mono" data-build-count hidden></span>
         </div>
-        <p class="build-muted">Builds last for your session. Download the zip to keep one.</p>
+        <p class="build-muted" data-list-sub>Builds last for your session. Download the zip to keep one.</p>
         <ul class="build-list" data-build-list></ul>
         <p class="build-empty" data-build-empty hidden>No builds yet — create one above.</p>
       </section>
@@ -197,6 +242,6 @@
 
   <script src="/analytics.js" defer></script>
   <script src="/app.js" defer></script>
-  <script src="/build-app.js?v=20261006" defer></script>
+  <script src="/build-app.js?v=20261031" defer></script>
 </body>
 </html>

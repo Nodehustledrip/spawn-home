@@ -19,6 +19,7 @@ const buildai = require("./buildai");
 const history = require("./buildhistory");
 const store = require("./buildstore");
 const buildzip = require("./buildzip");
+const auth = require("./auth");
 
 const BUILDS_DIR = process.env.BUILDS_DIR || path.join(__dirname, "data", "builds");
 const COOKIE = "spawn_build_sid";
@@ -126,6 +127,29 @@ function ownerKey(req, res) {
   return hashOwner("s", sid);
 }
 
+/** Anonymous owner keys this request can prove (header token and/or cookie), without minting a cookie. */
+function anonKeys(req) {
+  const out = [];
+  const tok = String(req.headers[OWNER_HEADER] || "").trim();
+  if (OWNER_RE.test(tok)) out.push(hashOwner("t", tok));
+  const sid = parseCookies(req)[COOKIE];
+  if (sid && /^[a-zA-Z0-9_-]{16,64}$/.test(sid)) out.push(hashOwner("s", sid));
+  return out;
+}
+
+/**
+ * Who owns builds for this request. Signed in (auth enabled) → "u:<id>" with that
+ * account's plan limits; otherwise the anonymous session key exactly as before.
+ */
+async function resolveOwner(req, res) {
+  const user = await auth.currentUser(req);
+  if (user) {
+    const lim = auth.limitsFor(user);
+    return { key: auth.ownerFor(user), user: user, maxBuilds: lim.maxBuilds, limits: lim };
+  }
+  return { key: ownerKey(req, res), user: null, maxBuilds: MAX_BUILDS_PER_OWNER };
+}
+
 function projectRoot(id) {
   if (!/^[a-z0-9]{8,32}$/i.test(id)) return null;
   const root = path.join(BUILDS_DIR, id);
@@ -164,7 +188,8 @@ async function loadOwned(req, res) {
     res.status(404).json({ ok: false, error: "Build not found" });
     return null;
   }
-  const me = ownerKey(req, res);
+  const who = await resolveOwner(req, res);
+  const me = who.key;
   const source = await store.hydrate(id, root);
   if (!source) {
     res.status(404).json({ ok: false, error: "Build not found" });
@@ -175,7 +200,7 @@ async function loadOwned(req, res) {
     res.status(403).json({ ok: false, error: "This build belongs to another browser. Open it from the browser you made it in." });
     return null;
   }
-  return { id: id, root: root, owner: owner, source: source };
+  return { id: id, root: root, owner: owner, source: source, user: who.user };
 }
 
 function wrap(fn) {
@@ -268,8 +293,19 @@ function fixLegacy(root) {
   return a || b;
 }
 
+async function claimInto(req, _res, user) {
+  await store.init();
+  const to = auth.ownerFor(user);
+  const lim = auth.limitsFor(user);
+  const have = await store.countByOwner(to, BUILDS_DIR);
+  const ids = await store.claim(anonKeys(req), to, BUILDS_DIR, Math.max(0, lim.maxBuilds - have));
+  if (ids.length) console.log("[builds] claimed", ids.length, "build(s) into account");
+  return ids.length;
+}
+
 function mount(app) {
   ensureDir();
+  auth.mount(app, { claim: claimInto });
   store.init().catch(function (err) {
     console.error("[builds] store init failed", err && err.message);
   });
@@ -301,8 +337,8 @@ function mount(app) {
   app.get("/api/builds", wrap(async function (req, res) {
     res.setHeader("Cache-Control", "no-store");
     await store.init();
-    const me = ownerKey(req, res);
-    const builds = await store.listByOwner(me, BUILDS_DIR, MAX_BUILDS_PER_OWNER);
+    const who = await resolveOwner(req, res);
+    const builds = await store.listByOwner(who.key, BUILDS_DIR, who.maxBuilds);
     builds.forEach(function (b) {
       b.zipPath = "/api/builds/" + b.id + "/zip";
     });
@@ -314,7 +350,9 @@ function mount(app) {
         previewOnly: true,
         publicUrl: false,
         customDomain: false,
-        maxBuilds: MAX_BUILDS_PER_OWNER,
+        maxBuilds: who.maxBuilds,
+        account: !!who.user,
+        plan: who.user ? who.limits.plan : undefined,
         note: LIMITS_NOTE,
       },
     });
@@ -326,7 +364,8 @@ function mount(app) {
       return res.status(429).json({ ok: false, error: "You're creating builds quickly — give it a few minutes, or keep editing an existing one." });
     }
     await store.init();
-    const me = ownerKey(req, res);
+    const who = await resolveOwner(req, res);
+    const me = who.key;
 
     const body = req.body || {};
     if (body.company || body.website || body.url) {
@@ -337,10 +376,13 @@ function mount(app) {
     if (!name) return res.status(400).json({ ok: false, error: "App name is required" });
 
     const mine = await store.countByOwner(me, BUILDS_DIR);
-    if (mine >= MAX_BUILDS_PER_OWNER) {
+    if (mine >= who.maxBuilds) {
       return res.status(400).json({
         ok: false,
-        error: "You have " + mine + " builds — the most this browser can keep. Delete one from This session to make room.",
+        limit: "builds",
+        error: who.user
+          ? "You have " + mine + " saved builds — the most your " + (who.limits.plan === "pro" ? "Pro" : "Free") + " plan keeps. Delete one from Your builds to make room."
+          : "You have " + mine + " builds — the most this browser can keep. Delete one from This session to make room.",
       });
     }
     const total = await store.countAll(BUILDS_DIR);
@@ -435,6 +477,13 @@ function mount(app) {
     if (message.length > 2000) return res.status(400).json({ ok: false, error: "Message too long" });
     const b = await loadOwned(req, res);
     if (!b) return;
+    if (b.user && !auth.editAllowed(b.user)) {
+      return res.status(429).json({
+        ok: false,
+        limit: "edits",
+        error: "You've reached today's edit limit for your " + (auth.isPro(b.user) ? "Pro" : "Free") + " plan. It resets within 24 hours.",
+      });
+    }
     const id = b.id;
     const root = b.root;
     /* Prefer a model when one is usable (paid with credits, or free Groq/OpenRouter);

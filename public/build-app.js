@@ -549,11 +549,137 @@
       .catch(function () {});
   }
 
+  /* ---- Accounts (only when the server says sign-in is enabled) ---- */
+  function setAccountNote(msg, isError) {
+    var n = $("[data-account-note]");
+    if (!n) return;
+    n.textContent = msg || "";
+    n.classList.toggle("is-error", !!isError);
+  }
+
+  function renderAccount(me) {
+    var box = $("[data-account]");
+    if (!box) return;
+    box.hidden = false;
+    var signedIn = !!(me && me.signedIn);
+    $("[data-account-out]").hidden = signedIn;
+    $("[data-account-sent]").hidden = true;
+    $("[data-account-in]").hidden = !signedIn;
+    var title = $("[data-list-title]");
+    var sub = $("[data-list-sub]");
+    if (signedIn) {
+      $("[data-account-email]").textContent = me.email;
+      var plan = $("[data-account-plan]");
+      plan.textContent = me.plan === "pro" ? "Pro" : "Free";
+      if (title) title.textContent = "Your builds";
+      if (sub) sub.textContent = "Saved to your account — open them from any browser where you sign in.";
+    } else {
+      if (title) title.textContent = "This session";
+      if (sub) sub.textContent = "Builds last for your session. Download the zip to keep one.";
+    }
+  }
+
+  function onAccountSubmit(e) {
+    e.preventDefault();
+    var input = $("[data-account-email-input]");
+    var btn = $("[data-account-submit]");
+    var email = String((input && input.value) || "").trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setAccountNote("Enter a valid email address.", true);
+      return;
+    }
+    btn.disabled = true;
+    setAccountNote("Sending…");
+    fetch("/api/auth/request", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email }),
+    })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        if (!data || !data.ok) {
+          setAccountNote((data && data.error) || "Could not send a link — try again.", true);
+          return;
+        }
+        setAccountNote("");
+        $("[data-account-out]").hidden = true;
+        $("[data-account-sent-to]").textContent = email;
+        $("[data-account-sent]").hidden = false;
+      })
+      .catch(function () {
+        setAccountNote("Network error — try again.", true);
+      })
+      .finally(function () {
+        btn.disabled = false;
+      });
+  }
+
+  function loadAccount() {
+    return fetch("/api/auth/config", { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) {
+        return r.ok ? r.json() : null;
+      })
+      .then(function (cfg) {
+        if (!cfg || !cfg.enabled) return false;
+        var form = $("[data-account-form]");
+        if (form) form.addEventListener("submit", onAccountSubmit);
+        var retry = $("[data-account-retry]");
+        if (retry)
+          retry.addEventListener("click", function () {
+            $("[data-account-sent]").hidden = true;
+            $("[data-account-out]").hidden = false;
+          });
+        var out = $("[data-account-logout]");
+        if (out)
+          out.addEventListener("click", function () {
+            fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).finally(function () {
+              closePreview();
+              renderAccount(null);
+              loadBuilds();
+            });
+          });
+        return fetch("/api/me", { credentials: "same-origin", cache: "no-store" })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (me) {
+            renderAccount(me);
+            var q = "";
+            try {
+              q = location.search;
+            } catch (_) {}
+            if (/signin=(expired|invalid|error)/.test(q)) {
+              setAccountNote("That sign-in link has expired or was already used. Send a new one.", true);
+            }
+            if (/signed_in=1|signin=/.test(q)) {
+              try {
+                window.history.replaceState(null, "", location.pathname);
+              } catch (_) {}
+            }
+            if (me && me.signedIn) {
+              return api("/api/auth/claim", { method: "POST" }).then(function () {
+                return true;
+              });
+            }
+            return false;
+          });
+      })
+      .catch(function () {
+        return false;
+      });
+  }
+
   function init() {
     loadAiStatus();
     bind();
     renderTemplates();
     loadTemplates();
+    loadAccount().then(function (active) {
+      if (active) loadBuilds();
+    });
     loadBuilds();
   }
 
