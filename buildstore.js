@@ -24,6 +24,15 @@ let ready = false;
 let initError = null;
 let initPromise = null;
 
+/* Only account-owned builds ("u:<id>") are persisted to Postgres. Anonymous
+ * builds stay in the disk cache only — session-only, exactly as without a DB. */
+function isAccount(owner) {
+  return /^u:/.test(String(owner || ""));
+}
+function durable(owner) {
+  return ready && isAccount(owner);
+}
+
 function mode() {
   return ready ? "postgres" : "disk";
 }
@@ -197,7 +206,7 @@ async function save(id, owner, root, opts) {
   try {
     fs.writeFileSync(path.join(root, ".owner"), owner, "utf8");
   } catch (_) {}
-  if (!ready) return { ok: true, mode: "disk" };
+  if (!durable(owner)) return { ok: true, mode: "disk" };
   const data = serialize(root);
   const meta = readMetaFile(root);
   if (data.bytes > MAX_BUILD_BYTES) {
@@ -292,7 +301,7 @@ function diskBuilds(buildsDir) {
 
 async function listByOwner(owner, buildsDir, limit) {
   limit = limit || 50;
-  if (ready) {
+  if (durable(owner)) {
     const r = await pool.query(
       "SELECT id, name, template, created_at, updated_at, edit_count FROM builds WHERE owner=$1 ORDER BY updated_at DESC LIMIT $2",
       [owner, limit]
@@ -323,7 +332,7 @@ async function ownerOf(id, root) {
 }
 
 async function countByOwner(owner, buildsDir) {
-  if (ready) {
+  if (durable(owner)) {
     const r = await pool.query("SELECT count(*)::int AS n FROM builds WHERE owner=$1", [owner]);
     return r.rows[0].n;
   }
@@ -335,7 +344,10 @@ async function countByOwner(owner, buildsDir) {
 async function countAll(buildsDir) {
   if (ready) {
     const r = await pool.query("SELECT count(*)::int AS n, COALESCE(sum(size_bytes),0)::bigint AS bytes FROM builds");
-    return { count: r.rows[0].n, bytes: Number(r.rows[0].bytes) };
+    const anon = diskBuilds(buildsDir).filter(function (b) {
+      return !isAccount(b.owner);
+    }).length;
+    return { count: r.rows[0].n + anon, bytes: Number(r.rows[0].bytes) };
   }
   return { count: diskBuilds(buildsDir).length, bytes: 0 };
 }
@@ -347,34 +359,23 @@ async function remove(id, root) {
   } catch (_) {}
 }
 
-/** Move builds from anonymous owner keys to an account owner, up to `room` builds. */
+/** Move anonymous (disk-only) builds into an account owner, up to `room`; persists them to Postgres. */
 async function claim(fromOwners, toOwner, buildsDir, room) {
   fromOwners = (fromOwners || []).filter(Boolean);
   if (!fromOwners.length || room <= 0) return [];
-  let ids = [];
-  if (ready) {
-    const r = await pool.query(
-      "UPDATE builds SET owner=$1 WHERE id IN (SELECT id FROM builds WHERE owner = ANY($2::text[]) ORDER BY updated_at DESC LIMIT $3) RETURNING id",
-      [toOwner, fromOwners, room]
-    );
-    ids = r.rows.map(function (x) {
-      return x.id;
-    });
-  } else {
-    ids = diskBuilds(buildsDir)
-      .filter(function (b) {
-        return fromOwners.indexOf(b.owner) !== -1;
-      })
-      .slice(0, room)
-      .map(function (b) {
-        return b.id;
-      });
+  const picks = diskBuilds(buildsDir)
+    .filter(function (b) {
+      return fromOwners.indexOf(b.owner) !== -1;
+    })
+    .sort(function (a, b) {
+      return String(b.updated_at || "").localeCompare(String(a.updated_at || ""));
+    })
+    .slice(0, room);
+  const ids = [];
+  for (const b of picks) {
+    await save(b.id, toOwner, path.join(buildsDir, b.id));
+    ids.push(b.id);
   }
-  ids.forEach(function (id) {
-    try {
-      fs.writeFileSync(path.join(buildsDir, id, ".owner"), toOwner, "utf8");
-    } catch (_) {}
-  });
   return ids;
 }
 
@@ -403,6 +404,7 @@ module.exports = {
   countAll,
   remove,
   claim,
+  isAccount,
   getPool,
   health,
   serialize,

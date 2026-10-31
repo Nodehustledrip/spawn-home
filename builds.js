@@ -380,8 +380,11 @@ function mount(app) {
       return res.status(400).json({
         ok: false,
         limit: "builds",
+        upgrade: who.user && who.limits.plan !== "pro" ? "/pricing" : undefined,
         error: who.user
-          ? "You have " + mine + " saved builds — the most your " + (who.limits.plan === "pro" ? "Pro" : "Free") + " plan keeps. Delete one from Your builds to make room."
+          ? who.limits.plan === "pro"
+            ? "You have " + mine + " saved builds — the most Pro keeps. Delete one from Your builds to make room."
+            : "You have " + mine + " saved builds — the most the Free plan keeps. Delete one to make room, or keep up to 25 with Pro."
           : "You have " + mine + " builds — the most this browser can keep. Delete one from This session to make room.",
       });
     }
@@ -481,7 +484,10 @@ function mount(app) {
       return res.status(429).json({
         ok: false,
         limit: "edits",
-        error: "You've reached today's edit limit for your " + (auth.isPro(b.user) ? "Pro" : "Free") + " plan. It resets within 24 hours.",
+        upgrade: auth.isPro(b.user) ? undefined : "/pricing",
+        error: auth.isPro(b.user)
+          ? "You've reached today's Pro edit limit. It resets within 24 hours."
+          : "You've reached today's edit limit on the Free plan. It resets within 24 hours — Pro allows 300 edits a day.",
       });
     }
     const id = b.id;

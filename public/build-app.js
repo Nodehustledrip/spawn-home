@@ -310,12 +310,22 @@
     if (dl) dl.hidden = false;
   }
 
-  function appendChat(role, text) {
+  function upgradeLink(node, data) {
+    if (!node || !data || !data.upgrade) return;
+    node.appendChild(document.createTextNode(" "));
+    var a = el("a", "build-upgrade-link", "See Pro");
+    a.href = "/pricing";
+    node.appendChild(a);
+  }
+
+  function appendChat(role, text, data) {
     var log = $("[data-chat-log]");
     if (!log) return;
     var row = el("div", "build-chat-row is-" + role);
     row.appendChild(el("span", "build-chat-role", role === "you" ? "You" : "Build"));
-    row.appendChild(el("p", null, text));
+    var p = el("p", null, text);
+    upgradeLink(p, data);
+    row.appendChild(p);
     log.appendChild(row);
     log.scrollTop = log.scrollHeight;
   }
@@ -418,6 +428,7 @@
       .then(function (res) {
         if (!res.data || !res.data.ok || !res.data.build) {
           setNote((res.data && res.data.error) || "Could not create.", true);
+          upgradeLink($("[data-create-note]"), res.data);
           return;
         }
         setNote("Created — preview on the right. Download the zip to keep it.");
@@ -463,7 +474,7 @@
       })
       .then(function (res) {
         if (!res.data || !res.data.ok) {
-          appendChat("build", (res.data && res.data.error) || "Edit failed.");
+          appendChat("build", (res.data && res.data.error) || "Edit failed.", res.data);
           return;
         }
         appendChat("build", (res.data.mode === "ai" || res.data.mode === "free-cloud" ? "✦ " : "") + (res.data.reply || "Done."));

@@ -24,21 +24,21 @@ function num(name, def) {
   return Number.isFinite(v) && process.env[name] !== "" && process.env[name] != null ? v : def;
 }
 
-/* Limits (env-configurable). 0 = no daily cap. Free keeps today's limits by default. */
+/* Signed-in limits (env-configurable; 0 = no daily cap). Anonymous builds keep
+ * the original BUILD_MAX_PER_OWNER / per-IP limits in builds.js. */
 function limitsFor(user) {
-  const freeBuilds = num("AUTH_FREE_MAX_BUILDS", num("BUILD_MAX_PER_OWNER", 24));
   if (isPro(user)) {
     return {
       plan: "pro",
-      maxBuilds: num("AUTH_PRO_MAX_BUILDS", Math.max(25, freeBuilds)),
-      editsPerDay: num("AUTH_PRO_EDITS_PER_DAY", 0),
+      maxBuilds: num("AUTH_PRO_MAX_BUILDS", 25),
+      editsPerDay: num("AUTH_PRO_EDITS_PER_DAY", 300),
       editsPerMinute: num("AUTH_PRO_EDITS_PER_MIN", 60),
     };
   }
   return {
     plan: "free",
-    maxBuilds: freeBuilds,
-    editsPerDay: num("AUTH_FREE_EDITS_PER_DAY", 0),
+    maxBuilds: num("AUTH_FREE_MAX_BUILDS", 3),
+    editsPerDay: num("AUTH_FREE_EDITS_PER_DAY", 30),
     editsPerMinute: num("AUTH_FREE_EDITS_PER_MIN", 20),
   };
 }
