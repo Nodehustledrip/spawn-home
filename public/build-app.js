@@ -223,7 +223,7 @@
   function flashSaved(text) {
     var n = $("[data-saved]");
     if (!n) return;
-    n.textContent = text || "Saved";
+    n.textContent = text || "Updated";
     n.hidden = false;
     n.classList.remove("is-flash");
     void n.offsetWidth;
@@ -420,7 +420,7 @@
           setNote((res.data && res.data.error) || "Could not create.", true);
           return;
         }
-        setNote("Created and saved — preview on the right.");
+        setNote("Created — preview on the right. Download the zip to keep it.");
         state.builds = [res.data.build].concat(
           state.builds.filter(function (b) {
             return b.id !== res.data.build.id;
@@ -469,7 +469,7 @@
         appendChat("build", (res.data.mode === "ai" || res.data.mode === "free-cloud" ? "✦ " : "") + (res.data.reply || "Done."));
         var path = res.data.previewPath || "/preview/" + state.activeId + "/";
         showPreview(path);
-        if ((res.data.changes || []).length) flashSaved("Saved");
+        if ((res.data.changes || []).length) flashSaved("Updated");
         if (res.data.build) {
           state.builds = state.builds.map(function (b) {
             if (b.id !== res.data.build.id) return b;

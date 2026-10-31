@@ -340,7 +340,7 @@ function mount(app) {
     if (mine >= MAX_BUILDS_PER_OWNER) {
       return res.status(400).json({
         ok: false,
-        error: "You have " + mine + " builds — the most this browser can keep. Delete one from My builds to make room.",
+        error: "You have " + mine + " builds — the most this browser can keep. Delete one from This session to make room.",
       });
     }
     const total = await store.countAll(BUILDS_DIR);

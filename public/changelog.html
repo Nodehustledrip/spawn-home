@@ -98,6 +98,23 @@
     </header>
 
     <div class="changelog-timeline">
+      <section class="changelog-day" aria-labelledby="day-2026-10-31">
+        <h2 id="day-2026-10-31" class="changelog-date">
+          <time datetime="2026-10-31">October 31, 2026</time>
+        </h2>
+        <ol class="changelog-entries">
+          <li class="changelog-entry">
+            <h3>Build — session builds, zip to keep</h3>
+            <p>
+              Builds on <a href="/build">/build</a> now last for your session.
+              Download the zip to keep one &mdash; it opens straight from your
+              computer or drops onto any static host. Your list is now called
+              <strong>This session</strong>.
+            </p>
+          </li>
+        </ol>
+      </section>
+
       <section class="changelog-day" aria-labelledby="day-2026-10-07">
         <h2 id="day-2026-10-07" class="changelog-date">
           <time datetime="2026-10-07">October 7, 2026</time>
@@ -154,14 +171,11 @@
             </p>
           </li>
           <li class="changelog-entry">
-            <h3>Build — your apps are saved, listed, and downloadable</h3>
+            <h3>Build — your apps are listed and downloadable</h3>
             <p>
-              Apps you make on <a href="/build">/build</a> are now saved in a
-              database instead of on the server&rsquo;s scratch disk, so they
-              survive site updates and restarts, along with their undo
-              history. A new <strong>My builds</strong> list brings back every
-              app you made in this browser, so you can pick up where you left
-              off. <strong>Download zip</strong> exports a static site (index.html + styles) that opens
+              A <strong>This session</strong> list on <a href="/build">/build</a>
+              brings back every app you made in this browser during your
+              session, with undo history. <strong>Download zip</strong> exports a static site (index.html + styles) that opens
               straight from your computer or drops onto any static host. A
               lasting public URL or custom domain is still Spawn desktop
               (Ship → Open to the internet).
