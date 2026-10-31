@@ -89,7 +89,7 @@ const PACKS = [
   {
     id: "saas",
     match: /\b(saas|software|platform|startup|api|developer tool|dev ?tool|ai tool|productivity|crm|analytics|automation|b2b)\b/,
-    badge: "Now in public beta",
+    badge: "Now available",
     headlines: ["Ship faster with less busywork.", "The simplest way to run your workflow.", "Do more with the tools you already have."],
     sub: "Automate the repetitive parts, keep your team in sync, and see what's working at a glance. Set up in minutes — no credit card needed.",
     cta: "Start free",

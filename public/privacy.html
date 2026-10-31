@@ -82,6 +82,7 @@
       <a class="nav-link" href="/product">Product</a>
       <a class="nav-link" href="/tour">Tour</a>
       <a class="nav-link" href="/showcase">Showcase</a>
+      <a class="nav-link" href="/pricing">Pricing</a>
       <a class="nav-link nav-cta" href="/build">Build</a>
     </nav>
     <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
@@ -93,6 +94,7 @@
     <a href="/tour">Tour</a>
     <a href="/showcase">Showcase</a>
     <a href="/build">Build an app</a>
+    <a href="/pricing">Pricing</a>
     <span class="mobile-nav-label">More</span>
     <a href="/why">Why</a>
     <a href="/how">How it works</a>
@@ -106,12 +108,12 @@
       <p class="kicker">Privacy</p>
       <h1>What we collect. What we don’t.</h1>
       <p class="lead">
-        Plain disclosure for spawnapp.org — waitlist email, site analytics, and
-        error reports. No corporate theater. No selling your data.
+        Plain disclosure for spawnapp.org — launch-list email, site analytics,
+        error reports, and (for Pro, once launched) payments and email sign-in. No corporate theater. No selling your data.
       </p>
       <ul class="product-proof privacy-proof" aria-label="Privacy at a glance">
         <li>No data selling</li>
-        <li>Invite email only</li>
+        <li>Launch email only</li>
         <li>Apps stay local</li>
         <li>Honest analytics</li>
       </ul>
@@ -120,23 +122,24 @@
         <a href="#analytics">Analytics</a>
         <a href="#errors">Errors</a>
         <a href="#apps">Your apps</a>
+        <a href="#payments">Payments</a>
         <a href="#cookies">Cookies</a>
         <a href="#dont">What we don’t</a>
       </nav>
     </header>
 
     <section class="privacy-section" id="waitlist" aria-labelledby="privacy-waitlist-h">
-      <h2 id="privacy-waitlist-h" class="privacy-section-title">Waitlist email</h2>
+      <h2 id="privacy-waitlist-h" class="privacy-section-title">Launch-list email</h2>
       <div class="privacy-card">
         <p>
-          When you join early access, your email is sent to
+          When you ask to be notified about Pro, your email is sent to
           <code>POST /api/waitlist</code> on this site. The server saves it to a
           local waitlist file (best-effort — ephemeral on free hosting) and
           dual-writes a durable copy to PostHog as a
           <code>waitlist_signup</code> event (distinct id = your email).
         </p>
         <p>
-          We use that address for invite / waitlist updates only — not a
+          We use that address for Pro launch updates only — not a
           newsletter drip, not a sales sequence. If you already signed up, a
           duplicate submit is ignored.
         </p>
@@ -196,6 +199,26 @@
       </div>
     </section>
 
+    <section class="privacy-section" id="payments" aria-labelledby="privacy-payments-h">
+      <h2 id="privacy-payments-h" class="privacy-section-title">Payments &amp; Pro accounts</h2>
+      <div class="privacy-card">
+        <p>
+          Spawn Pro is coming soon and is not on sale yet. When it launches,
+          payments will be processed by <strong>Stripe</strong> and billed by
+          <strong>Degen Social</strong>. Card details go to Stripe, not to our
+          servers; we receive your email, plan, and payment status so we can turn
+          Pro on and off. Stripe’s handling is covered by its own
+          <a href="https://stripe.com/privacy" rel="noopener">privacy policy</a>.
+        </p>
+        <p>
+          For Pro accounts, sign-in will be by email link: we store your email
+          address and the builds you save to your account, and send one-time
+          sign-in links through a transactional email provider. Free builds stay
+          session-only and need no account.
+        </p>
+      </div>
+    </section>
+
     <section class="privacy-section" id="cookies" aria-labelledby="privacy-cookies-h">
       <h2 id="privacy-cookies-h" class="privacy-section-title">Cookies</h2>
       <div class="privacy-card">
@@ -205,8 +228,8 @@
           use HttpOnly account-session cookies for waitlist signup.
         </p>
         <p>
-          If Spawn adds account auth on this site later, we’ll update this page
-          to describe those cookies honestly.
+          When Pro sign-in launches, a signed-in Pro account will use a
+          session cookie to keep you logged in. We’ll keep this page current.
         </p>
       </div>
     </section>
@@ -228,8 +251,8 @@
       <div class="privacy-card">
         <p>
           Privacy questions about this site or the waitlist: use
-          <a href="/access">early access</a> or the paths on the site — we’ll
-          respond through the same invite channel. For product privacy on your
+          the <a href="/access">Pro launch page</a> or the paths on the site — we’ll
+          respond by email. For product privacy on your
           machine, see the FAQ
           <a href="/faq#privacy">Privacy &amp; machine</a> section.
         </p>
@@ -240,7 +263,7 @@
       <h2 id="privacy-cta-h">Ready when you are</h2>
       <p>Join the waitlist, or dig into FAQ privacy answers first.</p>
       <div class="product-hero-links product-cta-links privacy-actions">
-        <a class="btn-solid" href="/access">Get early access</a>
+        <a class="btn-solid" href="/build">Start building</a>
         <a class="link-quiet" href="/faq#privacy">FAQ — Privacy</a>
         <a class="link-quiet" href="/">Home</a>
       </div>
@@ -257,8 +280,10 @@
       <a href="/why">Why</a>
       <a href="/faq">FAQ</a>
       <a href="/changelog">Changelog</a>
-      <a href="/access">Early access</a>
+      <a href="/pricing">Pricing</a>
       <a href="/privacy" aria-current="page">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/refund">Refunds</a>
     </nav>
   </footer>
 
