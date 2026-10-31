@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /signin
 
 Sitemap: https://spawnapp.org/sitemap.xml

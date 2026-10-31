@@ -109,6 +109,16 @@ function rateLimit(ip) {
   return bucket.count <= RATE_LIMIT.max;
 }
 
+/* Belt-and-braces: any plain-http request (per proxy header) or www host → 301 to https apex, path preserved. */
+app.use(function (req, res, next) {
+  const proto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase();
+  const host = String(req.headers.host || "").toLowerCase().split(":")[0];
+  const isProdHost = host === "spawnapp.org" || host === "www.spawnapp.org";
+  if (isProdHost && (proto === "http" || host === "www.spawnapp.org")) {
+    return res.redirect(301, "https://spawnapp.org" + (req.originalUrl || "/"));
+  }
+  next();
+});
 app.use(compression());
 billing.mountWebhook(app); /* raw body — before express.json */
 app.use(express.json({ limit: "32kb" }));
