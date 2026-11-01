@@ -28,25 +28,22 @@
       <div class="card">
         <h2 style="margin:0 0 8px;font-size:1.1rem">Per-lead unlock</h2>
         <p class="price" id="fee" style="font-size:1.9rem;margin:0">$25.00</p>
-        <p class="muted" style="font-size:13px">Flat fee per job unlock. Email-gated mock checkout records interest until Stripe is connected.</p>
+        <p class="muted" style="font-size:13px">One flat fee per lead. Pay securely with Stripe and the customer’s contact details open right away.</p>
         <a class="btn" href="jobs.html">Find job</a>
       </div>
       <div class="card" id="pro">
         <h2 style="margin:0 0 8px;font-size:1.1rem">Pro plan</h2>
         <p class="price" id="proFee" style="font-size:1.9rem;margin:0">$99.00/mo</p>
-        <p class="muted" style="font-size:13px">Priority placement & higher unlock volume. Placeholder subscription.</p>
-        <div class="field" style="margin-top:12px">
-          <label>Email for Pro interest</label>
-          <input id="proEmail" type="email" placeholder="you@shop.com" />
-        </div>
-        <button class="btn ghost" type="button" id="proBtn">Record Pro interest</button>
+        <p class="muted" style="font-size:13px">Unlock every lead with no per-lead fee while you’re signed in. Billed monthly, cancel anytime.</p>
+        <p class="muted" id="proState" style="font-size:13px;margin:12px 0 0"></p>
+        <p style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" type="button" id="proBtn">Start Contractor Pro</button><button class="btn ghost" type="button" id="billingBtn" hidden>Manage billing</button></p>
         <div id="proMsg" class="toast"></div>
       </div>
     </section>
 
     <section class="card" id="signup" style="margin-top:20px">
       <h2 style="margin:0 0 6px;font-size:1.15rem">Your location & profile</h2>
-      <p class="muted" style="margin:0 0 16px;font-size:13px">Create a free profile so unlocks are tied to your shop. Pick your city and state — the jobs board will default to local work near you. No password for MVP — email is your key.</p>
+      <p class="muted" style="margin:0 0 16px;font-size:13px">Create a free profile so unlocks are tied to your shop. Pick your city and state — the jobs board will default to local work near you. Unlocks are tied to your email.</p>
       <form id="signupForm">
         <div class="grid 2">
           <div class="field"><label>Your name</label><input name="name" id="sname" required /></div>

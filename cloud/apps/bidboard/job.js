@@ -51,10 +51,10 @@
         '<div class="field"><label>Your category</label><select id="ctrade"><option value="plumbing">Plumbing</option><option value="hvac">HVAC</option><option value="electrical">Electrical</option><option value="cleaning">Cleaning</option><option value="landscaping">Landscaping</option><option value="moving">Moving</option><option value="painting">Painting</option><option value="handyman">Handyman</option><option value="auto">Mechanic / auto</option><option value="childcare">Babysitting / childcare</option><option value="tech">Tech / IT</option><option value="creative">Creative / design</option><option value="tutoring">Tutoring</option><option value="delivery">Delivery</option><option value="events">Events</option><option value="pet">Pet care</option><option value="beauty">Beauty / personal</option><option value="business">Business / admin</option><option value="general">General / other</option></select></div>' +
         "</div>" +
         '<button class="btn" id="unlockBtn">' +
-        esc(d.paymentsLive ? ("Unlock lead  -  " + d.leadFeeLabel) : "Demo unlock (Payment Link not set)") +
+        esc(d.paymentsLive ? ("Unlock lead  -  " + d.leadFeeLabel) : "Preview unlock") +
         "</button>" +
         '<div id="umsg" class="toast"></div>' +
-        '<p class="muted" style="font-size:12px;margin-top:12px">No account password required for MVP — we key unlocks to your email. <a href="contractors.html#signup">Pro signup</a></p>' +
+        '<p class="muted" style="font-size:12px;margin-top:12px">Unlocks are tied to your email. On Contractor Pro? <a href="login.html?next=%2Fjob.html%3Fid%3D' + encodeURIComponent(j.id) + '">Sign in</a> to unlock with no per-lead fee.</p>' +
         "</div>";
       document.getElementById("unlockBtn").onclick = function () {
         var email = document.getElementById("cemail").value.trim();
@@ -91,7 +91,7 @@
             var payUrl = u.checkoutUrl || (u.unlock && u.unlock.checkoutUrl) || null;
             var cta = u.connectPaymentsCta || "Payments aren’t switched on for this board yet";
             // Pass X: trust API honesty flags — never treat a URL alone as "live" when demoMode
-            var demo = u.demoMode === true || u.paymentLinkRequired === true || u.paymentsLive === false;
+            var demo = u.demoMode === true || u.paymentsLive === false;
             var live = !demo && !!(u.paymentsLive || payUrl);
             msg.textContent = u.message || u.buttonHint || (live ? "Opening live checkout…" : cta);
             if (!live) {

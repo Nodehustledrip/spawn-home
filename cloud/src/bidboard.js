@@ -1,7 +1,9 @@
 // BidBoard runtime: port of the desktop Express + JSON-file server to D1 + R2.
-// Payments: Stripe Payment Links (public URLs in app config) + a signed Stripe webhook (STRIPE_WEBHOOK_SECRET in app secrets).
+// Payments: on-site Stripe Checkout created server-side (like spawnapp.org billing).
+//   App secrets (encrypted): STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET. Price ids: app config or secrets STRIPE_PRICE_LEAD / STRIPE_PRICE_PRO.
+//   Optional STRIPE_PORTAL_CONFIG (bpc_…) picks a Customer Portal configuration.
 import { json, readJson, HttpError, randomHex, now, clientIp, rateLimit, validEmail, clip, appSecrets, b64ToBytes, SECURITY_HEADERS } from "./util.js";
-import { verifyStripeSignature } from "./stripe.js";
+import { verifyStripeSignature, stripeApi } from "./stripe.js";
 import { currentAppUser } from "./auth.js";
 
 const US_STATES = [
@@ -26,27 +28,23 @@ export function normalizeState(v) {
 
 const money = (c) => "$" + (c / 100).toFixed(2);
 
-function settings(app) {
+function settings(app, secrets) {
   const cfg = app.config || {};
-  const leadLink = cfg.STRIPE_PAYMENT_LINK_LEAD || cfg.STRIPE_PAYMENT_LINK || cfg.STRIPE_CHECKOUT_URL || cfg.WHOP_CHECKOUT_URL || null;
-  return {
+  const sec = secrets || {};
+  const pick = (k) => String(cfg[k] || sec[k] || "").trim() || null;
+  const S = {
     leadFee: Number(cfg.LEAD_FEE_CENTS || 2500),
     proFee: Number(cfg.PRO_FEE_CENTS || 9900),
-    leadLink,
-    leadIsStripe: !!leadLink && /^https:\/\/(buy\.stripe\.com|checkout\.stripe\.com)\//.test(leadLink),
-    proLink: cfg.STRIPE_PAYMENT_LINK_PRO || cfg.STRIPE_PAYMENT_LINK || null,
+    priceLead: pick("STRIPE_PRICE_LEAD"),
+    pricePro: pick("STRIPE_PRICE_PRO"),
+    portalConfig: pick("STRIPE_PORTAL_CONFIG"),
+    stripeKey: sec.STRIPE_SECRET_KEY || null,
+    webhookSecret: sec.STRIPE_WEBHOOK_SECRET || null,
     serviceForge: cfg.SERVICEFORGE_URL || null,
   };
-}
-
-function withRef(link, ref, email) {
-  if (!link) return null;
-  const u = new URL(link);
-  if (/stripe\.com$/.test(u.hostname)) {
-    u.searchParams.set("client_reference_id", ref);
-    if (email) u.searchParams.set("prefilled_email", email);
-  }
-  return u.toString();
+  S.paymentsLive = !!(S.stripeKey && S.webhookSecret && S.priceLead && /^price_/.test(S.priceLead));
+  S.proLive = S.paymentsLive && !!S.pricePro && /^price_/.test(S.pricePro);
+  return S;
 }
 
 export function suggestJobCopy(description, trade, zip) {
@@ -119,8 +117,9 @@ export async function handleBidboard(c) {
   const { env, slug, app, request, path, url } = c;
   const m = request.method;
   const ip = clientIp(request);
-  const S = settings(app);
-  const paymentsLive = !!S.leadLink;
+  const secrets = await appSecrets(env, slug);
+  const S = settings(app, secrets);
+  const paymentsLive = S.paymentsLive;
   let r;
 
   if (path === "/api/health" && m === "GET") return json({ ok: true, app: "BidBoard", region: "United States — local by city", product: "BidBoard" });
@@ -130,7 +129,7 @@ export async function handleBidboard(c) {
     return json({
       app: "BidBoard", tagline: "Paid jobs near you. Hire for anything.", region: "United States — search any city",
       leadFeeCents: S.leadFee, leadFeeLabel: money(S.leadFee), proFeeCents: S.proFee, proFeeLabel: money(S.proFee) + "/mo",
-      openJobs: n ? n.n : 0, stripeLead: S.leadLink, stripePro: S.proLink, checkoutUrl: S.leadLink, paymentsLive,
+      openJobs: n ? n.n : 0, paymentsLive, proAvailable: S.proLive,
       connectPaymentsCta: "Payments aren't switched on for this board yet", serviceForgeUrl: S.serviceForge,
       crossSell: "Need marketing that fills your calendar? ServiceForge packs help local businesses get found — optional cross-promo with BidBoard.",
     });
@@ -287,10 +286,30 @@ export async function handleBidboard(c) {
       }
     }
     const status = !paymentsLive ? "demo_unlocked" : proIncluded ? "paid" : "pending_payment";
-    const checkoutUrl = paymentsLive && !proIncluded ? withRef(S.leadLink, "lead-" + id, email) : null;
-    const rec = { contractorName: clip(b.contractorName, 120) || "Contractor", contractorTrade: clip(b.contractorTrade || job.trade, 40), company: clip(b.company, 120), checkoutUrl, proIncluded };
-    await env.DB.prepare("INSERT INTO bb_unlocks (id, slug, job_id, token, email, status, amount_cents, data, created_at, paid_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)")
-      .bind(id, slug, job.id, token, email, status, proIncluded ? 0 : S.leadFee, JSON.stringify(rec), now(), proIncluded ? now() : null)
+    let checkoutUrl = null, sessionId = null;
+    if (paymentsLive && !proIncluded) {
+      const k = await env.DB.prepare("SELECT stripe_customer FROM bb_contractors WHERE slug=?1 AND email=?2").bind(slug, email).first();
+      try {
+        const s = await stripeApi(env, S.stripeKey, "POST", "/v1/checkout/sessions", {
+          mode: "payment",
+          line_items: { 0: { price: S.priceLead, quantity: 1 } },
+          client_reference_id: "lead-" + id,
+          customer: (k && k.stripe_customer) || undefined,
+          customer_email: k && k.stripe_customer ? undefined : email,
+          success_url: url.origin + "/paid?session_id={CHECKOUT_SESSION_ID}",
+          cancel_url: url.origin + "/job.html?id=" + encodeURIComponent(job.id),
+          metadata: { app: "bidboard", slug, kind: "lead", unlock_id: id, job_id: job.id },
+          payment_intent_data: { metadata: { app: "bidboard", slug, unlock_id: id, job_id: job.id }, description: "BidBoard lead: " + clip(job.title, 80) },
+        }, "bb-lead-" + slug + "-" + id);
+        checkoutUrl = s.url; sessionId = s.id;
+      } catch (e) {
+        console.error("[bidboard] lead checkout failed", e.message);
+        return json({ ok: false, error: "Checkout is unavailable right now — try again in a minute." }, 502);
+      }
+    }
+    const rec = { contractorName: clip(b.contractorName, 120) || "Contractor", contractorTrade: clip(b.contractorTrade || job.trade, 40), company: clip(b.company, 120), proIncluded };
+    await env.DB.prepare("INSERT INTO bb_unlocks (id, slug, job_id, token, email, status, amount_cents, stripe_session, data, created_at, paid_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)")
+      .bind(id, slug, job.id, token, email, status, proIncluded ? 0 : S.leadFee, sessionId, JSON.stringify(rec), now(), proIncluded ? now() : null)
       .run();
     await insertInterest(env, slug, "lead_unlock", email, { jobId: job.id, amountCents: S.leadFee, unlockId: id });
     const reveal = status !== "pending_payment";
@@ -303,22 +322,21 @@ export async function handleBidboard(c) {
       ok: true,
       paymentsLive: paymentsLive && !proIncluded,
       demoMode: !paymentsLive,
-      paymentLinkRequired: !paymentsLive,
       checkoutUrl,
       connectPaymentsCta: paymentsLive ? null : "Payments aren't switched on for this board yet",
-      buttonHint: proIncluded ? "Included with Contractor Pro" : paymentsLive ? "Unlock lead — " + money(S.leadFee) : "Demo unlock (payments not switched on)",
+      buttonHint: proIncluded ? "Included with Contractor Pro" : paymentsLive ? "Unlock lead — " + money(S.leadFee) : "Preview unlock",
       unlock: { id, token, status, amountCents: proIncluded ? 0 : S.leadFee, checkoutUrl },
       leadFeeLabel: money(S.leadFee),
       honesty: proIncluded
         ? "Included with your Contractor Pro plan."
         : paymentsLive
-          ? "Complete secure Stripe checkout to reveal the contact. Contact details stay hidden until payment is confirmed."
-          : "Payments aren't switched on for this board yet — this is a demo unlock.",
+          ? "Pay securely with Stripe to reveal the contact. Contact details stay hidden until payment is confirmed."
+          : "Payments aren't switched on for this board yet, so this unlock is a free preview.",
       message: proIncluded
         ? "Unlocked with Contractor Pro."
         : checkoutUrl
           ? "Opening secure checkout. Contact details appear here as soon as payment is confirmed."
-          : "Demo unlock recorded — contact details revealed for testing.",
+          : "Preview unlock — contact details revealed.",
       job: jobOut,
     });
   }
@@ -332,17 +350,62 @@ export async function handleBidboard(c) {
     return json({ ok: true, message: "Thanks — we got your message." });
   }
 
+  if (path === "/api/pro/status" && m === "GET") {
+    const me = await currentAppUser(c);
+    const k = me ? await env.DB.prepare("SELECT plan, stripe_customer FROM bb_contractors WHERE slug=?1 AND email=?2").bind(slug, me.email).first() : null;
+    return json({ ok: true, signedIn: !!me, email: me ? me.email : null, plan: k ? k.plan : null, pro: !!(k && k.plan === "pro"),
+      canManageBilling: !!(k && k.stripe_customer && paymentsLive), proAvailable: S.proLive, proFeeLabel: money(S.proFee) + "/mo" });
+  }
+
   if (path === "/api/pro/checkout" && m === "POST") {
-    await rateLimit(env, `w:${slug}:${ip}`, 30, 600);
-    const b = await readJson(request, 4096);
-    const email = clip(b.email, 254).toLowerCase();
-    const ref = "pro-" + randomHex(8);
-    if (email) await insertInterest(env, slug, "pro_checkout", email, { ref });
-    const link = S.proLink ? withRef(S.proLink, ref, validEmail(email) ? email : "") : null;
-    return json({
-      ok: true, proFeeLabel: money(S.proFee) + "/mo", checkoutUrl: link,
-      message: link ? "Opening secure checkout for Contractor Pro." : "Thanks — Contractor Pro isn't open for sign-up yet. We've noted your interest.",
-    });
+    await rateLimit(env, `bbck:${slug}:${ip}`, 20, 600);
+    if (!S.proLive) return json({ ok: false, error: "Contractor Pro sign-up isn't open on this board." }, 503);
+    const me = await currentAppUser(c);
+    if (!me) return json({ ok: false, error: "Sign in to start Contractor Pro.", signin: "/login.html?next=" + encodeURIComponent("/contractors.html#pro") }, 401);
+    let k = await env.DB.prepare("SELECT id, plan, stripe_customer FROM bb_contractors WHERE slug=?1 AND email=?2").bind(slug, me.email).first();
+    if (k && k.plan === "pro") return json({ ok: false, error: "You're already on Contractor Pro.", pro: true }, 409);
+    if (!k) {
+      const t = now(), rec = { id: randomHex(6), name: me.name || me.email.split("@")[0], email: me.email, plan: "pay_per_lead", createdAt: t };
+      await env.DB.prepare("INSERT INTO bb_contractors (id, slug, email, plan, data, created_at) VALUES (?1,?2,?3,'pay_per_lead',?4,?5)").bind(rec.id, slug, me.email, JSON.stringify(rec), t).run();
+      k = { id: rec.id, stripe_customer: null };
+    }
+    const meta = { app: "bidboard", slug, kind: "pro", contractor_id: k.id, email: me.email };
+    try {
+      const s = await stripeApi(env, S.stripeKey, "POST", "/v1/checkout/sessions", {
+        mode: "subscription",
+        line_items: { 0: { price: S.pricePro, quantity: 1 } },
+        client_reference_id: "pro-" + k.id,
+        customer: k.stripe_customer || undefined,
+        customer_email: k.stripe_customer ? undefined : me.email,
+        success_url: url.origin + "/paid?session_id={CHECKOUT_SESSION_ID}",
+        cancel_url: url.origin + "/contractors.html#pro",
+        metadata: meta,
+        subscription_data: { metadata: meta },
+      });
+      await insertInterest(env, slug, "pro_checkout", me.email, { contractorId: k.id });
+      return json({ ok: true, url: s.url, checkoutUrl: s.url, proFeeLabel: money(S.proFee) + "/mo", message: "Opening secure checkout for Contractor Pro." });
+    } catch (e) {
+      console.error("[bidboard] pro checkout failed", e.message);
+      return json({ ok: false, error: "Checkout is unavailable right now — try again in a minute." }, 502);
+    }
+  }
+
+  if (path === "/api/billing/portal" && m === "POST") {
+    await rateLimit(env, `bbck:${slug}:${ip}`, 20, 600);
+    if (!paymentsLive) return json({ ok: false, error: "Billing isn't switched on for this board." }, 503);
+    const me = await currentAppUser(c);
+    if (!me) return json({ ok: false, error: "Sign in first.", signin: "/login.html?next=" + encodeURIComponent("/contractors.html#pro") }, 401);
+    const k = await env.DB.prepare("SELECT stripe_customer FROM bb_contractors WHERE slug=?1 AND email=?2").bind(slug, me.email).first();
+    if (!k || !k.stripe_customer) return json({ ok: false, error: "No billing account yet." }, 400);
+    try {
+      const s = await stripeApi(env, S.stripeKey, "POST", "/v1/billing_portal/sessions", {
+        customer: k.stripe_customer, return_url: url.origin + "/contractors.html", configuration: S.portalConfig || undefined,
+      });
+      return json({ ok: true, url: s.url });
+    } catch (e) {
+      console.error("[bidboard] portal failed", e.message);
+      return json({ ok: false, error: "Billing is unavailable right now — try again in a minute." }, 502);
+    }
   }
 
   if (path === "/api/places/states" && m === "GET") return json({ ok: true, states: US_STATES });
@@ -373,8 +436,8 @@ export async function handleBidboard(c) {
     return json({ ok: true, results, count: results.length });
   }
 
-  if (path === "/api/stripe/webhook" && m === "POST") return stripeWebhook(c);
-  if (path === "/paid" && m === "GET") return paidReturn(c);
+  if (path === "/api/stripe/webhook" && m === "POST") return stripeWebhook(c, S);
+  if (path === "/paid" && m === "GET") return paidReturn(c, S);
   if (/^\/api\/export\//.test(path)) return json({ ok: false, error: "Exports are available to the app owner in Spawn." }, 403);
   return null;
 }
@@ -403,58 +466,117 @@ async function saveContractor(env, slug, body) {
     message: "Contractor profile saved for " + city + ", " + state + ". Browse local jobs and unlock with your email." });
 }
 
-async function stripeWebhook(c) {
-  const { env, slug, request, app } = c;
-  const secrets = await appSecrets(env, slug);
-  const whsec = secrets.STRIPE_WEBHOOK_SECRET;
-  if (!whsec) return json({ ok: false, error: "Webhook not configured" }, 503);
+const PRO_ON = new Set(["active", "trialing"]);
+
+// A lead Checkout Session counts only if it is the exact session created for that unlock, fully paid, in USD, for at least the fee.
+async function markUnlockPaid(env, slug, o) {
+  const md = o.metadata || {};
+  if (o.mode !== "payment" || md.slug !== slug || !md.unlock_id) return null;
+  if (!(o.payment_status === "paid" || o.payment_status === "no_payment_required")) return null;
+  const u = await env.DB.prepare("SELECT id, job_id, token, status, amount_cents, stripe_session FROM bb_unlocks WHERE slug=?1 AND id=?2").bind(slug, String(md.unlock_id)).first();
+  if (!u || u.stripe_session !== o.id) return null;
+  if (Number(o.amount_total || 0) < Number(u.amount_cents) || String(o.currency || "").toLowerCase() !== "usd") {
+    console.warn("[bidboard] amount mismatch for unlock", u.id);
+    return null;
+  }
+  if (u.status !== "paid") await env.DB.prepare("UPDATE bb_unlocks SET status='paid', paid_at=?3 WHERE slug=?1 AND id=?2").bind(slug, u.id, now()).run();
+  return u;
+}
+
+async function setPro(env, slug, where, on, customer, subscription) {
+  // where: { contractorId } | { subscription } | { customer }
+  const plan = on ? "pro" : "pay_per_lead";
+  let q, v;
+  if (where.contractorId) { q = "id=?2"; v = where.contractorId; }
+  else if (where.subscription) { q = "stripe_subscription=?2"; v = where.subscription; }
+  else if (where.customer) { q = "stripe_customer=?2"; v = where.customer; }
+  else return 0;
+  const r = await env.DB.prepare(`UPDATE bb_contractors SET plan=?3, stripe_customer=COALESCE(?4, stripe_customer), stripe_subscription=COALESCE(?5, stripe_subscription), updated_at=?6 WHERE slug=?1 AND ${q}`)
+    .bind(slug, v, plan, customer || null, subscription || null, now()).run();
+  return (r.meta && r.meta.changes) || 0;
+}
+
+async function activateProFromSession(env, slug, o) {
+  const md = o.metadata || {};
+  if (o.mode !== "subscription" || md.slug !== slug || !md.contractor_id) return false;
+  if (o.status !== "complete" || !(o.payment_status === "paid" || o.payment_status === "no_payment_required")) return false;
+  return (await setPro(env, slug, { contractorId: String(md.contractor_id) }, true, o.customer, typeof o.subscription === "string" ? o.subscription : o.subscription && o.subscription.id)) > 0;
+}
+
+async function handleStripeEvent(env, slug, evt) {
+  const o = (evt.data && evt.data.object) || {};
+  switch (evt.type) {
+    case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded":
+      if (o.mode === "payment") await markUnlockPaid(env, slug, o);
+      else if (o.mode === "subscription") await activateProFromSession(env, slug, o);
+      return;
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted": {
+      const md = o.metadata || {};
+      if (md.slug && md.slug !== slug) return;
+      const on = evt.type !== "customer.subscription.deleted" && PRO_ON.has(o.status);
+      const n = await setPro(env, slug, { subscription: o.id }, on, o.customer, o.id);
+      if (!n && md.contractor_id) await setPro(env, slug, { contractorId: String(md.contractor_id) }, on, o.customer, o.id);
+      return;
+    }
+    case "invoice.payment_failed": {
+      const sub = o.subscription || (o.parent && o.parent.subscription_details && o.parent.subscription_details.subscription) || null;
+      const subId = typeof sub === "string" ? sub : sub && sub.id;
+      if (subId) await setPro(env, slug, { subscription: subId }, false);
+      return;
+    }
+    default:
+      return;
+  }
+}
+
+async function stripeWebhook(c, S) {
+  const { env, slug, request } = c;
+  if (!S.webhookSecret) return json({ ok: false, error: "Webhook not configured" }, 503);
   const payload = await request.text();
   if (payload.length > 512 * 1024) return json({ ok: false, error: "too large" }, 413);
-  if (!(await verifyStripeSignature(payload, request.headers.get("stripe-signature"), whsec))) return json({ ok: false, error: "bad signature" }, 400);
-  const evt = JSON.parse(payload);
-  const fresh = await env.DB.prepare("INSERT OR IGNORE INTO stripe_events (id, slug, type) VALUES (?1,?2,?3)").bind(evt.id, slug, evt.type).run();
-  if (!fresh.meta || !fresh.meta.changes) return json({ ok: true, duplicate: true });
-  const o = (evt.data && evt.data.object) || {};
-  const S = settings(app);
-  if (evt.type === "checkout.session.completed" || evt.type === "checkout.session.async_payment_succeeded") {
-    const ref = String(o.client_reference_id || "");
-    if (ref.startsWith("lead-") && (o.payment_status === "paid" || o.payment_status === "no_payment_required")) {
-      const id = ref.slice(5);
-      const u = await env.DB.prepare("SELECT amount_cents FROM bb_unlocks WHERE slug=?1 AND id=?2").bind(slug, id).first();
-      if (u && Number(o.amount_total || 0) >= Number(u.amount_cents) && String(o.currency || "usd").toLowerCase() === "usd") {
-        await env.DB.prepare("UPDATE bb_unlocks SET status='paid', stripe_session=?3, paid_at=?4 WHERE slug=?1 AND id=?2").bind(slug, id, o.id, now()).run();
-      } else if (u) {
-        console.warn("[bidboard] amount mismatch for unlock", id, o.amount_total, u.amount_cents);
-      }
-    } else if (ref.startsWith("pro-")) {
-      const email = String((o.customer_details && o.customer_details.email) || o.customer_email || "").toLowerCase();
-      if (validEmail(email)) {
-        const cur = await env.DB.prepare("SELECT id FROM bb_contractors WHERE slug=?1 AND email=?2").bind(slug, email).first();
-        if (cur) {
-          await env.DB.prepare("UPDATE bb_contractors SET plan='pro', stripe_customer=?3, stripe_subscription=?4, updated_at=?5 WHERE slug=?1 AND email=?2")
-            .bind(slug, email, o.customer || null, o.subscription || null, now()).run();
-        } else {
-          const k = { id: randomHex(6), name: email.split("@")[0], email, plan: "pro", createdAt: now() };
-          await env.DB.prepare("INSERT INTO bb_contractors (id, slug, email, plan, stripe_customer, stripe_subscription, data, created_at) VALUES (?1,?2,?3,'pro',?4,?5,?6,?7)")
-            .bind(k.id, slug, email, o.customer || null, o.subscription || null, JSON.stringify(k), k.createdAt).run();
-        }
-      }
-    }
-  } else if (evt.type === "customer.subscription.deleted" || evt.type === "customer.subscription.updated") {
-    const active = evt.type === "customer.subscription.updated" && ["active", "trialing", "past_due"].includes(o.status);
-    await env.DB.prepare("UPDATE bb_contractors SET plan=?3, updated_at=?4 WHERE slug=?1 AND stripe_subscription=?2").bind(slug, o.id, active ? "pro" : "pay_per_lead", now()).run();
+  if (!(await verifyStripeSignature(payload, request.headers.get("stripe-signature"), S.webhookSecret))) return json({ ok: false, error: "bad signature" }, 400);
+  let evt;
+  try { evt = JSON.parse(payload); } catch { return json({ ok: false, error: "bad payload" }, 400); }
+  if (!evt || !evt.id || !evt.type) return json({ ok: false, error: "bad payload" }, 400);
+  const seen = await env.DB.prepare("SELECT 1 FROM stripe_events WHERE id=?1").bind(evt.id).first();
+  if (seen) return json({ ok: true, duplicate: true });
+  try {
+    await handleStripeEvent(env, slug, evt);
+  } catch (e) {
+    console.error("[bidboard] webhook failed", evt.type, e.message);
+    return json({ ok: false }, 500); // Stripe retries
   }
-  void S;
+  await env.DB.prepare("INSERT OR IGNORE INTO stripe_events (id, slug, type) VALUES (?1,?2,?3)").bind(evt.id, slug, evt.type).run();
   return json({ ok: true });
 }
 
-async function paidReturn(c) {
-  const { env, slug, url } = c;
+async function paidReturn(c, S) {
+  const { env, slug, url, request } = c;
   const sid = String(url.searchParams.get("session_id") || "");
   const n = Math.min(Number(url.searchParams.get("n") || 0), 30);
+  const toJob = (u) => Response.redirect(new URL("/job.html?id=" + encodeURIComponent(u.job_id) + "&token=" + u.token, url.origin).toString(), 302);
   if (/^cs_[A-Za-z0-9_]{8,200}$/.test(sid)) {
     const u = await env.DB.prepare("SELECT job_id, token FROM bb_unlocks WHERE slug=?1 AND stripe_session=?2 AND status='paid'").bind(slug, sid).first();
-    if (u) return Response.redirect(new URL("/job.html?id=" + encodeURIComponent(u.job_id) + "&token=" + u.token, url.origin).toString(), 302);
+    if (u) return toJob(u);
+    // Not confirmed by webhook yet: verify the session with Stripe directly.
+    if (S.paymentsLive) {
+      try {
+        await rateLimit(env, `bbpaid:${slug}:${clientIp(request)}`, 60, 600);
+        const o = await stripeApi(env, S.stripeKey, "GET", "/v1/checkout/sessions/" + encodeURIComponent(sid));
+        if (o.mode === "payment") {
+          const paid = await markUnlockPaid(env, slug, o);
+          if (paid) return toJob(paid);
+        } else if (o.mode === "subscription" && (await activateProFromSession(env, slug, o))) {
+          return Response.redirect(new URL("/contractors.html?pro=welcome", url.origin).toString(), 302);
+        }
+      } catch (e) {
+        if (e instanceof HttpError) throw e;
+        console.warn("[bidboard] session lookup failed", e.message);
+      }
+    }
   }
   const waiting = n < 30 && /^cs_/.test(sid);
   const next = "/paid?session_id=" + encodeURIComponent(sid) + "&n=" + (n + 1);

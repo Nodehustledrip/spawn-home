@@ -8,5 +8,5 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const u = new URL(req.url);
   if (u.origin !== self.location.origin || u.pathname.indexOf("/api/") !== -1) return;
-  e.respondWith(fetch(req).then((res) => { const copy = res.clone(); if (res.ok) caches.open(CACHE).then((c) => c.put(req, copy)); return res; }).catch(() => caches.match(req).then((h) => h || caches.match(SCOPE))); });
+  e.respondWith(fetch(req).then((res) => { const copy = res.clone(); if (res.ok) caches.open(CACHE).then((c) => c.put(req, copy)); return res; }).catch(() => caches.match(req).then((h) => h || caches.match(SCOPE))));
 });

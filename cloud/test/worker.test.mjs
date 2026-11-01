@@ -5,6 +5,12 @@ import { Miniflare } from "miniflare";
 import { readFileSync } from "node:fs";
 import { createHash, createHmac, createCipheriv, randomBytes } from "node:crypto";
 import { execSync } from "node:child_process";
+import { createStripeMock } from "./stripe-mock.mjs";
+
+const SK = "sk_test_mock_" + randomBytes(6).toString("hex");
+const stripe = createStripeMock({ key: SK, prices: { price_lead_test: { amount: 2500 }, price_pro_test: { amount: 9900, recurring: "month" } } });
+const WHSEC = "whsec_test123";
+function signed(evt, secret = WHSEC) { const body = JSON.stringify(evt); const t = Math.floor(Date.now() / 1000); return { body, sig: `t=${t},v1=${createHmac("sha256", secret).update(t + "." + body).digest("hex")}` }; }
 
 const KEY = randomBytes(32);
 let mf, db, r2;
@@ -36,7 +42,8 @@ before(async () => {
   mf = new Miniflare({
     modules: true, scriptPath: "dist/index.js", compatibilityDate: "2026-08-01", compatibilityFlags: ["nodejs_compat"],
     d1Databases: { DB: "test-db" }, r2Buckets: { APPS: "test-r2" },
-    bindings: { APEX_DOMAIN: "spawnapp.org", ALLOW_HOST_OVERRIDE: "0", SECRETS_KEY: KEY.toString("base64") },
+    bindings: { APEX_DOMAIN: "spawnapp.org", ALLOW_HOST_OVERRIDE: "0", SECRETS_KEY: KEY.toString("base64"), STRIPE_API_BASE: "https://stripe.mock" },
+    outboundService: stripe.fetcher,
   });
   db = await mf.getD1Database("DB");
   r2 = await mf.getR2Bucket("APPS");
@@ -47,9 +54,13 @@ before(async () => {
   await publish("demo", "static", { "index.html": "<h1>Demo</h1>", "about.html": "<p>About</p>", "app.js": "console.log(1)", "404.html": "<h1>Custom 404</h1>" });
   await publish("shop", "spawn-backend", { "index.html": "<h1>Shop</h1>" }, { monetization: "stripe", checkoutUrl: "https://buy.stripe.com/test_x" });
   await publish("bb", "bidboard", { "index.html": "<h1>BidBoard</h1>", "job.html": "<p>job</p>", "styles.css": "body{}" },
-    { STRIPE_PAYMENT_LINK_LEAD: "https://buy.stripe.com/test_lead", STRIPE_PAYMENT_LINK_PRO: "https://buy.stripe.com/test_pro" });
+    { LEAD_FEE_CENTS: 2500, PRO_FEE_CENTS: 9900, STRIPE_PRICE_LEAD: "price_lead_test", STRIPE_PORTAL_CONFIG: "bpc_test_bidboard" });
   await publish("bbdemo", "bidboard", { "index.html": "<h1>BB demo</h1>" });
-  await db.prepare("INSERT INTO app_secrets (slug, name, blob) VALUES ('bb','STRIPE_WEBHOOK_SECRET',?1)").bind(enc("bb", "STRIPE_WEBHOOK_SECRET", "whsec_test123")).run();
+  for (const [n, v] of [["STRIPE_WEBHOOK_SECRET", WHSEC], ["STRIPE_SECRET_KEY", SK], ["STRIPE_PRICE_PRO", "price_pro_test"]]) // price id from secrets also works
+    await db.prepare("INSERT INTO app_secrets (slug, name, blob) VALUES ('bb',?1,?2)").bind(n, enc("bb", n, v)).run();
+  // keys present but no price id -> payments stay off (no half-configured checkout)
+  await publish("bbhalf", "bidboard", { "index.html": "<h1>x</h1>" });
+  for (const [n, v] of [["STRIPE_WEBHOOK_SECRET", WHSEC], ["STRIPE_SECRET_KEY", SK]]) await db.prepare("INSERT INTO app_secrets (slug, name, blob) VALUES ('bbhalf',?1,?2)").bind(n, enc("bbhalf", n, v)).run();
   await db.prepare("INSERT INTO domains (hostname, slug, status) VALUES ('shop.example.com','shop','active')").run();
   await db.prepare("INSERT INTO bb_places (city, state, code, city_l) VALUES ('Austin','Texas','TX','austin'),('Aurora','Colorado','CO','aurora'),('Boston','Massachusetts','MA','boston')").run();
 });
@@ -126,8 +137,12 @@ test("bidboard demo mode (payments off): unlock reveals contact", async () => {
   assert.equal(x.body.unlock.status, "demo_unlocked"); assert.equal(x.body.job.phone, JOB.phone);
 });
 
-test("bidboard live payments: locked until signed webhook, then token reveals", async () => {
-  let x = await J(await F("bb.spawnapp.org", "/api/config")); assert.equal(x.body.paymentsLive, true);
+const hook = (evt, secret) => { const { body, sig } = signed(evt, secret); return F("bb.spawnapp.org", "/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": sig }, body }); };
+
+test("bidboard live payments: on-site Checkout, webhook marks paid, /paid shows the contact", async () => {
+  let x = await J(await F("bb.spawnapp.org", "/api/config")); assert.equal(x.body.paymentsLive, true); assert.equal(x.body.proAvailable, true);
+  assert.ok(!JSON.stringify(x.body).includes("stripe.com"), "no payment links in config");
+  x = await J(await F("bbhalf.spawnapp.org", "/api/config")); assert.equal(x.body.paymentsLive, false);
   x = await J(await post("bb.spawnapp.org", "/api/jobs", Object.assign({}, JOB, { state: "Texas" }))); const id = x.body.job.id;
   x = await J(await F("bb.spawnapp.org", "/api/jobs?city=austin&state=TX")); assert.ok(x.body.jobs.some((j) => j.id === id)); assert.ok(!JSON.stringify(x.body).includes("555-0100"));
   x = await J(await F("bb.spawnapp.org", "/api/jobs/" + id + "?unlocked=1")); assert.equal(x.body.locked, true, "unlocked=1 bypass closed");
@@ -135,40 +150,97 @@ test("bidboard live payments: locked until signed webhook, then token reveals", 
   x = await J(await post("bb.spawnapp.org", "/api/leads/unlock", { jobId: id, contractorEmail: "c@x.co" }));
   assert.equal(x.body.unlock.status, "pending_payment"); assert.equal(x.body.job.phone, undefined);
   const { token, id: unlockId } = x.body.unlock;
-  assert.match(x.body.checkoutUrl, /client_reference_id=lead-/);
+  assert.match(x.body.checkoutUrl, /^https:\/\/checkout\.stripe\.com\/c\/pay\/cs_test_mock/);
+  const sid = x.body.checkoutUrl.split("/").pop();
+  const form = stripe.sessions.get(sid)._form;
+  assert.equal(form.mode, "payment"); assert.equal(form["line_items[0][price]"], "price_lead_test"); assert.equal(form.customer_email, "c@x.co");
+  assert.equal(form["metadata[unlock_id]"], unlockId); assert.equal(form["metadata[slug]"], "bb"); assert.equal(form["metadata[job_id]"], id);
+  assert.equal(form.success_url, "https://bb.spawnapp.org/paid?session_id={CHECKOUT_SESSION_ID}");
+  assert.ok(stripe.calls.find((c) => c.path === "/v1/checkout/sessions" && c.idem === "bb-lead-bb-" + unlockId), "idempotency key sent");
   x = await J(await F("bb.spawnapp.org", `/api/jobs/${id}?token=${token}`)); assert.equal(x.body.locked, true);
-  const evt = JSON.stringify({ id: "evt_1", type: "checkout.session.completed", data: { object: { id: "cs_test_abcdefgh", client_reference_id: "lead-" + unlockId, payment_status: "paid", amount_total: 2500, currency: "usd" } } });
-  const t = Math.floor(Date.now() / 1000);
-  r = await F("bb.spawnapp.org", "/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": `t=${t},v1=deadbeef` }, body: evt }); assert.equal(r.status, 400); await r.text();
-  const sig = createHmac("sha256", "whsec_test123").update(t + "." + evt).digest("hex");
-  r = await F("bb.spawnapp.org", "/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": `t=${t},v1=${sig}` }, body: evt }); assert.equal(r.status, 200); await r.text();
-  r = await F("bb.spawnapp.org", "/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": `t=${t},v1=${sig}` }, body: evt }); assert.match(await r.text(), /duplicate/);
+  // /paid before payment: Stripe says unpaid -> waiting page, still locked
+  r = await F("bb.spawnapp.org", "/paid?session_id=" + sid); assert.equal(r.status, 200); assert.match(await r.text(), /Confirming/);
+  // forged webhooks are rejected
+  const paid = Object.assign({}, stripe.complete(sid)); delete paid._form;
+  const evt = { id: "evt_lead_1", type: "checkout.session.completed", data: { object: paid } };
+  r = await F("bb.spawnapp.org", "/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": `t=${Math.floor(Date.now() / 1000)},v1=deadbeef` }, body: JSON.stringify(evt) }); assert.equal(r.status, 400); await r.text();
+  r = await hook(evt, "whsec_wrong"); assert.equal(r.status, 400); await r.text();
+  r = await F("bb.spawnapp.org", "/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": `t=${Math.floor(Date.now() / 1000) - 3600},v1=${createHmac("sha256", WHSEC).update((Math.floor(Date.now() / 1000) - 3600) + "." + JSON.stringify(evt)).digest("hex")}` }, body: JSON.stringify(evt) });
+  assert.equal(r.status, 400, "stale timestamp rejected"); await r.text();
+  x = await J(await F("bb.spawnapp.org", `/api/jobs/${id}?token=${token}`)); assert.equal(x.body.locked, true, "still locked after forged events");
+  // a paid session for a different unlock / lower amount does not unlock
+  r = await hook({ id: "evt_lead_bad", type: "checkout.session.completed", data: { object: Object.assign({}, paid, { amount_total: 100 }) } }); assert.equal(r.status, 200); await r.text();
+  r = await hook({ id: "evt_lead_bad2", type: "checkout.session.completed", data: { object: Object.assign({}, paid, { id: "cs_test_other0001" }) } }); await r.text();
+  x = await J(await F("bb.spawnapp.org", `/api/jobs/${id}?token=${token}`)); assert.equal(x.body.locked, true, "wrong amount / session ignored");
+  r = await hook(evt); assert.equal(r.status, 200); assert.deepEqual(await r.json(), { ok: true });
+  r = await hook(evt); assert.deepEqual(await r.json(), { ok: true, duplicate: true });
+  const ev = await db.prepare("SELECT COUNT(*) AS n FROM stripe_events WHERE id='evt_lead_1'").first(); assert.equal(ev.n, 1);
   x = await J(await F("bb.spawnapp.org", `/api/jobs/${id}?token=${token}`)); assert.equal(x.body.locked, false); assert.equal(x.body.job.phone, JOB.phone);
   r = await F("bb.spawnapp.org", `/api/jobs/${id}/photo?token=${token}`); assert.equal(r.status, 200); assert.equal(await r.text(), "PNGDATA");
-  r = await F("bb.spawnapp.org", "/paid?session_id=cs_test_abcdefgh"); assert.equal(r.status, 302); assert.match(r.headers.get("location"), new RegExp("job.html\\?id=" + id + "&token=" + token));
+  r = await F("bb.spawnapp.org", "/paid?session_id=" + sid); assert.equal(r.status, 302); assert.match(r.headers.get("location"), new RegExp("job.html\\?id=" + id + "&token=" + token));
   r = await F("bb.spawnapp.org", "/paid?session_id=cs_test_unknown1"); assert.equal(r.status, 200); assert.match(await r.text(), /Confirming/);
   // delete requires matching contact
   x = await J(await F("bb.spawnapp.org", "/api/jobs/" + id, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "x@y.co" }) })); assert.equal(x.status, 403);
   x = await J(await F("bb.spawnapp.org", "/api/jobs/" + id, { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "pat@x.co" }) })); assert.equal(x.body.ok, true);
 });
 
-test("bidboard pro subscription lifecycle + included unlock", async () => {
-  let x = await J(await post("bb.spawnapp.org", "/api/contractors", { name: "Cee", email: "pro@x.co", city: "Austin", state: "TX" })); assert.equal(x.body.ok, true);
-  x = await J(await post("bb.spawnapp.org", "/api/pro/checkout", { email: "pro@x.co" })); assert.match(x.body.checkoutUrl, /client_reference_id=pro-/);
-  const send = async (o, type, id) => { const evt = JSON.stringify({ id, type, data: { object: o } }); const t = Math.floor(Date.now() / 1000);
-    const sig = createHmac("sha256", "whsec_test123").update(t + "." + evt).digest("hex");
-    const r = await F("bb.spawnapp.org", "/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": `t=${t},v1=${sig}` }, body: evt }); assert.equal(r.status, 200); await r.text(); };
-  await send({ id: "cs_p", client_reference_id: "pro-abc", payment_status: "paid", customer: "cus_1", subscription: "sub_1", customer_details: { email: "pro@x.co" } }, "checkout.session.completed", "evt_p1");
-  let row = await db.prepare("SELECT plan FROM bb_contractors WHERE slug='bb' AND email='pro@x.co'").first(); assert.equal(row.plan, "pro");
-  // signed-in pro unlocks without paying
+test("bidboard /paid verifies the session with Stripe when the webhook is late", async () => {
+  let x = await J(await post("bb.spawnapp.org", "/api/jobs", JOB)); const id = x.body.job.id;
+  x = await J(await post("bb.spawnapp.org", "/api/leads/unlock", { jobId: id, contractorEmail: "late@x.co" }));
+  const { token } = x.body.unlock; const sid = x.body.checkoutUrl.split("/").pop();
+  stripe.complete(sid);
+  const r = await F("bb.spawnapp.org", "/paid?session_id=" + sid); assert.equal(r.status, 302); assert.match(r.headers.get("location"), new RegExp("token=" + token));
+  x = await J(await F("bb.spawnapp.org", `/api/jobs/${id}?token=${token}`)); assert.equal(x.body.locked, false); assert.equal(x.body.job.phone, JOB.phone);
+});
+
+test("bidboard Pro: subscription Checkout, on/off via webhooks, portal", async () => {
+  // must be signed in
+  let x = await J(await post("bb.spawnapp.org", "/api/pro/checkout", {})); assert.equal(x.status, 401); assert.match(x.body.signin, /login\.html/);
   let r = await post("bb.spawnapp.org", "/api/auth/signup", { email: "pro@x.co", password: "longpassword" }); const ck = r.headers.get("set-cookie").split(";")[0]; await r.text();
+  x = await J(await post("bb.spawnapp.org", "/api/billing/portal", {}, { cookie: ck })); assert.equal(x.status, 400, "no billing account yet");
+  x = await J(await F("bb.spawnapp.org", "/api/pro/status", { headers: { cookie: ck } })); assert.equal(x.body.pro, false); assert.equal(x.body.canManageBilling, false);
+  x = await J(await post("bb.spawnapp.org", "/api/pro/checkout", {}, { cookie: ck })); assert.equal(x.body.ok, true);
+  assert.match(x.body.url, /^https:\/\/checkout\.stripe\.com\//);
+  const sid = x.body.url.split("/").pop(); const f = stripe.sessions.get(sid)._form;
+  assert.equal(f.mode, "subscription"); assert.equal(f["line_items[0][price]"], "price_pro_test"); assert.equal(f.customer_email, "pro@x.co");
+  assert.equal(f["subscription_data[metadata][slug]"], "bb"); assert.ok(f["subscription_data[metadata][contractor_id]"]);
+  const cid = f["metadata[contractor_id]"];
+  const plan = async () => (await db.prepare("SELECT plan FROM bb_contractors WHERE slug='bb' AND email='pro@x.co'").first()).plan;
+  assert.equal(await plan(), "pay_per_lead");
+  const s = Object.assign({}, stripe.complete(sid, { customer: "cus_pro1", subscription: "sub_pro1" })); delete s._form;
+  r = await hook({ id: "evt_p1", type: "checkout.session.completed", data: { object: s } }); assert.equal(r.status, 200); await r.text();
+  assert.equal(await plan(), "pro");
+  r = await F("bb.spawnapp.org", "/paid?session_id=" + sid); assert.equal(r.status, 302); assert.match(r.headers.get("location"), /contractors\.html\?pro=welcome/);
+  x = await J(await post("bb.spawnapp.org", "/api/pro/checkout", {}, { cookie: ck })); assert.equal(x.status, 409);
+  // signed-in Pro unlocks without paying; signed-out with same email still pays
   const job = await J(await post("bb.spawnapp.org", "/api/jobs", JOB));
   x = await J(await post("bb.spawnapp.org", "/api/leads/unlock", { jobId: job.body.job.id, contractorEmail: "pro@x.co" }, { cookie: ck }));
-  assert.equal(x.body.unlock.status, "paid"); assert.equal(x.body.job.phone, JOB.phone);
+  assert.equal(x.body.unlock.status, "paid"); assert.equal(x.body.job.phone, JOB.phone); assert.equal(x.body.checkoutUrl, null);
   x = await J(await post("bb.spawnapp.org", "/api/leads/unlock", { jobId: job.body.job.id, contractorEmail: "pro@x.co" }));
   assert.equal(x.body.unlock.status, "pending_payment", "not signed in -> pays");
-  await send({ id: "sub_1", status: "canceled" }, "customer.subscription.deleted", "evt_p2");
-  row = await db.prepare("SELECT plan FROM bb_contractors WHERE slug='bb' AND email='pro@x.co'").first(); assert.equal(row.plan, "pay_per_lead");
+  // portal
+  x = await J(await post("bb.spawnapp.org", "/api/billing/portal", {}, { cookie: ck })); assert.equal(x.body.ok, true); assert.match(x.body.url, /^https:\/\/billing\.stripe\.com\//);
+  const p = stripe.portals.at(-1); assert.equal(p.customer, "cus_pro1"); assert.equal(p.return_url, "https://bb.spawnapp.org/contractors.html"); assert.equal(p.configuration, "bpc_test_bidboard");
+  x = await J(await F("bb.spawnapp.org", "/api/pro/status", { headers: { cookie: ck } })); assert.equal(x.body.pro, true); assert.equal(x.body.canManageBilling, true);
+  x = await J(await post("bb.spawnapp.org", "/api/billing/portal", {})); assert.equal(x.status, 401);
+  // lifecycle
+  const sub = (status, extra = {}) => ({ id: "sub_pro1", object: "subscription", status, customer: "cus_pro1", metadata: { app: "bidboard", slug: "bb", contractor_id: cid }, ...extra });
+  r = await hook({ id: "evt_p2", type: "invoice.payment_failed", data: { object: { id: "in_1", parent: { subscription_details: { subscription: "sub_pro1" } } } } }); await r.text();
+  assert.equal(await plan(), "pay_per_lead", "payment failed -> off");
+  r = await hook({ id: "evt_p3", type: "customer.subscription.updated", data: { object: sub("active") } }); await r.text();
+  assert.equal(await plan(), "pro", "recovered -> on");
+  r = await hook({ id: "evt_p3b", type: "invoice.payment_failed", data: { object: { id: "in_2", subscription: "sub_pro1" } } }); await r.text();
+  assert.equal(await plan(), "pay_per_lead", "older invoice shape handled");
+  r = await hook({ id: "evt_p4", type: "customer.subscription.updated", data: { object: sub("active") } }); await r.text(); assert.equal(await plan(), "pro");
+  r = await hook({ id: "evt_p5", type: "customer.subscription.updated", data: { object: sub("past_due") } }); await r.text(); assert.equal(await plan(), "pay_per_lead");
+  r = await hook({ id: "evt_p5", type: "customer.subscription.updated", data: { object: sub("active") } }); assert.match(await r.text(), /duplicate/);
+  assert.equal(await plan(), "pay_per_lead", "duplicate event id not re-applied");
+  r = await hook({ id: "evt_p6", type: "customer.subscription.updated", data: { object: sub("active") } }); await r.text(); assert.equal(await plan(), "pro");
+  r = await hook({ id: "evt_p7", type: "customer.subscription.deleted", data: { object: sub("canceled") } }); await r.text(); assert.equal(await plan(), "pay_per_lead");
+  // a subscription.created for a new sub (e.g. re-subscribe made in the portal) turns it on via metadata
+  r = await hook({ id: "evt_p8", type: "customer.subscription.created", data: { object: sub("active", { id: "sub_pro2" }) } }); await r.text(); assert.equal(await plan(), "pro");
+  // events for another app's slug are ignored
+  r = await hook({ id: "evt_p9", type: "customer.subscription.deleted", data: { object: sub("canceled", { id: "sub_pro2", metadata: { slug: "other" } }) } }); await r.text(); assert.equal(await plan(), "pro");
 });
 
 test("bidboard places + misc", async () => {

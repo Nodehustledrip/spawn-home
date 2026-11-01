@@ -104,38 +104,96 @@ function encryptSecret(slug, name, value) {
   return Buffer.concat([iv, ct, c.getAuthTag()]).toString("base64");
 }
 
+/* ---------------- app presets: runtime, config and keys that come from Render env ----------------
+ * Keys are set once on Render (never pasted anywhere else) and copied, encrypted, into the app's secrets
+ * whenever spawn-home starts and right after each publish of that app. Only runs when Spawn Cloud is enabled.
+ * A preset slug is reserved for its owner (by spawnapp.org account email); without an owner email it can't be claimed.
+ */
+const APP_PRESETS = {
+  bidboard: {
+    ownerEnv: "BIDBOARD_OWNER_EMAIL",
+    runtime: "bidboard",
+    config: { LEAD_FEE_CENTS: 2500, PRO_FEE_CENTS: 9900 },
+    secrets: {
+      STRIPE_SECRET_KEY: "BIDBOARD_STRIPE_SECRET_KEY",
+      STRIPE_WEBHOOK_SECRET: "BIDBOARD_STRIPE_WEBHOOK_SECRET",
+      STRIPE_PRICE_LEAD: "BIDBOARD_STRIPE_PRICE_LEAD",
+      STRIPE_PRICE_PRO: "BIDBOARD_STRIPE_PRICE_PRO",
+      STRIPE_PORTAL_CONFIG: "BIDBOARD_STRIPE_PORTAL_CONFIG",
+      AI_API_KEY: "BIDBOARD_AI_API_KEY",
+      AI_BASE_URL: "BIDBOARD_AI_BASE_URL",
+      AI_MODEL: "BIDBOARD_AI_MODEL",
+    },
+  },
+};
+const presetSynced = new Map(); // "slug:name" -> sha256 of last value written by this process
+function presetOwnerOk(slug, user) {
+  const p = APP_PRESETS[slug];
+  if (!p) return true;
+  const owner = String(env(p.ownerEnv, "")).trim().toLowerCase();
+  return !!owner && !!user && String(user.email || "").toLowerCase() === owner;
+}
+async function syncPresets(backend, onlySlug) {
+  const out = [];
+  for (const [slug, p] of Object.entries(APP_PRESETS)) {
+    if (onlySlug && onlySlug !== slug) continue;
+    const rows = await backend.query("SELECT slug, runtime, config FROM apps WHERE slug=?1", [slug]);
+    if (!rows[0]) { out.push({ slug, skipped: "not published yet" }); continue; }
+    let cfg = {}; try { cfg = JSON.parse(rows[0].config || "{}") || {}; } catch (_) {}
+    const merged = Object.assign({}, p.config, cfg);
+    if (rows[0].runtime !== p.runtime || JSON.stringify(merged) !== JSON.stringify(cfg))
+      await backend.query("UPDATE apps SET runtime=?2, config=?3, updated_at=?4 WHERE slug=?1", [slug, p.runtime, JSON.stringify(merged), nowIso()]);
+    const written = [];
+    for (const [name, envName] of Object.entries(p.secrets)) {
+      const v = env(envName);
+      if (!v) continue;
+      const fp = sha(slug + ":" + name + ":" + v);
+      if (presetSynced.get(slug + ":" + name) === fp) continue;
+      await backend.query("INSERT INTO app_secrets (slug, name, blob, updated_at) VALUES (?1,?2,?3,?4) ON CONFLICT(slug, name) DO UPDATE SET blob=excluded.blob, updated_at=excluded.updated_at",
+        [slug, name, encryptSecret(slug, name, v), nowIso()]);
+      presetSynced.set(slug + ":" + name, fp);
+      written.push(name);
+    }
+    out.push({ slug, runtime: p.runtime, secretsWritten: written });
+    if (written.length) console.log("[cloud] " + slug + ": updated app secrets " + written.join(", ")); // names only
+  }
+  return out;
+}
+
 /* ---------------- publish tokens (Postgres, or memory for local/tests) ---------------- */
 function pgTokenStore(getPool) {
   let ready = null;
   const q = async (sql, p) => {
     const pool = getPool(); if (!pool) throw new Error("accounts database unavailable");
     if (!ready) ready = pool.query(
-      "CREATE TABLE IF NOT EXISTS cloud_tokens (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT, token_hash TEXT UNIQUE NOT NULL, created_at TIMESTAMPTZ DEFAULT now(), last_used_at TIMESTAMPTZ, revoked_at TIMESTAMPTZ);" +
-      "CREATE TABLE IF NOT EXISTS cloud_device_codes (device_hash TEXT PRIMARY KEY, user_code TEXT UNIQUE NOT NULL, user_id TEXT, name TEXT, expires_at TIMESTAMPTZ NOT NULL, used BOOLEAN DEFAULT false);"
+      "CREATE TABLE IF NOT EXISTS cloud_tokens (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT, token_hash TEXT UNIQUE NOT NULL, created_at TIMESTAMPTZ DEFAULT now(), last_used_at TIMESTAMPTZ, revoked_at TIMESTAMPTZ, email TEXT);" +
+      "ALTER TABLE cloud_tokens ADD COLUMN IF NOT EXISTS email TEXT;" +
+      "CREATE TABLE IF NOT EXISTS cloud_device_codes (device_hash TEXT PRIMARY KEY, user_code TEXT UNIQUE NOT NULL, user_id TEXT, name TEXT, expires_at TIMESTAMPTZ NOT NULL, used BOOLEAN DEFAULT false, email TEXT);" +
+      "ALTER TABLE cloud_device_codes ADD COLUMN IF NOT EXISTS email TEXT;"
     ).catch((e) => { ready = null; throw e; });
     await ready; return (await pool.query(sql, p)).rows;
   };
   return {
-    async create(userId, name, hash) { const id = crypto.randomBytes(6).toString("hex"); await q("INSERT INTO cloud_tokens (id,user_id,name,token_hash) VALUES ($1,$2,$3,$4)", [id, String(userId), name, hash]); return id; },
-    async byHash(hash) { const r = await q("UPDATE cloud_tokens SET last_used_at=now() WHERE token_hash=$1 AND revoked_at IS NULL RETURNING id,user_id", [hash]); return r[0] || null; },
+    async create(userId, name, hash, email) { const id = crypto.randomBytes(6).toString("hex"); await q("INSERT INTO cloud_tokens (id,user_id,name,token_hash,email) VALUES ($1,$2,$3,$4,$5)", [id, String(userId), name, hash, email || null]); return id; },
+    async byHash(hash) { const r = await q("UPDATE cloud_tokens SET last_used_at=now() WHERE token_hash=$1 AND revoked_at IS NULL RETURNING id,user_id,email", [hash]); return r[0] || null; },
     async list(userId) { return q("SELECT id,name,created_at,last_used_at FROM cloud_tokens WHERE user_id=$1 AND revoked_at IS NULL ORDER BY created_at DESC", [String(userId)]); },
     async revoke(userId, id) { const r = await q("UPDATE cloud_tokens SET revoked_at=now() WHERE user_id=$1 AND id=$2 AND revoked_at IS NULL RETURNING id", [String(userId), id]); return r.length > 0; },
     async deviceCreate(deviceHash, userCode, name) { await q("INSERT INTO cloud_device_codes (device_hash,user_code,name,expires_at) VALUES ($1,$2,$3,now()+interval '10 minutes')", [deviceHash, userCode, name]); },
-    async deviceApprove(userCode, userId) { const r = await q("UPDATE cloud_device_codes SET user_id=$2 WHERE user_code=$1 AND user_id IS NULL AND used=false AND expires_at>now() RETURNING device_hash", [userCode, String(userId)]); return r.length > 0; },
-    async deviceTake(deviceHash) { const r = await q("UPDATE cloud_device_codes SET used=true WHERE device_hash=$1 AND user_id IS NOT NULL AND used=false AND expires_at>now() RETURNING user_id,name", [deviceHash]); if (r[0]) return r[0];
+    async deviceApprove(userCode, userId, email) { const r = await q("UPDATE cloud_device_codes SET user_id=$2, email=$3 WHERE user_code=$1 AND user_id IS NULL AND used=false AND expires_at>now() RETURNING device_hash", [userCode, String(userId), email || null]); return r.length > 0; },
+    async deviceTake(deviceHash) { const r = await q("UPDATE cloud_device_codes SET used=true WHERE device_hash=$1 AND user_id IS NOT NULL AND used=false AND expires_at>now() RETURNING user_id,name,email", [deviceHash]); if (r[0]) return r[0];
       const p = await q("SELECT 1 FROM cloud_device_codes WHERE device_hash=$1 AND used=false AND expires_at>now()", [deviceHash]); return p.length ? "pending" : null; },
   };
 }
 function memoryTokenStore() {
   const tokens = new Map(), devices = new Map();
   return {
-    async create(userId, name, hash) { const id = crypto.randomBytes(6).toString("hex"); tokens.set(id, { id, user_id: String(userId), name, hash, created_at: nowIso() }); return id; },
-    async byHash(hash) { for (const t of tokens.values()) if (t.hash === hash && !t.revoked) return { id: t.id, user_id: t.user_id }; return null; },
+    async create(userId, name, hash, email) { const id = crypto.randomBytes(6).toString("hex"); tokens.set(id, { id, user_id: String(userId), name, hash, email: email || null, created_at: nowIso() }); return id; },
+    async byHash(hash) { for (const t of tokens.values()) if (t.hash === hash && !t.revoked) return { id: t.id, user_id: t.user_id, email: t.email }; return null; },
     async list(userId) { return [...tokens.values()].filter((t) => t.user_id === String(userId) && !t.revoked).map(({ id, name, created_at }) => ({ id, name, created_at })); },
     async revoke(userId, id) { const t = tokens.get(id); if (!t || t.user_id !== String(userId) || t.revoked) return false; t.revoked = true; return true; },
     async deviceCreate(h, code, name) { devices.set(h, { code, name, exp: Date.now() + 600000 }); },
-    async deviceApprove(code, userId) { for (const d of devices.values()) if (d.code === code && !d.user && !d.used && d.exp > Date.now()) { d.user = String(userId); return true; } return false; },
-    async deviceTake(h) { const d = devices.get(h); if (!d || d.used || d.exp < Date.now()) return null; if (!d.user) return "pending"; d.used = true; return { user_id: d.user, name: d.name }; },
+    async deviceApprove(code, userId, email) { for (const d of devices.values()) if (d.code === code && !d.user && !d.used && d.exp > Date.now()) { d.user = String(userId); d.email = email || null; return true; } return false; },
+    async deviceTake(h) { const d = devices.get(h); if (!d || d.used || d.exp < Date.now()) return null; if (!d.user) return "pending"; d.used = true; return { user_id: d.user, name: d.name, email: d.email }; },
   };
 }
 
@@ -200,7 +258,7 @@ function mount(app, opts) {
     if (!m) throw fail(401, "Publish token required. Connect Spawn to your spawnapp.org account.");
     const t = await tokens.byHash(sha("pt:" + m[1]));
     if (!t) throw fail(401, "This publish token was revoked or is invalid. Reconnect Spawn.");
-    return { id: t.user_id, tokenId: t.id, email: null };
+    return { id: t.user_id, tokenId: t.id, email: t.email || null };
   }
   const mint = () => "spk_" + crypto.randomBytes(24).toString("base64url");
 
@@ -208,7 +266,7 @@ function mount(app, opts) {
   r.get("/tokens", wrap(async (req, res) => { const u = await sessionUser(req); res.json({ ok: true, tokens: await tokens.list(u.id) }); }));
   r.post("/tokens", wrap(async (req, res) => {
     const u = await sessionUser(req); const tok = mint();
-    const id = await tokens.create(u.id, String((req.body && req.body.name) || "Spawn desktop").slice(0, 60), sha("pt:" + tok));
+    const id = await tokens.create(u.id, String((req.body && req.body.name) || "Spawn desktop").slice(0, 60), sha("pt:" + tok), u.email);
     res.status(201).json({ ok: true, id, token: tok, note: "Shown once. Paste it into Spawn → Go Live → Spawn Cloud." });
   }));
   r.delete("/tokens/:id", wrap(async (req, res) => { const u = await sessionUser(req); res.json({ ok: await tokens.revoke(u.id, String(req.params.id)) }); }));
@@ -225,7 +283,7 @@ function mount(app, opts) {
   }));
   r.post("/device/approve", wrap(async (req, res) => {
     const u = await sessionUser(req);
-    const ok = await tokens.deviceApprove(String((req.body && req.body.user_code) || "").toUpperCase().trim(), u.id);
+    const ok = await tokens.deviceApprove(String((req.body && req.body.user_code) || "").toUpperCase().trim(), u.id, u.email);
     if (!ok) throw fail(400, "That code expired or was already used. Start again from Spawn.");
     res.json({ ok: true });
   }));
@@ -235,7 +293,7 @@ function mount(app, opts) {
     const t = await tokens.deviceTake(sha("dc:" + d));
     if (t === "pending") return res.status(428).json({ ok: false, pending: true });
     if (!t) throw fail(400, "Sign-in expired. Start again.");
-    const tok = mint(); await tokens.create(t.user_id, t.name || "Spawn desktop", sha("pt:" + tok));
+    const tok = mint(); await tokens.create(t.user_id, t.name || "Spawn desktop", sha("pt:" + tok), t.email);
     res.json({ ok: true, token: tok });
   }));
 
@@ -245,6 +303,7 @@ function mount(app, opts) {
     const rows = await be().query("SELECT slug, owner, runtime, status, live_version, title FROM apps WHERE slug=?1", [slug]);
     const a = rows[0];
     if (a && a.owner !== "u:" + user.id) throw fail(409, "That name is taken. Pick another.");
+    if (!a && allowNew && !presetOwnerOk(slug, user)) throw fail(409, "That name is taken. Pick another.");
     if (!a && !allowNew) throw fail(404, "App not found.");
     return a || null;
   }
@@ -311,6 +370,7 @@ function mount(app, opts) {
     else await be().query("INSERT INTO apps (slug, owner, runtime, status, live_version, title) VALUES (?1,?2,?3,'active',?4,?5)", [slug, "u:" + u.id, backendWanted ? "spawn-backend" : "static", version, title]);
     for (const h of staged) await be().del(`staging/${slug}/${h}`);
     await prune(slug, version);
+    if (APP_PRESETS[slug]) { try { await syncPresets(be(), slug); } catch (e) { console.warn("[cloud] preset sync failed for " + slug + ": " + e.message); } }
     res.json({ ok: true, slug, version, url: "https://" + slug + "." + apex() + "/", files: Object.keys(out).length, bytes: total });
   }));
   async function prune(slug, live) {
@@ -360,7 +420,7 @@ function mount(app, opts) {
     const u = await tokenUser(req); const a = await ownedApp(u, req.params.slug, false);
     const host = String((req.body && req.body.hostname) || "").toLowerCase().trim();
     if (!/^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(host) || host.endsWith("." + apex()) || host === apex()) throw fail(400, "Enter a domain you own, like shop.example.com.");
-    if (!env("CF_ZONE_ID") || be().kind !== "cloudflare") return res.status(501).json({ ok: false, error: "Custom domains are coming soon." });
+    if (!env("CF_ZONE_ID") || be().kind !== "cloudflare") return res.status(501).json({ ok: false, error: "Custom domains aren't switched on for Spawn Cloud yet." });
     const cr = await fetch(`https://api.cloudflare.com/client/v4/zones/${env("CF_ZONE_ID")}/custom_hostnames`, {
       method: "POST", headers: { Authorization: "Bearer " + env("CF_API_TOKEN"), "Content-Type": "application/json" },
       body: JSON.stringify({ hostname: host, ssl: { method: "http", type: "dv" } }),
@@ -372,6 +432,7 @@ function mount(app, opts) {
   }));
 
   app.use("/api/cloud", r);
+  if (enabled() && !opts.noPresetSync) setTimeout(() => { syncPresets(be()).catch((e) => console.warn("[cloud] preset sync failed: " + e.message)); }, 5000).unref();
 
   // Approval page for desktop sign-in.
   app.get("/cloud/connect", (req, res) => {
@@ -395,4 +456,4 @@ var m=document.getElementById('m');if(x.s===401){location.href='/signin?next='+e
 if(x.j.ok){m.textContent='Connected. You can return to Spawn.';document.getElementById('b').remove()}else m.textContent=x.j.error||'Something went wrong.'})};
 </script>`;
 
-module.exports = { mount, enabled, mode, encryptSecret, checkManifest, validPath, memoryTokenStore, localBackend, LIMITS };
+module.exports = { mount, enabled, mode, encryptSecret, syncPresets, APP_PRESETS, checkManifest, validPath, memoryTokenStore, localBackend, LIMITS };

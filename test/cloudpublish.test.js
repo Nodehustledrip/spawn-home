@@ -130,3 +130,39 @@ test("local mode: device sign-in, publish, dedupe, versions, rollback, unpublish
   assert.equal(local.prepare("SELECT status FROM apps WHERE slug='acme'").get().status, "unpublished");
 });
 const r2Keys = [];
+
+test("BidBoard keys flow from Render env into encrypted app secrets (owner-only slug, names only, never returned)", async () => {
+  const fakeKey = "sk_test_" + crypto.randomBytes(12).toString("hex"), fakeWh = "whsec_" + crypto.randomBytes(12).toString("hex");
+  Object.assign(process.env, { BIDBOARD_STRIPE_SECRET_KEY: fakeKey, BIDBOARD_STRIPE_WEBHOOK_SECRET: fakeWh, BIDBOARD_STRIPE_PRICE_LEAD: "price_lead_x", BIDBOARD_STRIPE_PRICE_PRO: "price_pro_x" });
+  const logs = []; const orig = console.log; console.log = (...a) => { logs.push(a.join(" ")); };
+  try {
+    const tokA = (await call("POST", "/api/cloud/tokens", { user: "a" })).body.token;
+    const tokB = (await call("POST", "/api/cloud/tokens", { user: "b" })).body.token;
+    const files = { "index.html": "<h1>BidBoard</h1>" };
+    delete process.env.BIDBOARD_OWNER_EMAIL;
+    let x = await publishSite(tokA, "bidboard", files); assert.equal(x.status, 409, "reserved until an owner email is set");
+    process.env.BIDBOARD_OWNER_EMAIL = "A@x.co";
+    x = await publishSite(tokB, "bidboard", files); assert.equal(x.status, 409, "other accounts can't claim it");
+    x = await publishSite(tokA, "bidboard", files, { backend: true }); assert.equal(x.status, 200, JSON.stringify(x.body));
+    const be = cp.localBackend(dir);
+    const app = (await be.query("SELECT runtime, config FROM apps WHERE slug='bidboard'"))[0];
+    assert.equal(app.runtime, "bidboard"); assert.deepEqual(JSON.parse(app.config), { LEAD_FEE_CENTS: 2500, PRO_FEE_CENTS: 9900 });
+    x = await call("GET", "/api/cloud/apps/bidboard/secrets", { token: tokA });
+    assert.deepEqual(x.body.names.map((n) => n.name).sort(), ["STRIPE_PRICE_LEAD", "STRIPE_PRICE_PRO", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"]);
+    assert.ok(!JSON.stringify(x.body).includes(fakeKey) && !JSON.stringify(x.body).includes(fakeWh));
+    // stored encrypted with slug:name AAD, decryptable with the shared key
+    const row = (await be.query("SELECT blob FROM app_secrets WHERE slug='bidboard' AND name='STRIPE_SECRET_KEY'"))[0];
+    assert.ok(!row.blob.includes(fakeKey));
+    const raw = Buffer.from(row.blob, "base64"); const dc = crypto.createDecipheriv("aes-256-gcm", Buffer.from(process.env.CLOUD_SECRETS_KEY, "base64"), raw.subarray(0, 12));
+    dc.setAAD(Buffer.from("bidboard:STRIPE_SECRET_KEY")); dc.setAuthTag(raw.subarray(raw.length - 16));
+    assert.equal(Buffer.concat([dc.update(raw.subarray(12, raw.length - 16)), dc.final()]).toString(), fakeKey);
+    // second sync with unchanged env writes nothing; a rotated key is picked up
+    let r = await cp.syncPresets(be); assert.deepEqual(r[0].secretsWritten, []);
+    process.env.BIDBOARD_STRIPE_WEBHOOK_SECRET = fakeWh + "2";
+    r = await cp.syncPresets(be); assert.deepEqual(r[0].secretsWritten, ["STRIPE_WEBHOOK_SECRET"]);
+    const all = logs.join("\n"); assert.ok(!all.includes(fakeKey) && !all.includes(fakeWh), "values never logged");
+  } finally {
+    console.log = orig;
+    for (const k of ["BIDBOARD_STRIPE_SECRET_KEY", "BIDBOARD_STRIPE_WEBHOOK_SECRET", "BIDBOARD_STRIPE_PRICE_LEAD", "BIDBOARD_STRIPE_PRICE_PRO", "BIDBOARD_OWNER_EMAIL"]) delete process.env[k];
+  }
+});

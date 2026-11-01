@@ -52,23 +52,33 @@
     listEl: document.getElementById("scityList"),
   });
 
-  document.getElementById("proBtn").onclick = function () {
-    var email = document.getElementById("proEmail").value.trim();
-    var msg = document.getElementById("proMsg");
-    fetch("api/pro/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email }),
-    })
-      .then(function (r) {
-        return r.json();
-      })
-      .then(function (d) {
-        msg.className = "toast show";
-        msg.textContent = d.message || "Recorded";
-        if (d.checkoutUrl) window.open(d.checkoutUrl, "_blank");
-      });
-  };
+  var proBtn = document.getElementById("proBtn"), billingBtn = document.getElementById("billingBtn");
+  var proMsg = document.getElementById("proMsg"), proState = document.getElementById("proState");
+  function proToast(text, err) { proMsg.className = "toast show" + (err ? " err" : ""); proMsg.textContent = text; }
+  function signIn() { location.href = "login.html?next=" + encodeURIComponent("/contractors.html#pro"); }
+  function post(url) {
+    return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .then(function (r) { return r.json().then(function (j) { j._status = r.status; return j; }); });
+  }
+  function go(btn, url, busy) {
+    var label = btn.textContent; btn.disabled = true; btn.textContent = busy;
+    post(url).then(function (d) {
+      if (d.url) { location.href = d.url; return; }
+      btn.disabled = false; btn.textContent = label;
+      if (d._status === 401) { signIn(); return; }
+      proToast(d.error || "Something went wrong — try again.", true);
+    }).catch(function () { btn.disabled = false; btn.textContent = label; proToast("Network error — try again.", true); });
+  }
+  proBtn.onclick = function () { go(proBtn, "api/pro/checkout", "Opening secure checkout…"); };
+  billingBtn.onclick = function () { go(billingBtn, "api/billing/portal", "Opening billing…"); };
+  fetch("api/pro/status").then(function (r) { return r.json(); }).then(function (st) {
+    if (!st.proAvailable) { proBtn.hidden = true; proState.textContent = "Contractor Pro sign-up isn’t open on this board."; return; }
+    if (st.pro) { proBtn.hidden = true; proState.textContent = "You’re on Contractor Pro (" + st.email + "). Leads unlock with no per-lead fee while you’re signed in."; }
+    else if (st.signedIn) proState.textContent = "Signed in as " + st.email + ".";
+    else { proState.textContent = "Sign in or create an account to start Pro."; proBtn.textContent = "Sign in to start Pro"; proBtn.onclick = signIn; }
+    if (st.canManageBilling) billingBtn.hidden = false;
+    if (/[?&]pro=welcome/.test(location.search) && st.pro) proToast("Welcome to Contractor Pro. Your plan is active.");
+  }).catch(function () {});
 
   document.getElementById("signupForm").addEventListener("submit", function (e) {
     e.preventDefault();

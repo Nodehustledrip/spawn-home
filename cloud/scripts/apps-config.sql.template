@@ -1,4 +1,0 @@
--- Run AFTER the first publish of each app (wrangler d1 execute spawn-cloud --remote --file scripts/apps-config.sql)
--- Fill the two Payment Link URLs from the Degen Social Stripe account first. Not secrets; safe to keep in config.
-UPDATE apps SET runtime = 'bidboard', config = json('{"LEAD_FEE_CENTS":2500,"PRO_FEE_CENTS":9900,"STRIPE_PAYMENT_LINK_LEAD":"__LEAD_LINK__","STRIPE_PAYMENT_LINK_PRO":"__PRO_LINK__"}') WHERE slug = 'bidboard';
-UPDATE apps SET runtime = 'spawn-backend', config = json('{"monetization":"stripe","checkoutUrl":null}') WHERE slug IN ('pass-p-checkout','pass-p-landing');

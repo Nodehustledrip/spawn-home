@@ -23,7 +23,7 @@
       <a class="btn ghost sm" href="#features">Features</a><a class="btn sm" href="#pricing">Pricing</a>
       <button type="button" class="theme-toggle" data-theme-toggle>Light</button>
     </div>
-  <a class="btn ghost" href="/notes.html">Notes</a><a class="btn ghost" href="/waitlist.html">Waitlist</a><a class="btn ghost" href="/invoice.html">Invoice</a><a class="btn ghost" href="/blog.html">Blog</a></nav>
+  <a class="btn ghost" href="/notes.html">Notes</a><a class="btn ghost" href="/invoice.html">Invoice</a><a class="btn ghost" href="/blog.html">Blog</a></nav>
   <main class="wrap">
     <section class="hero">
       <span class="badge">Ready to launch</span>
@@ -100,13 +100,7 @@
       </form>
       <p id="leadMsg" class="muted" style="margin-top:12px"></p>
     </section></div>
-        <section id="checkout" class="card" style="margin-top:24px" data-forge="checkout">
-      <span class="badge">Checkout</span>
-      <h2 style="margin:10px 0 8px">Unlock full access</h2>
-      <p class="muted">Uses STRIPE_PAYMENT_LINK from your environment.</p>
-      <p style="margin-top:16px"><a class="btn" id="payBtn" href="#" rel="noopener">Continue to checkout</a></p>
-    </section>
-    <script>(function(){var el=document.getElementById('payBtn');fetch('/api/config').then(function(r){return r.json()}).then(function(c){if(c.checkoutUrl)el.href=c.checkoutUrl;else el.addEventListener('click',function(e){e.preventDefault();alert('Set STRIPE_PAYMENT_LINK then restart.');});}).catch(function(){});})();</script>
+
 <footer><span>&copy; 2026 Pass P Checkout</span><span>Built with Spawn</span><p><a href="/privacy.html">Privacy</a></p></footer>
       <section class="card" style="margin-top:24px" id="subscribe"><!-- af-plugin:newsletter -->
       <h2>Stay in the loop</h2>
