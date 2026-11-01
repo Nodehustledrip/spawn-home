@@ -1,32 +1,32 @@
 (function () {
   /* Example projects — edit this list to add your own work. */
   var P = [
-    { t: "Tidewater Coffee", k: "brand", kind: "Brand identity", yr: "Example", role: "Identity, packaging", time: "6 weeks",
+    { t: "Tidewater Coffee", img: "tidewater", alt: "Kraft and teal coffee bags with a wave label beside a stone cup", k: "brand", kind: "Brand identity", yr: "Example", role: "Identity, packaging", time: "6 weeks",
       bg: "linear-gradient(135deg,#0f3d3e,#1f6f66)", art: "mark", c1: "#f2d7a6", c2: "#e86a3a", glyph: "T",
       ch: "A roaster opening its first café needed an identity that worked on a cup sleeve, a sign and a website.",
       ap: "A tidal wordmark, a warm two-colour palette and a modular label system for single-origin bags.",
       out: "A compact guideline document and print-ready templates the team now updates in-house." },
-    { t: "Ledgerly", k: "product", kind: "Product design", yr: "Example", role: "UX, UI, design system", time: "10 weeks",
+    { t: "Ledgerly", img: "ledgerly", alt: "Laptop showing a light finance dashboard with charts", k: "product", kind: "Product design", yr: "Example", role: "UX, UI, design system", time: "10 weeks",
       bg: "linear-gradient(160deg,#1b1640,#4b3bd1)", art: "ui", c1: "#ffffff", c2: "#b6f36b",
       ch: "Freelancers were losing track of invoices across spreadsheets and email threads.",
       ap: "Mapped the billing flow end to end, then designed a calm dashboard and a three-step invoice builder.",
       out: "A component library and clickable prototype used to guide engineering through launch." },
-    { t: "Field Notes Journal", k: "web", kind: "Website", yr: "Example", role: "Art direction, web", time: "5 weeks",
+    { t: "Field Notes Journal", img: "fieldnotes", alt: "Tablet showing an editorial website next to an open journal", k: "web", kind: "Website", yr: "Example", role: "Art direction, web", time: "5 weeks",
       bg: "linear-gradient(160deg,#efe6d6,#d9c7a8)", art: "web", c1: "#2b2a26", c2: "#c4572f",
       ch: "An independent publication wanted long reads to feel like print without losing speed on mobile.",
       ap: "An editorial grid, generous type scale and image treatments that load progressively.",
       out: "A responsive template system for features, interviews and photo essays." },
-    { t: "Halo Health", k: "product", kind: "Mobile app", yr: "Example", role: "Product design", time: "8 weeks",
+    { t: "Halo Health", img: "halo", alt: "Two phones showing a calm health app with progress rings", k: "product", kind: "Mobile app", yr: "Example", role: "Product design", time: "8 weeks",
       bg: "linear-gradient(160deg,#ffd3c4,#ff8f8f)", art: "phone", c1: "#ffffff", c2: "#2b1a3d",
       ch: "Booking a clinic appointment took too many steps and lost people halfway.",
       ap: "Reduced booking to a single scrolling screen with clear availability and gentle reminders.",
       out: "A tested flow and handoff specs ready for the iOS and Android teams." },
-    { t: "Kinfolk Bikes", k: "brand", kind: "Brand refresh", yr: "Example", role: "Identity, signage", time: "4 weeks",
+    { t: "Kinfolk Bikes", img: "kinfolk", alt: "Round green and mustard wheel sign above a green bicycle on a brick wall", k: "brand", kind: "Brand refresh", yr: "Example", role: "Identity, signage", time: "4 weeks",
       bg: "linear-gradient(160deg,#151515,#2c2c2c)", art: "mark", c1: "#ffd23f", c2: "#ffffff", glyph: "K",
       ch: "A family-run bike shop outgrew a logo drawn decades ago.",
       ap: "Kept the spirit of the original, redrew it for clarity at small sizes and paired it with a bold yellow.",
       out: "New storefront signage, service tags and a simple social kit." },
-    { t: "Atlas Studio Site", k: "web", kind: "Marketing site", yr: "Example", role: "Design, build", time: "6 weeks",
+    { t: "Atlas Studio Site", img: "atlas", alt: "Monitor showing a minimal architecture website with a concrete house", k: "web", kind: "Marketing site", yr: "Example", role: "Design, build", time: "6 weeks",
       bg: "linear-gradient(160deg,#c6f36b,#6bd3a3)", art: "web", c1: "#0f1a12", c2: "#ffffff",
       ch: "An architecture practice wanted its projects, not its website, to be the focus.",
       ap: "Full-bleed imagery, a quiet type system and a project index that can be filtered by sector.",
@@ -34,6 +34,7 @@
   ];
 
   function art(p) {
+    if (p.img) return '<div class="shape"><img src="img/' + p.img + '-960.webp" srcset="img/' + p.img + '-480.webp 480w, img/' + p.img + '-960.webp 960w" sizes="(max-width:600px) 100vw, (max-width:900px) 50vw, 60vw" width="960" height="720" alt="' + p.alt + '" loading="lazy" decoding="async"></div>';
     var s = '<div class="shape" style="background:' + p.bg + '">';
     if (p.art === "mark") s += '<div style="position:absolute;inset:0;display:grid;place-items:center"><div style="width:42%;aspect-ratio:1;border-radius:50%;background:' + p.c2 + ';display:grid;place-items:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)"><span style="font:italic 400 clamp(3rem,9vw,7rem)/1 Instrument Serif,serif;color:' + p.c1 + '">' + p.glyph + '</span></div></div><div style="position:absolute;left:8%;bottom:9%;display:flex;gap:6px">' + [p.c1, p.c2, "rgba(255,255,255,.25)"].map(function (c) { return '<i style="width:22px;height:22px;border-radius:6px;background:' + c + '"></i>'; }).join("") + "</div>";
     if (p.art === "ui") s += '<div style="position:absolute;left:10%;top:16%;right:10%;bottom:-10%;border-radius:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:6%"><div style="height:10px;width:30%;border-radius:6px;background:' + p.c1 + ';opacity:.8"></div><div style="display:flex;align-items:flex-end;gap:6%;height:45%;margin-top:8%">' + [40, 70, 55, 90, 65, 80].map(function (h) { return '<i style="flex:1;height:' + h + '%;border-radius:6px 6px 2px 2px;background:' + p.c2 + '"></i>'; }).join("") + '</div><div style="height:8px;width:60%;border-radius:6px;background:' + p.c1 + ';opacity:.35;margin-top:8%"></div></div>';

@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#0e1116">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="image" type="image/webp" imagesrcset="img/hero-480.webp 480w, img/hero-960.webp 960w" imagesizes="(max-width:860px) 100vw, 560px" fetchpriority="high">
 <link rel="stylesheet" href="styles.css">
 <script>try{var t=localStorage.getItem("bs-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
@@ -23,9 +24,12 @@
 
 <main>
   <section class="intro">
+    <div class="intro-text">
     <p class="eyebrow">Barbershop · Walk-ins when we can</p>
     <h1>Book your chair <span class="hl">in under a minute.</span></h1>
     <p class="lead">Pick a service, choose a time that suits you, and send a request. We’ll confirm by email — nothing is charged online.</p>
+    </div>
+    <img class="intro-photo" src="img/hero-960.webp" srcset="img/hero-480.webp 480w, img/hero-960.webp 960w" sizes="(max-width:860px) 100vw, 560px" width="960" height="540" alt="Barbershop interior with three leather barber chairs facing round brass mirrors" fetchpriority="high" decoding="async">
   </section>
 
   <section class="booker" id="book" aria-label="Book an appointment">
@@ -86,6 +90,7 @@
     <p class="muted">Your appointment isn’t confirmed until we email you back. No payment was taken.</p>
     <button class="cta ghost" type="button" data-again>Make another request</button>
   </section>
+  <section class="shop" aria-label="The shop"><figure><img class="" src="img/tools-960.webp" srcset="img/tools-480.webp 480w, img/tools-960.webp 960w" sizes="(max-width:640px) 100vw, 400px" width="960" height="720" alt="Straight razor, combs, scissors, shaving brush and clippers on a walnut counter" loading="lazy" decoding="async"><figcaption>The tools</figcaption></figure><figure><img class="" src="img/chair-960.webp" srcset="img/chair-480.webp 480w, img/chair-960.webp 960w" sizes="(max-width:640px) 100vw, 400px" width="960" height="720" alt="Oxblood leather barber chair with chrome footrest" loading="lazy" decoding="async"><figcaption>The chair</figcaption></figure><figure><img class="" src="img/cut-960.webp" srcset="img/cut-480.webp 480w, img/cut-960.webp 960w" sizes="(max-width:640px) 100vw, 400px" width="960" height="720" alt="Back of a head showing a clean skin fade" loading="lazy" decoding="async"><figcaption>The finish</figcaption></figure></section>
 </main>
 <footer class="foot">Fade Theory is a fictional shop — a Spawn starter. Swap in your services, prices and hours.</footer>
 <div class="mbar" data-mbar><div><span data-m-line>Choose a service</span><strong data-m-total>$0</strong></div><button class="cta" type="button" data-submit disabled>Request</button></div>

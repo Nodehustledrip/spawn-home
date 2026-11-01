@@ -57,3 +57,5 @@ code{font-size:.8rem;background:var(--card2);padding:.1rem .35rem;border-radius:
 @media (max-width:760px){.feat{grid-template-columns:1fr}}
 @media (max-width:480px){.join{flex-direction:column;padding:.5rem}.join button{width:100%;padding:.95rem}.count{gap:.45rem}.ref-row{flex-direction:column}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.shot{max-width:420px;margin:0 auto;padding:1rem 1.2rem 2rem;text-align:center}.shot img{width:100%;height:auto;display:block;border-radius:28px;box-shadow:0 40px 120px -40px rgba(124,92,255,.55)}

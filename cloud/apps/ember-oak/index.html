@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#14100c">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="image" type="image/webp" imagesrcset="img/hero-480.webp 480w, img/hero-960.webp 960w" imagesizes="(max-width:900px) 240px, 520px" fetchpriority="high">
 <link rel="stylesheet" href="styles.css">
 <script>try{var t=localStorage.getItem("eo-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
@@ -36,21 +37,19 @@
         <a class="btn btn-ghost btn-lg" href="#menu">See the menu</a>
       </div>
     </div>
-    <div class="hero-art reveal" aria-hidden="true">
-      <div class="plate p1"><span></span></div>
-      <div class="plate p2"><span></span></div>
-      <div class="plate p3"><span></span></div>
+    <div class="hero-art reveal">
+      <img class="hero-photo" src="img/hero-960.webp" srcset="img/hero-480.webp 480w, img/hero-960.webp 960w" sizes="(max-width:900px) 240px, 520px" width="960" height="720" alt="Overhead view of oak-smoked short rib, torn hearth bread with butter and charred leeks on romesco, beside glowing embers" fetchpriority="high" decoding="async">
       <div class="embers"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     </div>
   </section>
 
   <section class="strip" aria-label="From the kitchen">
     <div class="strip-track">
-      <figure class="tile t1"><div class="art"></div><figcaption>Charred leeks, hazelnut</figcaption></figure>
-      <figure class="tile t2"><div class="art"></div><figcaption>Hearth bread, cultured butter</figcaption></figure>
-      <figure class="tile t3"><div class="art"></div><figcaption>Embered beets, labneh</figcaption></figure>
-      <figure class="tile t4"><div class="art"></div><figcaption>Oak-smoked short rib</figcaption></figure>
-      <figure class="tile t5"><div class="art"></div><figcaption>Burnt honey tart</figcaption></figure>
+      <figure class="tile t1"><img class="art" src="img/leeks-960.webp" srcset="img/leeks-480.webp 480w, img/leeks-960.webp 960w" sizes="(max-width:560px) 220px, 280px" width="960" height="720" alt="Charred leeks on romesco with toasted hazelnuts" loading="lazy" decoding="async"><figcaption>Charred leeks, hazelnut</figcaption></figure>
+      <figure class="tile t2"><img class="art" src="img/bread-960.webp" srcset="img/bread-480.webp 480w, img/bread-960.webp 960w" sizes="(max-width:560px) 220px, 280px" width="960" height="720" alt="Torn hearth-baked sourdough with cultured butter and salt" loading="lazy" decoding="async"><figcaption>Hearth bread, cultured butter</figcaption></figure>
+      <figure class="tile t3"><img class="art" src="img/beets-960.webp" srcset="img/beets-480.webp 480w, img/beets-960.webp 960w" sizes="(max-width:560px) 220px, 280px" width="960" height="720" alt="Ember-roasted red and golden beets over labneh with dill" loading="lazy" decoding="async"><figcaption>Embered beets, labneh</figcaption></figure>
+      <figure class="tile t4"><img class="art" src="img/rib-960.webp" srcset="img/rib-480.webp 480w, img/rib-960.webp 960w" sizes="(max-width:560px) 220px, 280px" width="960" height="720" alt="Glazed oak-smoked short rib topped with pickled shallots" loading="lazy" decoding="async"><figcaption>Oak-smoked short rib</figcaption></figure>
+      <figure class="tile t5"><img class="art" src="img/tart-960.webp" srcset="img/tart-480.webp 480w, img/tart-960.webp 960w" sizes="(max-width:560px) 220px, 280px" width="960" height="720" alt="Slice of burnt honey tart with crème fraîche" loading="lazy" decoding="async"><figcaption>Burnt honey tart</figcaption></figure>
     </div>
   </section>
 
@@ -148,6 +147,10 @@
         <p class="form-msg" role="status" aria-live="polite" data-msg></p>
       </form>
     </div>
+  </section>
+
+  <section class="room reveal" aria-label="The dining room">
+    <img class="" src="img/room-960.webp" srcset="img/room-480.webp 480w, img/room-960.webp 960w" sizes="(max-width:1200px) 100vw, 1200px" width="960" height="540" alt="Candlelit communal oak table in front of a glowing brick hearth oven" loading="lazy" decoding="async">
   </section>
 
   <section class="section split" id="visit" aria-labelledby="visit-h">
