@@ -28,7 +28,11 @@ const OWNER_HEADER = "x-build-owner";
 const OWNER_RE = /^[A-Za-z0-9_-]{24,64}$/;
 
 /* Abuse limits — generous for real people, tight for scripts. */
-const MAX_BUILDS_PER_OWNER = Number(process.env.BUILD_MAX_PER_OWNER || 24);
+/* Limits ladder: anonymous (no account) < free account (auth.js) < Pro (auth.js). */
+const MAX_BUILDS_PER_OWNER = Number(process.env.BUILD_MAX_PER_OWNER || 2);
+const ANON_EDITS_PER_DAY = Number(process.env.BUILD_ANON_EDITS_PER_DAY || 20);
+/* Older anonymous sessions may hold more builds than today's cap — still list them. */
+const ANON_LIST_MAX = 24;
 const MAX_TOTAL_BUILDS = Number(process.env.BUILD_MAX_TOTAL || 2500);
 const MAX_PUBLIC_BYTES = Number(process.env.BUILD_MAX_PUBLIC_BYTES || 600 * 1024);
 const RATE = { windowMs: 60 * 1000, max: 20 }; // edits + misc writes per IP
@@ -338,7 +342,7 @@ function mount(app) {
     res.setHeader("Cache-Control", "no-store");
     await store.init();
     const who = await resolveOwner(req, res);
-    const builds = await store.listByOwner(who.key, BUILDS_DIR, who.maxBuilds);
+    const builds = await store.listByOwner(who.key, BUILDS_DIR, who.user ? who.maxBuilds : Math.max(who.maxBuilds, ANON_LIST_MAX));
     builds.forEach(function (b) {
       b.zipPath = "/api/builds/" + b.id + "/zip";
     });
@@ -384,8 +388,9 @@ function mount(app) {
         error: who.user
           ? who.limits.plan === "pro"
             ? "You have " + mine + " saved builds — the most Pro keeps. Delete one from Your builds to make room."
-            : "You have " + mine + " saved builds — the most the Free plan keeps. Delete one to make room, or keep up to 25 with Pro."
-          : "You have " + mine + " builds — the most this browser can keep. Delete one from This session to make room.",
+            : "You have " + mine + " saved builds — the most the Free plan keeps. Delete one to make room, or keep up to " + auth.limitsFor({ plan: "pro", plan_status: "active" }).maxBuilds + " with Pro."
+          : "You've made " + mine + " builds without an account — the most a browser keeps. Sign in with your email (free, no password) to save up to " + auth.limitsFor({ plan: "free" }).maxBuilds + " builds to your account.",
+        signin: !who.user && auth.enabled() ? true : undefined,
       });
     }
     const total = await store.countAll(BUILDS_DIR);
@@ -480,6 +485,14 @@ function mount(app) {
     if (message.length > 2000) return res.status(400).json({ ok: false, error: "Message too long" });
     const b = await loadOwned(req, res);
     if (!b) return;
+    if (!b.user && ANON_EDITS_PER_DAY && !hit("ead", ip, { windowMs: 24 * 60 * 60 * 1000, max: ANON_EDITS_PER_DAY })) {
+      return res.status(429).json({
+        ok: false,
+        limit: "edits",
+        signin: auth.enabled() ? true : undefined,
+        error: "You've used today's " + ANON_EDITS_PER_DAY + " edits without an account. Sign in with your email (free) for " + auth.limitsFor({ plan: "free" }).editsPerDay + " a day, or go Pro for " + auth.limitsFor({ plan: "pro", plan_status: "active" }).editsPerDay + ".",
+      });
+    }
     if (b.user && !auth.editAllowed(b.user)) {
       return res.status(429).json({
         ok: false,
@@ -487,7 +500,7 @@ function mount(app) {
         upgrade: auth.isPro(b.user) ? undefined : "/pricing",
         error: auth.isPro(b.user)
           ? "You've reached today's Pro edit limit. It resets within 24 hours."
-          : "You've reached today's edit limit on the Free plan. It resets within 24 hours — Pro allows 300 edits a day.",
+          : "You've reached today's edit limit on the Free plan. It resets within 24 hours — Pro allows " + auth.limitsFor({ plan: "pro", plan_status: "active" }).editsPerDay + " edits a day.",
       });
     }
     const id = b.id;

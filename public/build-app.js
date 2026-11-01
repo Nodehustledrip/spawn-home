@@ -310,7 +310,20 @@
     if (dl) dl.hidden = false;
   }
 
+  /* Moment-of-value sign-in: the server asks for an email only when a limit is hit. */
+  function promptSignin(data) {
+    if (!data || !data.signin) return;
+    var box = $("[data-account]");
+    var input = $("[data-account-email-input]");
+    if (!box || box.hidden || !input) return;
+    box.classList.remove("is-compact");
+    box.classList.add("is-asking");
+    try { box.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (_) {}
+    setTimeout(function () { try { input.focus(); } catch (_) {} }, 350);
+  }
+
   function upgradeLink(node, data) {
+    promptSignin(data);
     if (!node || !data || !data.upgrade) return;
     node.appendChild(document.createTextNode(" "));
     var a = el("a", "build-upgrade-link", "See Pro");
@@ -574,6 +587,14 @@
     box.hidden = false;
     var signedIn = !!(me && me.signedIn);
     $("[data-account-out]").hidden = signedIn;
+    var teaser = $("[data-account-teaser]");
+    if (teaser) teaser.hidden = signedIn;
+    if (!signedIn && !box.classList.contains("is-asking") && !/signin=/.test(location.search)) box.classList.add("is-compact");
+    var opener = $("[data-account-open]");
+    if (opener && !opener._bound) {
+      opener._bound = true;
+      opener.addEventListener("click", function () { promptSignin({ signin: true }); });
+    }
     $("[data-account-sent]").hidden = true;
     $("[data-account-in]").hidden = !signedIn;
     if (!signedIn && $("[data-account-billing]")) $("[data-account-billing]").hidden = true;

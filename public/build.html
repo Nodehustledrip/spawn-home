@@ -44,6 +44,9 @@
     }
     .build-upgrade-link { color: var(--accent); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
     .build-account { display: grid; gap: 0.6rem; }
+    .build-account.is-compact [data-account-out] { display: none; }
+    .build-account:not(.is-compact) [data-account-teaser] { display: none; }
+    .build-account.is-asking { outline: 1px solid var(--accent); outline-offset: 4px; border-radius: 12px; transition: outline-color .3s; }
     .build-account[hidden], .build-account [hidden] { display: none !important; }
     .build-account-title { margin: 0; font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
     .build-account-copy { margin: 0; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
@@ -130,9 +133,10 @@
       </div>
 
       <section class="build-panel build-account" data-account hidden aria-label="Account">
+        <p class="build-account-copy build-account-teaser" data-account-teaser>No account needed to start. <button type="button" class="build-account-link" data-account-open>Sign in</button> to save builds to your account or publish.</p>
         <div data-account-out>
-          <p class="build-account-title">Sign in to save your builds</p>
-          <p class="build-account-copy">Keep your builds in an account instead of just this session. We’ll email you a one-time sign-in link — no password.</p>
+          <p class="build-account-title">Save your builds and publish</p>
+          <p class="build-account-copy">A free account keeps your builds and lets you publish to Spawn Cloud. We’ll email you a one-time sign-in link — no password.</p>
           <form class="build-account-form" data-account-form novalidate>
             <label class="sr-only" for="build-email">Email</label>
             <input id="build-email" type="email" name="email" required maxlength="254" placeholder="you@company.com" autocomplete="email" data-account-email-input />

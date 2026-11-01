@@ -37,7 +37,7 @@ function limitsFor(user) {
   }
   return {
     plan: "free",
-    maxBuilds: num("AUTH_FREE_MAX_BUILDS", 3),
+    maxBuilds: num("AUTH_FREE_MAX_BUILDS", 5),
     editsPerDay: num("AUTH_FREE_EDITS_PER_DAY", 30),
     editsPerMinute: num("AUTH_FREE_EDITS_PER_MIN", 20),
   };
