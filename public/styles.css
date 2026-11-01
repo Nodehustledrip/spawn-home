@@ -6590,4 +6590,4 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .plan-welcome { margin: 0 0 1.6rem; padding: 1.4rem 1.5rem; border-radius: 18px; border: 1px solid rgba(212,165,116,0.45); background: linear-gradient(180deg, rgba(212,165,116,0.1), rgba(255,255,255,0.02)); }
 .plan-welcome h2 { margin: 0.2rem 0 0.5rem; }
 .plan-welcome[hidden] { display: none; }
-.hero-domain { color: var(--accent, #d4a574); overflow-wrap: anywhere; }
+.hero-domain { color: var(--accent, #d4a574); white-space: nowrap; font-size: .74em; letter-spacing: -.02em; }
