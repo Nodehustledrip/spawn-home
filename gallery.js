@@ -60,11 +60,19 @@ function checkText(t) {
   if ((t.match(/https?:\/\//g) || []).length > 1) return "Descriptions can include at most one link.";
   return null;
 }
+const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", mdash: "\u2014", ndash: "\u2013", hellip: "\u2026", rsquo: "\u2019", lsquo: "\u2018", rdquo: "\u201d", ldquo: "\u201c", middot: "\u00b7", copy: "\u00a9" };
+/** Decode HTML entities once (text pulled from published HTML is stored raw; it is escaped exactly once at render). */
+function decodeEntities(s) {
+  return String(s || "").replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (m, e) => {
+    if (e[0] === "#") { const n = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); return n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m; }
+    const v = NAMED[e.toLowerCase()]; return v === undefined ? m : v;
+  });
+}
 const clean = (s, n) => String(s || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim().slice(0, n);
 
 function metaFromHtml(html) {
   html = String(html || "");
-  const pick = (re) => { const m = re.exec(html); return m ? m[1].replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">") : ""; };
+  const pick = (re) => { const m = re.exec(html); return m ? decodeEntities(m[1]) : ""; };
   return {
     description: clean(pick(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i) || pick(/<meta[^>]+content=["']([^"']*)["'][^>]*name=["']description["']/i), 200),
     title: clean(pick(/<title[^>]*>([^<]*)<\/title>/i), 80),
@@ -141,7 +149,7 @@ function createStore(getBackend) {
     /** Defaults for a new entry from the live index.html: title, meta description, accent, category. */
     async autoFields(slug) {
       const g = await store.get(slug);
-      const out = { title: g && g.app_title ? clean(g.app_title, 80) : slug, description: "", accent: null };
+      const out = { title: g && g.app_title ? clean(decodeEntities(g.app_title), 80) : slug, description: "", accent: null };
       try {
         const v = (await q("SELECT manifest FROM versions WHERE slug=?1 AND version=?2", [slug, g.live_version]))[0];
         const f = v && JSON.parse(v.manifest).files["index.html"];
@@ -478,4 +486,4 @@ function mount(app, opts) {
   }));
 }
 
-module.exports = { mount, createStore, CATEGORIES, guessCategory, checkTitle, checkText, metaFromHtml, stripForRemix, cardSvg, cardPng, accentFor, catLabel, CAT_IDS };
+module.exports = { mount, decodeEntities, createStore, CATEGORIES, guessCategory, checkTitle, checkText, metaFromHtml, stripForRemix, cardSvg, cardPng, accentFor, catLabel, CAT_IDS };

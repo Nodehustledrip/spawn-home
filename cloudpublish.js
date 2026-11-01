@@ -371,7 +371,7 @@ function mount(app, opts) {
       }
       out[p] = { h, s: size, t: type }; total += size;
     }
-    const title = String(body.title || (a && a.title) || slug).slice(0, 80);
+    const title = gal().decodeEntities(String(body.title || (a && a.title) || slug)).trim().slice(0, 80);
     const backendWanted = !!body.backend;
     await be().query("INSERT INTO versions (slug, version, manifest, file_count, total_bytes, note) VALUES (?1,?2,?3,?4,?5,?6)",
       [slug, version, JSON.stringify({ files: out }), Object.keys(out).length, total, String(body.note || "").slice(0, 200)]);
@@ -551,7 +551,7 @@ function mount(app, opts) {
       const key = `blob/${slug}/${manifest.files[p].h}`;
       if (!(await be().head(key))) await be().put(key, buf, mimeFor(p));
     }
-    const title = String((req.body && req.body.title) || (a && a.title) || slug).slice(0, 80);
+    const title = gal().decodeEntities(String((req.body && req.body.title) || (a && a.title) || slug)).trim().slice(0, 80);
     const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build", gallery: req.body.gallery, remixable: req.body.remixable, category: req.body.category, galleryDefault: true });
     res.json(out);
   }));
