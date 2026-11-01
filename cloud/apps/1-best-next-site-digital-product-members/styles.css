@@ -1,0 +1,8 @@
+:root{
+  --bg:#0b0f14;
+  --panel:#121821;
+  --text:#e8eef7;
+  --accent:#5eead4;
+  --accent2:#38bdf8;
+}
+body{margin:0;background:#0b0f14;color:#e8eef7;font-family:system-ui,sans-serif}

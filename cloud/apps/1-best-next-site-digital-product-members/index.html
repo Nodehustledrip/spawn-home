@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>1. Best next site: Digital product + membership</title><!-- spawn-base --><script>(function(){try{if(window.__spawnBase)return;var P="/hosted/1-best-next-site-digital-product-members";window.__spawnBase=P;function nf(p){return typeof p==='string'&&p.charAt(0)==='/'&&p.charAt(1)!=='/'&&p!==P&&p.indexOf(P+'/')!==0&&!/^\/(hosted|preview)\//.test(p);}function fx(u){try{if(typeof u==='string'){if(nf(u))return P+u;if(u.indexOf(location.origin+'/')===0){var r=u.slice(location.origin.length);if(nf(r))return location.origin+P+r;}return u;}if(u&&typeof u==='object'&&typeof u.href==='string'&&typeof URL!=='undefined'&&u instanceof URL){if(u.origin===location.origin&&nf(u.pathname)){return new URL(P+u.pathname+u.search+u.hash,location.origin);}}}catch(e){}return u;}window.__spawnFixUrl=fx;if(window.fetch){var of=window.fetch;window.fetch=function(i,o){try{if(typeof i==='string'||(typeof URL!=='undefined'&&i instanceof URL))i=fx(i);else if(i&&typeof Request!=='undefined'&&i instanceof Request){var nu=fx(i.url);if(nu!==i.url)i=new Request(nu,i);}}catch(e){}return of.call(this,i,o);};}if(window.XMLHttpRequest){var ox=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){var a=Array.prototype.slice.call(arguments);a[1]=fx(u);return ox.apply(this,a);};}if(window.EventSource){var OE=window.EventSource;var NE=function(u,c){return new OE(fx(u),c);};NE.prototype=OE.prototype;NE.CONNECTING=0;NE.OPEN=1;NE.CLOSED=2;window.EventSource=NE;}if(navigator.sendBeacon){var ob=navigator.sendBeacon.bind(navigator);navigator.sendBeacon=function(u,d){return ob(fx(u),d);};}if(window.history){['pushState','replaceState'].forEach(function(k){var o=history[k];history[k]=function(s,t,u){if(typeof u==='string')u=fx(u);return o.call(this,s,t,u);};});}var AT=['src','href','action','poster'];function fixEl(e){if(!e||e.nodeType!==1)return;for(var i=0;i<AT.length;i++){var v=e.getAttribute&&e.getAttribute(AT[i]);if(v&&nf(v))e.setAttribute(AT[i],P+v);}}function fixTree(n){fixEl(n);if(n.querySelectorAll){var l=n.querySelectorAll('[src],[href],[action],[poster]');for(var i=0;i<l.length;i++)fixEl(l[i]);}}if(window.MutationObserver){new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes')fixEl(m.target);else for(var j=0;j<m.addedNodes.length;j++)fixTree(m.addedNodes[j]);}}).observe(document,{childList:true,subtree:true,attributes:true,attributeFilter:AT});}document.addEventListener('click',function(ev){var a=ev.target&&ev.target.closest&&ev.target.closest('a[href]');if(a){var h=a.getAttribute('href');if(h&&nf(h))a.setAttribute('href',P+h);}},true);}catch(e){}})();</script><!-- /spawn-base --><link rel="stylesheet" href="/styles.css"/><!-- af-pwa -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0b0f14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){});});}</script>
+<!-- /af-pwa -->
+</head><body><main style="font-family:system-ui;max-width:720px;margin:40px auto;padding:0 16px;color:#e8eef7;background:#0b0f14"><h1>1. Best next site: Digital product + membership</h1><p>Blank Spawn project. Edit files and hit Run.</p>
+    <section id="checkout" class="card" style="margin-top:24px" data-forge="stripe-checkout">
+      <span class="badge">Checkout</span>
+      <h2 style="margin:10px 0 8px">Unlock full access</h2>
+      <p class="muted">Set <code>STRIPE_PAYMENT_LINK</code> in the environment. This button opens that link.</p>
+      <p style="margin-top:16px"><a class="btn" id="payBtn" href="#" rel="noopener">Continue to checkout</a></p>
+    </section>
+    <script>
+      (function(){
+        var el = document.getElementById('payBtn');
+        if (!el) return;
+        fetch('/api/config').then(function(r){return r.json()}).then(function(c){
+          if (c.checkoutUrl) el.href = c.checkoutUrl;
+          else el.addEventListener('click', function(e){
+            e.preventDefault();
+            alert('Set STRIPE_PAYMENT_LINK in your environment, then restart.');
+          });
+        }).catch(function(){});
+      })();
+    </script>
+</main><p style="text-align:center;margin:2rem"><a href="/privacy.html">Privacy</a></p></body></html>
