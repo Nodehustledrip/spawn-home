@@ -1,4 +1,4 @@
-# Spawn Cloud Worker. NOT DEPLOYED. Replace placeholder ids before `wrangler deploy`.
+# Spawn Cloud Worker (deployed; free plan, no R2).
 name = "spawn-cloud"
 main = "src/index.js"
 compatibility_date = "2026-08-01"
@@ -17,13 +17,13 @@ ALLOW_HOST_OVERRIDE = "0"
 [[d1_databases]]
 binding = "FILES"
 database_name = "spawn-cloud-files"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "e832528c-c38a-4d7c-be32-3823e2c47e86"
 migrations_dir = "migrations"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "spawn-cloud"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "2ee7ba06-b4ea-4394-a59e-00585673f187"
 migrations_dir = "migrations"
 
 # Secrets (set with `wrangler secret put`): SECRETS_KEY (base64, 32 bytes) — same value as Render CLOUD_SECRETS_KEY.
