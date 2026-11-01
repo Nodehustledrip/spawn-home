@@ -131,7 +131,7 @@ export async function handleBidboard(c) {
       app: "BidBoard", tagline: "Paid jobs near you. Hire for anything.", region: "United States — search any city",
       leadFeeCents: S.leadFee, leadFeeLabel: money(S.leadFee), proFeeCents: S.proFee, proFeeLabel: money(S.proFee) + "/mo",
       openJobs: n ? n.n : 0, paymentsLive, proAvailable: S.proLive,
-      connectPaymentsCta: "Payments aren't switched on for this board yet", serviceForgeUrl: S.serviceForge,
+      connectPaymentsCta: paymentsLive ? null : "Payments aren't switched on for this board yet", serviceForgeUrl: S.serviceForge,
       crossSell: "Need marketing that fills your calendar? ServiceForge packs help local businesses get found — optional cross-promo with BidBoard.",
     });
   }
