@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Showcase — premium example apps you can ship with Spawn: live boards, social tools, money flows, games, and launch kits." />
+  <meta name="description" content="Real apps live on Spawn Cloud — BidBoard, Pass P Checkout and Pass P Landing at their own .spawnapp.org addresses — plus design concepts." />
     <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Showcase — Spawn" />
-  <meta property="og:description" content="High-wow example apps — live boards, social tools, money flows, games. What you can ship with Spawn." />
+  <meta property="og:description" content="Real apps live on Spawn Cloud — BidBoard, Pass P Checkout and Pass P Landing at their own .spawnapp.org addresses — plus design concepts." />
   <meta property="og:url" content="https://spawnapp.org/showcase" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -20,7 +20,7 @@
   <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Showcase — Spawn" />
-  <meta name="twitter:description" content="High-wow example apps — live boards, social tools, money flows, games. What you can ship with Spawn." />
+  <meta name="twitter:description" content="Real apps live on Spawn Cloud — BidBoard, Pass P Checkout and Pass P Landing at their own .spawnapp.org addresses — plus design concepts." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
   <title>Showcase — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/showcase" />
@@ -42,7 +42,22 @@
       z-index: 100 !important; top: 0.75rem !important; left: 0.75rem !important;
       background: #d4a574 !important; color: #1a1208 !important; border-radius: 6px !important;
     }
-  </style>
+      .sc-live-sec { margin: 1.5rem 0 4rem; }
+    .sc-live-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sc-live-feature { grid-column: 1 / -1; }
+    .sc-live-card { display: grid; gap: 1rem; padding: 1rem; border: 1px solid var(--line, rgba(255,255,255,.1)); border-radius: 16px; background: rgba(255,255,255,.02); }
+    .sc-live-feature { grid-template-columns: 1.6fr 1fr; align-items: center; }
+    .sc-shot { display: block; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); }
+    .sc-shot img { display: block; width: 100%; height: auto; transition: transform .4s ease; }
+    .sc-shot:hover img { transform: scale(1.015); }
+    .sc-live-meta h3 { margin: .4rem 0 .35rem; font-size: 1.25rem; letter-spacing: -.01em; }
+    .sc-live-meta p { margin: 0 0 .6rem; color: var(--muted, #a8a49c); line-height: 1.55; }
+    .sc-live-link { color: var(--accent, #d4a574); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .85rem; text-decoration: none; }
+    .sc-live-link:hover { text-decoration: underline; }
+    .sc-concepts-head { margin: 2rem 0 1.5rem; }
+    .sc-concepts-head h2 { margin: .3rem 0; font-size: clamp(1.5rem, 3vw, 2rem); }
+    @media (max-width: 760px) { .sc-live-grid, .sc-live-feature { grid-template-columns: 1fr; } }
+</style>
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
   <script type="application/ld+json">
@@ -50,7 +65,7 @@
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     "name": "Spawn Showcase",
-    "description": "Example apps that show the kind of product you can ship with Spawn — live boards, social tools, money flows, games, and launch kits.",
+    "description": "Real apps live on Spawn Cloud — BidBoard, Pass P Checkout and Pass P Landing at their own .spawnapp.org addresses — plus design concepts.",
     "url": "https://spawnapp.org/showcase",
     "isPartOf": {
       "@type": "WebSite",
@@ -99,17 +114,61 @@
   <main id="main" class="page-showcase">
     <header class="sc-hero">
       <p class="kicker">Showcase</p>
-      <h1>Apps people screenshot</h1>
+      <h1>Live on Spawn Cloud</h1>
       <p class="lead">
-        Six example UIs for the kind of product Spawn is built for —
-        live boards, social tools, money flows, games. Invented for this page;
-        not live products. Steal the vibe. Ship yours.
+        Real apps running right now at their own <span class="mono">.spawnapp.org</span>
+        address. Open one, click around, then build yours.
       </p>
       <div class="sc-hero-actions">
-        <a class="btn-solid" href="/access">Clone this vibe</a>
-        <a class="link-quiet" href="/how">How Spawn ships →</a>
+        <a class="btn-solid" href="/build">Build an app</a>
+        <a class="link-quiet" href="/how">How Spawn ships</a>
       </div>
-      <nav class="sc-cats" aria-label="Example categories">
+    </header>
+
+    <section class="sc-live-sec" aria-labelledby="sc-live-h">
+      <h2 id="sc-live-h" class="sr-only">Live apps</h2>
+      <ul class="sc-live-grid">
+        <li class="sc-live-card sc-live-feature">
+          <a class="sc-shot" href="https://bidboard.spawnapp.org" target="_blank" rel="noopener">
+            <img src="/showcase/bidboard.webp" width="1200" height="750" alt="BidBoard home page: Paid jobs near you. Hire for anything." loading="eager" decoding="async" />
+          </a>
+          <div class="sc-live-meta">
+            <span class="sc-tag">Marketplace · payments</span>
+            <h3>BidBoard</h3>
+            <p>A local jobs board: post paid work free, and pros unlock the contact for a lead fee or a monthly plan — with sign-in, photo uploads and Stripe checkout.</p>
+            <a class="sc-live-link" href="https://bidboard.spawnapp.org" target="_blank" rel="noopener">bidboard.spawnapp.org ↗</a>
+          </div>
+        </li>
+        <li class="sc-live-card">
+          <a class="sc-shot" href="https://pass-p-checkout.spawnapp.org" target="_blank" rel="noopener">
+            <img src="/showcase/pass-p-checkout.webp" width="1200" height="750" alt="Pass P Checkout product page" loading="lazy" decoding="async" />
+          </a>
+          <div class="sc-live-meta">
+            <span class="sc-tag">Product page</span>
+            <h3>Pass P Checkout</h3>
+            <p>A product page with pricing and a checkout call to action.</p>
+            <a class="sc-live-link" href="https://pass-p-checkout.spawnapp.org" target="_blank" rel="noopener">pass-p-checkout.spawnapp.org ↗</a>
+          </div>
+        </li>
+        <li class="sc-live-card">
+          <a class="sc-shot" href="https://pass-p-landing.spawnapp.org" target="_blank" rel="noopener">
+            <img src="/showcase/pass-p-landing.webp" width="1200" height="750" alt="Pass P Landing page" loading="lazy" decoding="async" />
+          </a>
+          <div class="sc-live-meta">
+            <span class="sc-tag">Landing page</span>
+            <h3>Pass P Landing</h3>
+            <p>A launch landing page with a dark theme toggle.</p>
+            <a class="sc-live-link" href="https://pass-p-landing.spawnapp.org" target="_blank" rel="noopener">pass-p-landing.spawnapp.org ↗</a>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <header class="sc-concepts-head">
+      <p class="kicker">Concepts</p>
+      <h2>Design concepts</h2>
+      <p class="lead">Mockups made for this page to show the range — not live products.</p>
+      <nav class="sc-cats" aria-label="Concept categories">
         <a href="#relay">Live</a>
         <a href="#harbor">Social</a>
         <a href="#nightshift">Ops</a>
@@ -119,14 +178,14 @@
       </nav>
     </header>
 
-    <ul class="sc-grid" aria-label="Example apps">
+    <ul class="sc-grid" aria-label="Design concepts">
       <!-- 1. Live collab board -->
       <li class="sc-card sc-card-feature" id="relay">
         <div class="sc-meta">
           <span class="sc-tag">Live board</span>
           <h2>Relay</h2>
           <p>Realtime sticky board for remote teams — drag cards, pulse who’s editing, ship decisions before the call ends.</p>
-          <a class="sc-clone" href="/access">Clone this vibe →</a>
+          <a class="sc-clone" href="/build">Build something like this →</a>
         </div>
         <div class="sc-preview" aria-hidden="true">
           <div class="sc-chrome">
@@ -172,7 +231,7 @@
           <span class="sc-tag">Social</span>
           <h2>Harbor</h2>
           <p>Private community feed with rooms, reactions, and a quiet signal for who’s online right now.</p>
-          <a class="sc-clone" href="/access">Clone this vibe →</a>
+          <a class="sc-clone" href="/build">Build something like this →</a>
         </div>
         <div class="sc-preview" aria-hidden="true">
           <div class="sc-chrome">
@@ -215,7 +274,7 @@
           <span class="sc-tag">Ops</span>
           <h2>Nightshift</h2>
           <p>Real-time status board for services, deploys, and on-call — one screen the whole team trusts at 2am.</p>
-          <a class="sc-clone" href="/access">Clone this vibe →</a>
+          <a class="sc-clone" href="/build">Build something like this →</a>
         </div>
         <div class="sc-preview" aria-hidden="true">
           <div class="sc-chrome">
@@ -248,7 +307,7 @@
           <span class="sc-tag">Payments</span>
           <h2>Tiprail</h2>
           <p>Tips and split payouts for creators — clean checkout, instant share link, no spreadsheet math.</p>
-          <a class="sc-clone" href="/access">Clone this vibe →</a>
+          <a class="sc-clone" href="/build">Build something like this →</a>
         </div>
         <div class="sc-preview" aria-hidden="true">
           <div class="sc-chrome">
@@ -290,7 +349,7 @@
           <span class="sc-tag">Game</span>
           <h2>Vaultfall</h2>
           <p>Fast puzzle arcade with polish — beat your best run, drop a shareable score card, play again.</p>
-          <a class="sc-clone" href="/access">Clone this vibe →</a>
+          <a class="sc-clone" href="/build">Build something like this →</a>
         </div>
         <div class="sc-preview" aria-hidden="true">
           <div class="sc-chrome">
@@ -323,7 +382,7 @@
           <span class="sc-tag">Launch</span>
           <h2>Firstlight</h2>
           <p>Creator waitlist and launch toolkit — landing, referrals, drip emails, and a day-one dashboard.</p>
-          <a class="sc-clone" href="/access">Clone this vibe →</a>
+          <a class="sc-clone" href="/build">Build something like this →</a>
         </div>
         <div class="sc-preview" aria-hidden="true">
           <div class="sc-chrome">
