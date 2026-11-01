@@ -52,17 +52,16 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
 }
 
-/** Fire-and-forget durable copy via PostHog Capture API (survives redeploys). */
-function dualWritePostHog(entry) {
-  if (!POSTHOG_KEY || !entry || !entry.email) return;
+/** Anonymous analytics ping for a waitlist signup: random id, no email or other PII. */
+function trackWaitlistSignup(entry) {
+  if (!POSTHOG_KEY || !entry) return;
   const body = JSON.stringify({
     api_key: POSTHOG_KEY,
     event: "waitlist_signup",
-    distinct_id: entry.email,
+    distinct_id: "wl_" + require("crypto").randomBytes(12).toString("hex"),
     properties: {
-      email: entry.email,
       source: entry.source || "web",
-      createdAt: entry.createdAt || new Date().toISOString(),
+      $process_person_profile: false,
       $lib: "spawn-home-server",
     },
   });
@@ -72,15 +71,31 @@ function dualWritePostHog(entry) {
     body: body,
   })
     .then(function (r) {
-      if (!r.ok) {
-        console.error("[waitlist] posthog capture status", r.status);
-      } else {
-        console.log("[waitlist] posthog dual-write ok", entry.email);
-      }
+      if (!r.ok) console.error("[waitlist] posthog capture status", r.status);
     })
     .catch(function (err) {
-      console.error("[waitlist] posthog dual-write failed", err && err.message);
+      console.error("[waitlist] posthog capture failed", err && err.message);
     });
+}
+
+/** Durable waitlist copy in the accounts database (D1 or Postgres), when available. */
+async function saveWaitlistDurable(entry) {
+  const pool = builds.store.getPool();
+  if (!pool) return false;
+  await pool.query(
+    "INSERT INTO waitlist (email, source, created_at) VALUES ($1,$2,$3) ON CONFLICT (email) DO NOTHING",
+    [entry.email, entry.source || "web", entry.createdAt]
+  );
+  return true;
+}
+
+async function readWaitlistDurable() {
+  const pool = builds.store.getPool();
+  if (!pool) return null;
+  const r = await pool.query("SELECT email, source, created_at FROM waitlist ORDER BY created_at");
+  return r.rows.map(function (x) {
+    return { email: x.email, source: x.source, createdAt: new Date(x.created_at).toISOString() };
+  });
 }
 
 function checkWaitlistAdmin(req) {
@@ -252,23 +267,50 @@ app.post("/api/contact", function (req, res) {
     });
 });
 
-app.get("/api/waitlist", function (req, res) {
+app.get("/api/waitlist", async function (req, res) {
   if (!checkWaitlistAdmin(req)) {
     return res.status(401).json({ ok: false, error: "Unauthorized" });
   }
-  let entries = [];
+  const seen = new Set();
+  const entries = [];
+  function add(e) {
+    const em = e && normalizeEmail(e.email);
+    if (!em || seen.has(em)) return;
+    seen.add(em);
+    entries.push({ email: em, source: e.source || "web", createdAt: e.createdAt || null });
+  }
   try {
-    entries = readWaitlist();
+    ((await readWaitlistDurable()) || []).forEach(add);
+  } catch (err) {
+    console.error("[waitlist] durable read failed", err && err.message);
+  }
+  try {
+    readWaitlist().forEach(add);
   } catch (err) {
     console.error("[waitlist] export read failed", err && err.message);
   }
-  return res.json({
-    ok: true,
-    count: entries.length,
-    emails: entries,
-    note:
-      "Local JSON is best-effort cache (ephemeral on free Render). Durable copy is PostHog event waitlist_signup (distinct_id=email).",
-  });
+  return res.json({ ok: true, count: entries.length, emails: entries, storage: builds.store.mode() });
+});
+
+/* One-time migration helper: full JSON export of the Postgres accounts/builds
+ * database. Admin token only, and only while Postgres is the active backend. */
+app.get("/api/admin/db-export", async function (req, res) {
+  if (!checkWaitlistAdmin(req)) return res.status(401).json({ ok: false, error: "Unauthorized" });
+  const pool = builds.store.getPool();
+  if (!pool || builds.store.mode() !== "postgres") return res.status(409).json({ ok: false, error: "Postgres is not the active backend." });
+  res.setHeader("Cache-Control", "no-store");
+  try {
+    const t = await pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY 1");
+    const out = { ok: true, exportedAt: new Date().toISOString(), tables: {} };
+    for (const row of t.rows) {
+      const name = row.table_name;
+      if (!/^[a-z_][a-z0-9_]*$/.test(name)) continue;
+      out.tables[name] = (await pool.query('SELECT * FROM "' + name + '"')).rows;
+    }
+    res.json(out);
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 app.post("/api/waitlist", function (req, res) {
@@ -305,7 +347,7 @@ app.post("/api/waitlist", function (req, res) {
     return e && normalizeEmail(e.email) === email;
   });
   if (exists) {
-    console.log("[waitlist] duplicate", email);
+    console.log("[waitlist] duplicate");
     return res.json({ ok: true, duplicate: true });
   }
 
@@ -324,10 +366,12 @@ app.post("/api/waitlist", function (req, res) {
     return res.status(500).json({ ok: false, error: "Could not save. Try again." });
   }
 
-  /* Durable dual-write (non-blocking); local JSON remains fast-path cache */
-  dualWritePostHog(entry);
+  saveWaitlistDurable(entry).catch(function (err) {
+    console.error("[waitlist] durable write failed", err && err.message);
+  });
+  trackWaitlistSignup(entry);
 
-  console.log("[waitlist] new signup", email, "total=", entries.length);
+  console.log("[waitlist] new signup total=", entries.length);
   return res.status(201).json({ ok: true, duplicate: false });
 });
 
