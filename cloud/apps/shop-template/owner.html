@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" data-kinds="lead:Orders">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Owner view</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+[hidden]{display:none!important}
+:root{--bg:#f6f4f0;--card:#fff;--ink:#1c1a17;--muted:#6b665e;--line:rgba(0,0,0,.1);--acc:#2f6f5e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121211;--card:#1c1b19;--ink:#efebe4;--muted:#a39d93;--line:rgba(255,255,255,.1);--acc:#7cc4ad;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:0 auto;padding:2rem 1rem 4rem}h1{font-size:1.6rem;margin:0 0 .3rem}p{margin:.2rem 0}.muted{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.2rem;margin-top:1.2rem}
+form{display:flex;gap:.6rem;flex-wrap:wrap}input{flex:1;min-width:220px;font:inherit;font-size:16px;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button{font:inherit;font-weight:600;padding:.6rem 1rem;border-radius:10px;border:0;background:var(--acc);color:#fff;cursor:pointer}button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem}.tabs button{background:transparent;color:var(--ink);border:1px solid var(--line)}.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.scroll{overflow-x:auto}.pill{display:inline-block;font-size:.75rem;padding:.1rem .5rem;border-radius:99px;border:1px solid var(--line)}.pill.ok{background:var(--acc);color:#fff;border-color:var(--acc)}
+.err{color:#c0392b}code{font-size:.85em}
+</style>
+</head>
+<body>
+<main>
+  <h1>Owner view</h1>
+  <p class="muted">Private page for the site owner. Enter the <code>OWNER_KEY</code> you set in Spawn (app → Secrets). The key stays in this browser tab only.</p>
+  <div class="card">
+    <form data-login><input type="password" name="key" placeholder="Owner key" autocomplete="current-password" required minlength="12" aria-label="Owner key"><button>Open</button><button type="button" class="ghost" data-out hidden>Sign out</button></form>
+    <p class="err" data-err role="alert"></p>
+    <p class="muted" data-demo hidden>Preview mode: the owner view works once the site is published on Spawn.</p>
+  </div>
+  <div data-panel hidden>
+    <div class="tabs" data-tabs></div>
+    <div class="card"><div class="scroll" data-out-table></div></div>
+  </div>
+</main>
+<script>
+(function () {
+  var KINDS = (document.documentElement.dataset.kinds || "lead:Requests").split(",").map(function (s) { var p = s.split(":"); return { kind: p[0], label: p[1] || p[0] }; });
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var key = sessionStorage.getItem("owner-key") || "", cur = KINDS[0].kind;
+  function api(p, o) { o = o || {}; o.headers = Object.assign({ Authorization: "Bearer " + key, "Content-Type": "application/json" }, o.headers || {}); return fetch(p, o).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || "Error " + r.status); return d; }); }); }
+  function tabs() {
+    $("[data-tabs]").innerHTML = KINDS.map(function (k) { return '<button type="button" data-k="' + k.kind + '" class="' + (k.kind === cur ? "on" : "") + '">' + esc(k.label) + "</button>"; }).join("");
+  }
+  function load() {
+    tabs(); var out = $("[data-out-table]"); out.innerHTML = '<p class="muted">Loading…</p>';
+    if (cur === "members") return api("/api/owner/members").then(function (d) {
+      if (!d.members.length) { out.innerHTML = '<p class="muted">No member accounts yet.</p>'; return; }
+      out.innerHTML = (d.open ? '<p class="muted">MEMBER_EMAILS is "*": every signed-in account can open the members area (demo setting).</p>' : "") +
+        "<table><thead><tr><th>Email</th><th>Name</th><th>Joined</th><th>Access</th><th></th></tr></thead><tbody>" + d.members.map(function (m) {
+          return "<tr><td>" + esc(m.email) + "</td><td>" + esc(m.name) + "</td><td>" + esc(String(m.joinedAt).slice(0, 10)) + '</td><td><span class="pill ' + (m.approved ? "ok" : "") + '">' + (m.approved ? "Active" : "Pending") + '</span></td><td><button type="button" class="ghost" data-approve="' + esc(m.email) + '" data-to="' + (!m.approved) + '">' + (m.approved ? "Remove access" : "Approve") + "</button></td></tr>";
+        }).join("") + "</tbody></table>";
+    }).catch(fail);
+    return api("/api/owner/records?kind=" + encodeURIComponent(cur)).then(function (d) {
+      if (!d.records.length) { out.innerHTML = '<p class="muted">Nothing here yet.</p>'; return; }
+      var cols = []; d.records.forEach(function (r) { Object.keys(r.data).forEach(function (k) { if (cols.indexOf(k) < 0 && k !== "title" && k !== "items") cols.push(k); }); });
+      cols = cols.slice(0, 10);
+      out.innerHTML = "<table><thead><tr><th>Received</th>" + cols.map(function (c) { return "<th>" + esc(c) + "</th>"; }).join("") + "<th></th></tr></thead><tbody>" + d.records.map(function (r) {
+        return "<tr><td>" + esc(String(r.createdAt).replace("T", " ").slice(0, 16)) + "</td>" + cols.map(function (c) { var v = r.data[c]; return "<td>" + esc(typeof v === "object" ? JSON.stringify(v) : v) + "</td>"; }).join("") + '<td><button type="button" class="ghost" data-del="' + r.id + '">Delete</button></td></tr>';
+      }).join("") + "</tbody></table>";
+    }).catch(fail);
+  }
+  function fail(e) { $("[data-err]").textContent = e.message; if (/owner key|isn't set up/i.test(e.message)) { $("[data-panel]").hidden = true; } }
+  function open() { $("[data-err]").textContent = ""; api("/api/owner/records?kind=_ping").then(function () { $("[data-panel]").hidden = false; $("[data-out]").hidden = false; load(); }).catch(fail); }
+  $("[data-login]").addEventListener("submit", function (e) { e.preventDefault(); key = e.target.key.value.trim(); sessionStorage.setItem("owner-key", key); open(); });
+  $("[data-out]").addEventListener("click", function () { sessionStorage.removeItem("owner-key"); key = ""; $("[data-panel]").hidden = true; this.hidden = true; });
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-k]"); if (t) { cur = t.dataset.k; load(); }
+    var d = e.target.closest("[data-del]"); if (d && confirm("Delete this entry?")) api("/api/owner/records/" + d.dataset.del, { method: "DELETE" }).then(load).catch(fail);
+    var a = e.target.closest("[data-approve]"); if (a) api("/api/owner/members", { method: "POST", body: JSON.stringify({ email: a.dataset.approve, approved: a.dataset.to === "true" }) }).then(load).catch(fail);
+  });
+  fetch("/api/health").then(function (r) { return r.json(); }).then(function (d) { if (d.hosting !== "spawn-cloud") throw 0; if (key) open(); }).catch(function () { $("[data-demo]").hidden = false; });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /owner.html
+Disallow: /members/
+
+Sitemap: https://members-club.spawnapp.org/sitemap.xml

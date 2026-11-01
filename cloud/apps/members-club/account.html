@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your account — The Crumb Club</title>
+<meta name="description" content="Join or sign in to The Crumb Club.">
+<link rel="canonical" href="https://members-club.spawnapp.org/account.html">
+<meta name="theme-color" content="#f7f0e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17130f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='36' rx='26' ry='20' fill='%23b4682f'/%3E%3Cpath d='M18 32c6-6 22-6 28 0' stroke='%23f7f0e4' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("cc-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<p class="demo-bar" data-demo-banner hidden role="note"><strong>Demo — payments not connected.</strong> Sign up freely. Nothing is charged until the owner adds their own Stripe links.</p>
+<p class="paid-bar" data-paid hidden role="status">Thanks for joining! Your access is switched on once your payment is confirmed. Sign in with the same email.</p>
+<header class="top">
+  <a class="logo" href="./" aria-label="The Crumb Club home"><span class="mark" aria-hidden="true"></span>The Crumb Club</a>
+  <nav class="nav" aria-label="Main"><a href="./#inside">What’s inside</a><a href="./#join">Membership</a><a href="./#faq">FAQ</a></nav>
+  <div class="top-end"><button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span aria-hidden="true">◐</span></button><a class="btn sm ghost" href="account.html?mode=login">Sign in</a></div>
+</header>
+<main id="main" class="narrow">
+  <div data-account aria-live="polite"><p class="muted">Loading…</p></div>
+</main>
+<footer class="foot">
+  <div><a class="logo" href="./"><span class="mark" aria-hidden="true"></span>The Crumb Club</a><p class="muted"><strong>The Crumb Club is a fictional business.</strong> This is a demo membership site made with Spawn. The lessons are real baking guidance, but the people, prices and club are illustrative.</p></div>
+  <p class="muted small">Payments, once connected, are taken by Stripe on its own secure page. This site never sees card details. · <a href="owner.html" rel="nofollow">Owner</a></p>
+</footer>
+<script src="config.js"></script>
+<script src="club.js" defer></script>
+</body>
+</html>

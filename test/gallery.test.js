@@ -107,3 +107,22 @@ test("owner toggle, title checks, admin hide/unhide, report, remix source", asyn
   x = await call("DELETE", "/api/admin/cloud-apps/private-one", null, null, { "x-admin": "yes" }); assert.equal(x.body.ok, true);
   x = await call("GET", "/api/cloud/my-apps", "free"); assert.deepEqual(x.body.apps.map((a) => a.slug), ["cedar-lawn"]);
 });
+
+test("premium templates: admin-only flag, Pro access rule, shelf on /gallery", async () => {
+  await call("PUT", "/api/cloud/apps/cedar-lawn/gallery", "free", { remixable: true, premium: true }); // owners can't self-mark premium
+  let x = await call("GET", "/api/gallery"); assert.equal(x.body.entries[0].premium, false);
+  x = await call("POST", "/api/admin/gallery/cedar-lawn", null, { premium: true }, { "x-admin": "yes" });
+  assert.equal(x.body.entry.premium, 1); assert.equal(x.body.entry.access, "pro"); assert.equal(x.body.entry.price_cents, null);
+  x = await call("GET", "/api/gallery"); assert.equal(x.body.entries[0].premium, true); assert.equal(x.body.entries[0].access, "pro");
+  const src = await gallery.store.remixSource("cedar-lawn");
+  assert.equal(src.premium, true); assert.equal(src.access, "pro");
+  assert.deepEqual(gallery.canRemix(src, null, (u) => u.plan === "pro"), { ok: false, reason: "signin" });
+  assert.deepEqual(gallery.canRemix(src, users.free, (u) => u.plan === "pro"), { ok: false, reason: "pro" });
+  assert.deepEqual(gallery.canRemix(src, users.pro, (u) => u.plan === "pro"), { ok: true });
+  assert.deepEqual(gallery.canRemix({ access: "open" }, null, () => false), { ok: true });
+  const html = await (await fetch(base + "/gallery")).text();
+  assert.match(html, /Included with Pro/); assert.match(html, /data-gl-premium="cedar-lawn"/); assert.match(html, /pricing\?ref=premium-template/);
+  assert.doesNotMatch(html, /<!--GL_PREMIUM/);
+  x = await call("POST", "/api/admin/gallery/cedar-lawn", null, { premium: false, access: "open" }, { "x-admin": "yes" });
+  assert.equal(x.body.entry.premium, 0); assert.equal(x.body.entry.access, "open");
+});

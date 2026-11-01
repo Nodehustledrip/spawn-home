@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Fern &amp; Fold — Handmade ceramics for everyday tables</title>
+<meta name="description" content="A complete online store template: a catalog with categories, product pages with variants, a cart that remembers items, and checkout through your own Stripe Payment Links. A Spawn premium template.">
+<link rel="canonical" href="https://shop-template.spawnapp.org/">
+<meta property="og:title" content="Fern & Fold — Handmade ceramics for everyday tables">
+<meta property="og:description" content="Catalog, product variants, a persistent cart and checkout through your own Stripe links. A Spawn premium template.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://shop-template.spawnapp.org/">
+<meta property="og:image" content="https://shop-template.spawnapp.org/img/hero-960.webp">
+<link rel="preload" as="image" type="image/webp" imagesrcset="img/hero-480.webp 480w, img/hero-960.webp 960w" imagesizes="100vw" fetchpriority="high">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='8' width='48' height='48' rx='14' fill='%233f5b47'/%3E%3Cpath d='M22 44c2-14 10-22 22-24-2 12-10 20-22 24z' fill='%23f4f1ec'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("ff-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Fern & Fold (demo store)","url":"https://shop-template.spawnapp.org/","description":"Demo online store for a fictional ceramics studio, made with Spawn."}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<p class="demo-bar" data-demo-banner hidden role="note"><strong>Demo — payments not connected.</strong> Try the cart and checkout. Nothing is charged until the owner adds their own Stripe links.</p>
+<p class="paid-bar" data-paid hidden role="status">Thanks, your payment went through. The shop will email you when your order ships.</p>
+<header class="top">
+  <a class="logo" href="./" aria-label="Fern &amp; Fold home"><span class="mark" aria-hidden="true"></span>Fern <i>&amp;</i> Fold</a>
+  <nav class="nav" aria-label="Main"><a href="./#shop">Shop</a><a href="./#about">Studio</a><a href="./#faq">Shipping</a></nav>
+  <div class="top-end"><button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span aria-hidden="true">◐</span></button><button class="cart-btn" type="button" data-open-cart aria-label="Open cart">Cart <span class="badge" data-count hidden>0</span></button></div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <img src="img/hero-960.webp" srcset="img/hero-480.webp 480w, img/hero-960.webp 960w" sizes="100vw" alt="Stoneware cups, bowls and a vase on a linen-covered table" width="960" height="540" fetchpriority="high">
+    <div class="hero-text">
+      <p class="eyebrow">Small-batch stoneware</p>
+      <h1>Things you’ll reach for <em>every day.</em></h1>
+      <p class="lead">Mugs, bowls and plates thrown by hand in a one-room studio, glazed in quiet colours and made to be used.</p>
+      <a class="btn" href="#shop">Shop the collection</a>
+    </div>
+  </section>
+  <section class="shop" id="shop" aria-labelledby="shop-h">
+    <div class="shop-head"><h2 id="shop-h">The collection</h2><div class="filters" role="tablist" aria-label="Categories" data-filters></div></div>
+    <ul class="grid" data-grid></ul>
+  </section>
+  <section class="about" id="about">
+    <div><p class="eyebrow">The studio</p><h2>Made slowly, <em>in small runs.</em></h2></div>
+    <div class="about-cols">
+      <p>Each piece is thrown, trimmed and glazed by hand, so no two are quite the same. We fire in small kilns, a few dozen pieces at a time.</p>
+      <p>Everything is food-safe stoneware. Dishwasher and microwave safe unless the product page says otherwise.</p>
+    </div>
+  </section>
+  <section class="faq" id="faq">
+    <h2>Shipping &amp; returns</h2>
+    <details><summary>How much is shipping?</summary><p>Flat $8 in the US, free on orders over $75. Orders ship in 3–5 working days, wrapped in recycled paper.</p></details>
+    <details><summary>How does checkout work?</summary><p>Your cart is saved in this browser. When you check out, the shop gets your order and you pay on Stripe’s secure checkout page.</p></details>
+    <details><summary>Can I return something?</summary><p>Unused pieces can be returned within 30 days. Get in touch with your order reference.</p></details>
+  </section>
+</main>
+<div class="handoff" data-handoff hidden tabindex="-1" aria-live="polite"></div>
+<footer class="foot">
+  <div><a class="logo" href="./"><span class="mark" aria-hidden="true"></span>Fern <i>&amp;</i> Fold</a><p class="muted"><strong>Fern &amp; Fold is a fictional shop.</strong> This is a demo store made with Spawn. The products, people and prices are illustrative, and no orders are fulfilled.</p></div>
+  <p class="muted small">Payments, once connected, are taken by Stripe on its own secure page. This site never sees card details. · <a href="owner.html" rel="nofollow">Owner</a></p>
+</footer>
+<aside class="drawer" data-drawer hidden aria-label="Shopping cart">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="cart-h">
+    <div class="panel-head"><h2 id="cart-h">Your cart</h2><button type="button" class="x" data-close data-close-btn aria-label="Close cart">×</button></div>
+    <div class="panel-body" data-cart-body></div>
+    <div class="panel-foot" data-cart-foot hidden>
+      <p class="free" data-free></p>
+      <dl class="sums"><dt>Subtotal</dt><dd data-sub></dd><dt>Shipping</dt><dd data-ship></dd><dt class="tot">Total</dt><dd class="tot" data-total></dd></dl>
+      <form data-checkout novalidate>
+        <label>Name<input name="name" autocomplete="name" placeholder="Your name"></label>
+        <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <p class="err" data-co-err role="alert"></p>
+        <button class="btn wide" type="submit">Continue to payment</button>
+        <p class="muted small">You’ll pay on Stripe’s secure checkout. In demo mode nothing is charged.</p>
+      </form>
+    </div>
+  </div>
+</aside>
+<script src="config.js"></script>
+<script src="shop.js" defer></script>
+
+</body>
+</html>

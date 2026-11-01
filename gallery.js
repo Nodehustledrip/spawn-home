@@ -68,6 +68,15 @@ function decodeEntities(s) {
     const v = NAMED[e.toLowerCase()]; return v === undefined ? m : v;
   });
 }
+const ACCESS = new Set(["open", "pro"]); // later: "purchase" (uses price_cents)
+/** Can this viewer remix the entry? Premium templates are included with Pro. */
+function canRemix(entry, user, isPro) {
+  const access = entry && (entry.access || (entry.premium ? "pro" : "open"));
+  if (access !== "pro") return { ok: true };
+  if (!user) return { ok: false, reason: "signin" };
+  if (!isPro(user)) return { ok: false, reason: "pro" };
+  return { ok: true };
+}
 const clean = (s, n) => String(s || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim().slice(0, n);
 
 function metaFromHtml(html) {
@@ -106,6 +115,12 @@ function createStore(getBackend) {
         const cols = await be().query("SELECT name FROM pragma_table_info('gallery')", []).catch(() => []);
         if (!cols.some((c) => c.name === "starter")) try { await be().query("ALTER TABLE gallery ADD COLUMN starter INTEGER NOT NULL DEFAULT 0", []); }
         catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; }
+        /* 0007: premium templates (included with Pro); price_cents reserved for a later one-off price */
+        for (const [col, ddl] of [["premium", "premium INTEGER NOT NULL DEFAULT 0"], ["access", "access TEXT NOT NULL DEFAULT 'open'"], ["price_cents", "price_cents INTEGER"]]) {
+          if (cols.some((c) => c.name === col)) continue;
+          try { await be().query("ALTER TABLE gallery ADD COLUMN " + ddl, []); }
+          catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; }
+        }
       })().catch((e) => { ready = null; throw e; });
     }
     await ready;
@@ -121,22 +136,25 @@ function createStore(getBackend) {
     /** Insert or update an entry. Only provided fields change. */
     async upsert(slug, owner, f) {
       const cur = (await q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
-      const row = Object.assign({ listed: 0, remixable: 1, hidden: 0, starter: 0, title: null, description: null, category: "other", accent: null, thumb_key: null, listed_at: null }, cur || {});
+      const row = Object.assign({ listed: 0, remixable: 1, hidden: 0, starter: 0, premium: 0, access: "open", price_cents: null, title: null, description: null, category: "other", accent: null, thumb_key: null, listed_at: null }, cur || {});
       for (const k of ["title", "description", "category", "accent", "thumb_key"]) if (f[k] !== undefined) row[k] = f[k];
-      for (const k of ["listed", "remixable", "hidden", "starter"]) if (f[k] !== undefined) row[k] = f[k] ? 1 : 0;
+      for (const k of ["listed", "remixable", "hidden", "starter", "premium"]) if (f[k] !== undefined) row[k] = f[k] ? 1 : 0;
+      if (f.access !== undefined) row.access = ACCESS.has(f.access) ? f.access : "open";
+      if (f.price_cents !== undefined) row.price_cents = f.price_cents == null ? null : Math.max(0, Math.round(Number(f.price_cents) || 0));
+      if (row.premium && row.access === "open") row.access = "pro";
       if (row.listed && !row.listed_at) row.listed_at = now();
       if (!CAT_IDS.has(row.category)) row.category = "other";
       if (cur) {
-        await q("UPDATE gallery SET listed=?2, remixable=?3, hidden=?4, title=?5, description=?6, category=?7, accent=?8, thumb_key=?9, listed_at=?10, updated_at=?11, starter=?12 WHERE slug=?1",
-          [slug, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, now(), row.starter ? 1 : 0]);
+        await q("UPDATE gallery SET listed=?2, remixable=?3, hidden=?4, title=?5, description=?6, category=?7, accent=?8, thumb_key=?9, listed_at=?10, updated_at=?11, starter=?12, premium=?13, access=?14, price_cents=?15 WHERE slug=?1",
+          [slug, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, now(), row.starter ? 1 : 0, row.premium ? 1 : 0, row.access || "open", row.price_cents == null ? null : row.price_cents]);
       } else {
-        await q("INSERT INTO gallery (slug, owner, listed, remixable, hidden, title, description, category, accent, thumb_key, listed_at, starter) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
-          [slug, owner, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, row.starter ? 1 : 0]);
+        await q("INSERT INTO gallery (slug, owner, listed, remixable, hidden, title, description, category, accent, thumb_key, listed_at, starter, premium, access, price_cents) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
+          [slug, owner, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, row.starter ? 1 : 0, row.premium ? 1 : 0, row.access || "open", row.price_cents == null ? null : row.price_cents]);
       }
       return (await q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
     },
     async list() {
-      return q("SELECT g.slug, g.title, g.description, g.category, g.accent, g.remixable, g.starter, g.thumb_key, g.listed_at, g.updated_at, g.remix_count, a.title AS app_title, a.updated_at AS app_updated, a.runtime " +
+      return q("SELECT g.slug, g.title, g.description, g.category, g.accent, g.remixable, g.starter, g.premium, g.access, g.price_cents, g.thumb_key, g.listed_at, g.updated_at, g.remix_count, a.title AS app_title, a.updated_at AS app_updated, a.runtime " +
         "FROM gallery g JOIN apps a ON a.slug=g.slug WHERE g.listed=1 AND g.hidden=0 AND a.status='active' AND a.live_version IS NOT NULL ORDER BY g.listed_at DESC LIMIT 300", []);
     },
     async report(slug, reason, note, reporter) {
@@ -194,7 +212,7 @@ function createStore(getBackend) {
         if (Object.keys(files).length >= 200) break;
       }
       if (!files["index.html"]) throw Object.assign(new Error("That app has no index.html to remix."), { status: 400 });
-      return { title: g.title || g.app_title || slug, files };
+      return { title: g.title || g.app_title || slug, files, premium: !!g.premium, access: g.access || "open" };
     },
   };
   return store;
@@ -289,6 +307,8 @@ function entryView(r, apex) {
     accent: accentFor(r.slug, r.accent),
     remixable: !!r.remixable,
     starter: !!r.starter,
+    premium: !!r.premium,
+    access: r.access || (r.premium ? "pro" : "open"),
     url: "https://" + r.slug + "." + apex + "/",
     host: r.slug + "." + apex,
     thumb: "/gallery/thumb/" + r.slug + ".png?v=" + v,
@@ -300,19 +320,19 @@ function entryView(r, apex) {
 
 function renderCards(entries) {
   return entries.map((e, i) => `
-      <li class="gl-card" data-cat="${x(e.category)}" data-new="${x(e.listedAt || "")}" data-upd="${x(e.updatedAt || "")}" data-title="${x(e.title.toLowerCase())}" style="--i:${i};--acc:${x(e.accent)}">
+      <li class="gl-card${e.premium ? " gl-card-premium" : ""}" data-cat="${x(e.category)}" data-new="${x(e.listedAt || "")}" data-upd="${x(e.updatedAt || "")}" data-title="${x(e.title.toLowerCase())}" style="--i:${i};--acc:${x(e.accent)}">
         <a class="gl-shot" href="${x(e.url)}" target="_blank" rel="noopener" aria-label="Open ${x(e.title)} live (new tab)">
           <img src="${x(e.thumb)}" width="1200" height="630" alt="${x(e.screenshot ? "Screenshot of " + e.title : e.title + " share card")}" loading="${i < 3 ? "eager" : "lazy"}" decoding="async" />
           <span class="gl-live-pill"><span aria-hidden="true"></span>Live</span>
         </a>
         <div class="gl-body">
-          <div class="gl-tags">${e.starter ? '<span class="gl-tag gl-tag-starter" title="Made by Spawn as a starting point — remix it into your own app">Spawn starter</span>' : ""}<span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
+          <div class="gl-tags">${e.premium ? '<span class="gl-tag gl-tag-premium" title="Remix it with a Spawn Pro account — no extra charge">Premium · Included with Pro</span>' : ""}${e.starter && !e.premium ? '<span class="gl-tag gl-tag-starter" title="Made by Spawn as a starting point — remix it into your own app">Spawn starter</span>' : ""}<span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable && !e.premium ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
           <h2 class="gl-title">${x(e.title)}</h2>
           ${e.description ? `<p class="gl-desc">${x(e.description)}</p>` : ""}
           <p class="gl-host mono">${x(e.host)}</p>
           <div class="gl-actions">
             <a class="btn-solid gl-btn" href="${x(e.url)}" target="_blank" rel="noopener" data-gl-open="${x(e.slug)}">Open live <span aria-hidden="true">↗</span></a>
-            ${e.remixable ? `<a class="gl-btn gl-btn-ghost" href="/build?remix=${encodeURIComponent(e.slug)}" data-gl-remix="${x(e.slug)}">Remix this</a>` : `<span class="gl-note">Remix off</span>`}
+            ${e.remixable ? `<a class="gl-btn gl-btn-ghost" href="/build?remix=${encodeURIComponent(e.slug)}" data-gl-remix="${x(e.slug)}"${e.premium ? ` data-gl-premium="${x(e.slug)}" data-gl-title="${x(e.title)}"` : ""}>${e.premium ? "Remix with Pro" : "Remix this"}</a>` : `<span class="gl-note">Remix off</span>`}
             <button type="button" class="gl-report" data-gl-report="${x(e.slug)}" aria-label="Report ${x(e.title)}">Report</button>
           </div>
         </div>
@@ -359,14 +379,17 @@ function mount(app, opts) {
     if (req.path === "/gallery/") return res.redirect(301, "/gallery" + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : ""));
     let list = [];
     try { list = await entries(); } catch (e) { console.error("[gallery] list failed", e.message); }
+    const prem = list.filter((e) => e.premium), rest = list.filter((e) => !e.premium);
     const html = fs.readFileSync(TEMPLATE, "utf8")
-      .replace("<!--GL_FILTERS-->", renderFilters(list))
-      .replace("<!--GL_CARDS-->", renderCards(list))
-      .replace("<!--GL_COUNT-->", String(list.length))
-      .replace("<!--GL_EMPTY_HIDDEN-->", list.length ? "hidden" : "")
+      .replace("<!--GL_PREMIUM_HIDDEN-->", prem.length ? "" : "hidden")
+      .replace("<!--GL_PREMIUM-->", renderCards(prem))
+      .replace("<!--GL_FILTERS-->", renderFilters(rest))
+      .replace("<!--GL_CARDS-->", renderCards(rest))
+      .replace("<!--GL_COUNT-->", String(rest.length))
+      .replace("<!--GL_EMPTY_HIDDEN-->", rest.length ? "hidden" : "")
       .replace("/*GL_LD*/", JSON.stringify({
         "@context": "https://schema.org", "@type": "CollectionPage", "@id": "https://spawnapp.org/gallery#webpage", name: "Spawn Gallery — website templates to remix", url: "https://spawnapp.org/gallery",
-        description: "Live apps made with Spawn and five Spawn starters. Open one live, or remix it into your own build for free.",
+        description: "Live apps made with Spawn, Spawn starters you can remix for free, and premium templates — a booking system, an online store and a membership site — included with Spawn Pro.",
         isPartOf: { "@type": "WebSite", "@id": "https://spawnapp.org/#website", name: "Spawn", url: "https://spawnapp.org/" },
         breadcrumb: { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://spawnapp.org/" }, { "@type": "ListItem", position: 2, name: "Gallery", item: "https://spawnapp.org/gallery" }] },
         mainEntity: { "@type": "ItemList", numberOfItems: Math.min(list.length, 50), itemListElement: list.slice(0, 50).map((e, i) => ({ "@type": "ListItem", position: i + 1, url: /^https?:/.test(e.url) ? e.url : "https://" + e.url, name: e.title })) },
@@ -452,6 +475,9 @@ function mount(app, opts) {
     if (typeof b.listed === "boolean") f.listed = b.listed;
     if (typeof b.remixable === "boolean") f.remixable = b.remixable;
     if (typeof b.starter === "boolean") f.starter = b.starter;
+    if (typeof b.premium === "boolean") f.premium = b.premium;
+    if (b.access !== undefined) f.access = b.access;
+    if (b.price_cents !== undefined) f.price_cents = b.price_cents;
     if (b.title !== undefined) { const e = checkTitle(b.title); if (e) return res.status(400).json({ ok: false, error: e }); f.title = clean(b.title, 80); }
     if (b.description !== undefined) { const e = checkText(b.description); if (e) return res.status(400).json({ ok: false, error: e }); f.description = clean(b.description, 200); }
     if (b.category !== undefined) f.category = CAT_IDS.has(b.category) ? b.category : "other";
@@ -488,4 +514,4 @@ function mount(app, opts) {
   }));
 }
 
-module.exports = { mount, decodeEntities, createStore, CATEGORIES, guessCategory, checkTitle, checkText, metaFromHtml, stripForRemix, cardSvg, cardPng, accentFor, catLabel, CAT_IDS };
+module.exports = { mount, decodeEntities, canRemix, ACCESS, createStore, CATEGORIES, guessCategory, checkTitle, checkText, metaFromHtml, stripForRemix, cardSvg, cardPng, accentFor, catLabel, CAT_IDS };

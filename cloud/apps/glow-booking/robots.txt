@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /owner.html
+
+Sitemap: https://glow-booking.spawnapp.org/sitemap.xml

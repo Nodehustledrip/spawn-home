@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /owner.html
+
+Sitemap: https://shop-template.spawnapp.org/sitemap.xml

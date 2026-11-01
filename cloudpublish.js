@@ -390,12 +390,13 @@ function mount(app, opts) {
     const cur = (await st.q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
     let want = typeof body.gallery === "boolean" ? body.gallery : undefined;
     if (want === undefined && !cur && body.galleryDefault) want = !badge.exempt(account);
-    if (want === undefined && !cur) return null;
+    if (want === undefined && !cur && body.access !== "pro") return null;
     let meta = { description: "", accent: null };
     if (files["index.html"]) { const buf = await be().get(`blob/${slug}/${files["index.html"].h}`); if (buf) meta = G.metaFromHtml(buf.toString("utf8")); }
     const f = {};
     if (want !== undefined) f.listed = want;
     if (typeof body.remixable === "boolean") f.remixable = body.remixable;
+    if (body.access === "pro") f.access = "pro";
     if (!cur || !cur.title || body.title) f.title = title;
     if (!cur || !cur.description) f.description = G.checkText(meta.description) ? "" : meta.description;
     if (!cur || !cur.accent) f.accent = meta.accent;
@@ -528,6 +529,8 @@ function mount(app, opts) {
       }
     })(pub, "");
     if (!files["index.html"]) throw fail(400, "This build has no index.html to publish.");
+    /* Remixes of premium templates stay Pro-only to remix again, wherever they are republished. */
+    try { const m = JSON.parse(fs.readFileSync(path.join(root, "forge.json"), "utf8")); if (m.remixedFrom && m.remixedFrom.premium) Object.defineProperty(files, "__access", { value: "pro", enumerable: false }); } catch (_) {}
     return files;
   }
   r.get("/web/name/:slug", wrap(async (req, res) => {
@@ -552,7 +555,7 @@ function mount(app, opts) {
       if (!(await be().head(key))) await be().put(key, buf, mimeFor(p));
     }
     const title = gal().decodeEntities(String((req.body && req.body.title) || (a && a.title) || slug)).trim().slice(0, 80);
-    const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build", gallery: req.body.gallery, remixable: req.body.remixable, category: req.body.category, galleryDefault: true });
+    const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build", access: files.__access, gallery: req.body.gallery, remixable: req.body.remixable, category: req.body.category, galleryDefault: true });
     res.json(out);
   }));
 

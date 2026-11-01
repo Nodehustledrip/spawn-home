@@ -442,6 +442,21 @@ function mount(app) {
       if (err.status) return res.status(err.status).json({ ok: false, error: err.message });
       throw err;
     }
+    /* Premium templates are included with Pro: enforced here, not only in the gallery UI. */
+    if (src.access === "pro" || src.premium) {
+      const viewer = await auth.currentUser(req);
+      const gate = gallery.canRemix(src, viewer, auth.isPro);
+      if (!gate.ok) {
+        dualWriteBuild("premium_remix_blocked", { sessionId: "premium-gate", source_slug: slug, reason: gate.reason });
+        return res.status(gate.reason === "signin" ? 401 : 403).json({
+          ok: false, premium: true, reason: gate.reason, upgrade: "/pricing?ref=premium-template",
+          signin: gate.reason === "signin" ? true : undefined,
+          error: gate.reason === "signin"
+            ? "Premium templates are included with Spawn Pro. Sign in with a Pro account to remix this one."
+            : "Premium templates are included with Spawn Pro. Upgrade to remix this one.",
+        });
+      }
+    }
     const g = await createGate(req, res);
     if (!g) return;
     const name = String(src.title || slug).replace(/\s+/g, " ").trim().slice(0, 56) || slug;
@@ -459,7 +474,7 @@ function mount(app) {
       const meta = JSON.parse(fs.readFileSync(mp, "utf8"));
       meta.template = "remix";
       meta.description = "";
-      meta.remixedFrom = { slug: slug, title: src.title, url: "https://" + slug + "." + (process.env.CLOUD_APEX || "spawnapp.org") + "/", at: new Date().toISOString() };
+      meta.remixedFrom = { slug: slug, title: src.title, premium: !!src.premium || src.access === "pro" || undefined, url: "https://" + slug + "." + (process.env.CLOUD_APEX || "spawnapp.org") + "/", at: new Date().toISOString() };
       fs.writeFileSync(mp, JSON.stringify(meta, null, 2) + "\n", "utf8");
       await store.save(result.id, g.me, result.path);
     } catch (err) {
@@ -468,6 +483,7 @@ function mount(app) {
     }
     try { await gstore.bumpRemix(slug); } catch (_) {}
     dualWriteBuild("remix_created", { sessionId: g.me, id: result.id, source_slug: slug, files: Object.keys(src.files).length, storage: store.mode() });
+    if (src.premium) dualWriteBuild("premium_remix_created", { sessionId: g.me, id: result.id, source_slug: slug });
     console.log("[builds] remixed", slug, "->", result.id);
     return res.status(201).json({ ok: true, build: summarizeBuild(result.id), remixedFrom: { slug: slug, title: src.title }, files: Object.keys(src.files).length });
   }));

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Crumb Club — Learn sourdough at home, one bake at a time</title>
+<meta name="description" content="A complete membership site template: a landing page, membership tiers, sign-up through your own Stripe link, a members-only lesson library and an account page. A Spawn premium template.">
+<link rel="canonical" href="https://members-club.spawnapp.org/">
+<meta name="theme-color" content="#f7f0e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17130f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='36' rx='26' ry='20' fill='%23b4682f'/%3E%3Cpath d='M18 32c6-6 22-6 28 0' stroke='%23f7f0e4' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta property="og:title" content="The Crumb Club — Learn sourdough at home">
+<meta property="og:description" content="Tiers, Stripe sign-up and a members-only library. A Spawn premium template.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://members-club.spawnapp.org/">
+<meta property="og:image" content="https://members-club.spawnapp.org/img/hero-960.webp">
+<link rel="preload" as="image" type="image/webp" imagesrcset="img/hero-480.webp 480w, img/hero-960.webp 960w" imagesizes="(max-width:900px) 100vw, 55vw" fetchpriority="high">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"The Crumb Club (demo)","url":"https://members-club.spawnapp.org/","description":"Demo membership site for a fictional sourdough baking club, made with Spawn."}</script>
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("cc-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<p class="demo-bar" data-demo-banner hidden role="note"><strong>Demo — payments not connected.</strong> Sign up freely. Nothing is charged until the owner adds their own Stripe links.</p>
+<p class="paid-bar" data-paid hidden role="status">Thanks for joining! Your access is switched on once your payment is confirmed. Sign in with the same email.</p>
+<header class="top">
+  <a class="logo" href="./" aria-label="The Crumb Club home"><span class="mark" aria-hidden="true"></span>The Crumb Club</a>
+  <nav class="nav" aria-label="Main"><a href="./#inside">What’s inside</a><a href="./#join">Membership</a><a href="./#faq">FAQ</a></nav>
+  <div class="top-end"><button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span aria-hidden="true">◐</span></button><a class="btn sm ghost" href="account.html?mode=login">Sign in</a></div>
+</header>
+<main id="main">
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">A members’ baking club</p>
+      <h1>Bake your best loaf <em>in four lessons.</em></h1>
+      <p class="lead">Short, clear lessons that take you from a jar of flour and water to a crackling, open-crumbed sourdough. Plus a new bake for members every month.</p>
+      <div class="cta"><a class="btn" href="#join">See membership</a><a class="btn ghost" href="#inside">What’s inside</a></div>
+    </div>
+    <div class="hero-img"><img src="img/hero-960.webp" srcset="img/hero-480.webp 480w, img/hero-960.webp 960w" sizes="(max-width:900px) 100vw, 55vw" alt="A freshly baked sourdough loaf on a wooden board" width="960" height="540" fetchpriority="high"></div>
+  </section>
+  <section id="inside" class="inside">
+    <p class="eyebrow">What’s inside</p><h2>The library</h2>
+    <p class="muted sub">Members get every lesson, step by step, with printable recipe cards.</p>
+    <ol class="lessons">
+      <li><img src="img/starter-480.webp" srcset="img/starter-480.webp 480w, img/starter-960.webp 960w" sizes="(max-width:700px) 100vw, 25vw" alt="A jar of bubbly sourdough starter" width="960" height="720" loading="lazy" decoding="async"><div><span class="num">01</span><h3>Raising a starter</h3><p class="muted">Seven days to a lively culture, and how to read it.</p></div></li>
+      <li><img src="img/fold-480.webp" srcset="img/fold-480.webp 480w, img/fold-960.webp 960w" sizes="(max-width:700px) 100vw, 25vw" alt="Hands folding dough in a bowl" width="960" height="720" loading="lazy" decoding="async"><div><span class="num">02</span><h3>Stretch &amp; fold</h3><p class="muted">Build strength without kneading.</p></div></li>
+      <li><img src="img/score-480.webp" srcset="img/score-480.webp 480w, img/score-960.webp 960w" sizes="(max-width:700px) 100vw, 25vw" alt="A blade scoring a round of dough" width="960" height="720" loading="lazy" decoding="async"><div><span class="num">03</span><h3>Shaping &amp; scoring</h3><p class="muted">Surface tension, cold proof and a confident cut.</p></div></li>
+      <li><img src="img/slice-480.webp" srcset="img/slice-480.webp 480w, img/slice-960.webp 960w" sizes="(max-width:700px) 100vw, 25vw" alt="A sliced loaf showing an open crumb" width="960" height="720" loading="lazy" decoding="async"><div><span class="num">04</span><h3>Bake &amp; slice</h3><p class="muted">Steam, colour, and the patience to cool.</p></div></li>
+    </ol>
+  </section>
+  <section id="join" class="join">
+    <p class="eyebrow">Membership</p><h2>Join the club</h2>
+    <p class="muted sub">One membership, everything included. Pick how you’d like to pay.</p>
+    <ul class="tiers" data-tiers></ul>
+  </section>
+  <section id="faq" class="faq">
+    <h2>Questions</h2>
+    <details><summary>How do I get access after paying?</summary><p>Create your account, then pay on Stripe’s secure checkout with the same email. The club switches your access on once your payment is confirmed. You can then sign in and open the library.</p></details>
+    <details><summary>Can I cancel?</summary><p>Yes, at any time. Your membership is billed by Stripe, and the club can cancel it for you on request.</p></details>
+    <details><summary>Do I need special equipment?</summary><p>A jar, a bowl, a kitchen scale and a lidded oven-safe pot. Lesson one has the full list.</p></details>
+  </section>
+</main>
+<footer class="foot">
+  <div><a class="logo" href="./"><span class="mark" aria-hidden="true"></span>The Crumb Club</a><p class="muted"><strong>The Crumb Club is a fictional business.</strong> This is a demo membership site made with Spawn. The lessons are real baking guidance, but the people, prices and club are illustrative.</p></div>
+  <p class="muted small">Payments, once connected, are taken by Stripe on its own secure page. This site never sees card details. · <a href="owner.html" rel="nofollow">Owner</a></p>
+</footer>
+<script src="config.js"></script>
+<script src="club.js" defer></script>
+</body>
+</html>

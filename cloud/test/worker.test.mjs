@@ -275,3 +275,33 @@ test("multi-chunk file from D1 is served byte-identical", async () => {
   const b = Buffer.from(await r.arrayBuffer()); assert.equal(b.length, BIG.length); assert.ok(b.equals(BIG));
   const c = await fdb.prepare("SELECT chunks FROM blobs WHERE key LIKE 'blob/big/%' AND size=?1").bind(BIG.length).first(); assert.equal(c.chunks, 3);
 });
+
+test("members-only pages + owner view (OWNER_KEY)", async () => {
+  await publish("club", "static", { "index.html": "<h1>Club</h1>", "account.html": "<h1>Account</h1>", "members/index.html": "<h1>Secret library</h1>", "members/guide.txt": "secret" });
+  // no secrets: nobody is a member; owner view not set up
+  let r = await F("club.spawnapp.org", "/members/");
+  assert.equal(r.status, 302); assert.match(r.headers.get("location"), /^\/account\?gate=signin&next=/); await r.text();
+  r = await F("club.spawnapp.org", "/members/guide.txt"); assert.equal(r.status, 403); await r.text();
+  let x = await J(await F("club.spawnapp.org", "/api/owner/records")); assert.equal(x.status, 404);
+  r = await post("club.spawnapp.org", "/api/auth/signup", { email: "m@x.co", password: "longpassword" });
+  const ck = r.headers.get("set-cookie").split(";")[0]; await r.text();
+  r = await F("club.spawnapp.org", "/members/", { headers: { cookie: ck } }); assert.equal(r.status, 302); assert.match(r.headers.get("location"), /gate=pending/); await r.text();
+  x = await J(await F("club.spawnapp.org", "/api/members/me", { headers: { cookie: ck } })); assert.equal(x.body.signedIn, true); assert.equal(x.body.member, false);
+  // owner key set: wrong key 401, right key lists signups and approves
+  const OK = "owner-key-" + randomBytes(6).toString("hex");
+  await db.prepare("INSERT INTO app_secrets (slug, name, blob) VALUES ('club','OWNER_KEY',?1)").bind(enc("club", "OWNER_KEY", OK)).run();
+  await new Promise((res) => setTimeout(res, 31000)); // secret cache TTL
+  x = await J(await F("club.spawnapp.org", "/api/owner/members", { headers: { authorization: "Bearer nope-nope-nope" } })); assert.equal(x.status, 401);
+  x = await J(await F("club.spawnapp.org", "/api/owner/members", { headers: { authorization: "Bearer " + OK } }));
+  assert.deepEqual(x.body.members.map((m) => [m.email, m.approved]), [["m@x.co", false]]);
+  x = await J(await post("club.spawnapp.org", "/api/owner/members", { email: "m@x.co" }, { authorization: "Bearer " + OK })); assert.equal(x.body.approved, true);
+  r = await F("club.spawnapp.org", "/members/", { headers: { cookie: ck } }); assert.equal(r.status, 200); assert.match(await r.text(), /Secret library/);
+  assert.equal(r.headers.get("cache-control"), "private, no-store");
+  r = await F("club.spawnapp.org", "/members/"); assert.equal(r.status, 302, "still gated without a session"); await r.text();
+  await post("club.spawnapp.org", "/api/lead", { name: "Ada", message: "Booking Tue 10:00" });
+  x = await J(await F("club.spawnapp.org", "/api/owner/records?kind=lead", { headers: { authorization: "Bearer " + OK } }));
+  assert.equal(x.body.records.length, 1); assert.equal(x.body.records[0].data.name, "Ada");
+  x = await J(await F("club.spawnapp.org", "/api/owner/records/" + x.body.records[0].id, { method: "DELETE", headers: { authorization: "Bearer " + OK } })); assert.equal(x.body.ok, true);
+  x = await J(await post("club.spawnapp.org", "/api/owner/members", { email: "m@x.co", approved: false }, { authorization: "Bearer " + OK }));
+  r = await F("club.spawnapp.org", "/members/", { headers: { cookie: ck } }); assert.equal(r.status, 302); await r.text();
+});

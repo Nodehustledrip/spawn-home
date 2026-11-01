@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glow Studio — Book hair &amp; skin appointments online</title>
+<link rel="canonical" href="https://glow-booking.spawnapp.org/">
+<meta name="description" content="A complete booking site for a salon, studio or clinic: services, staff picker, live calendar with time slots, deposits or full payment through your own Stripe link, and a confirmation screen. A Spawn premium template.">
+<meta name="theme-color" content="#f6f1ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14130f" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Glow Studio — Book hair & skin appointments online">
+<meta property="og:description" content="Services, staff, live time slots and deposits through your own Stripe link. A Spawn premium template.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://glow-booking.spawnapp.org/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23c56b47'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23f6f1ea'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" type="image/webp" imagesrcset="img/hero-480.webp 480w, img/hero-960.webp 960w" imagesizes="(max-width:900px) 100vw, 50vw" fetchpriority="high">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("gs-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Glow Studio (demo)","url":"https://glow-booking.spawnapp.org/","description":"Demo booking site for a fictional hair and skin studio, made with Spawn."}</script>
+</head>
+<body>
+<a class="skip" href="#book">Skip to booking</a>
+<p class="demo-bar" data-demo-banner hidden role="note"><strong>Demo — payments not connected.</strong> Book freely: nothing is charged until the owner adds their own Stripe link.</p>
+<header class="top">
+  <a class="logo" href="./" aria-label="Glow Studio home"><span class="mark" aria-hidden="true"></span>Glow<span class="logo-thin">Studio</span></a>
+  <nav class="nav" aria-label="Main"><a href="#services">Services</a><a href="#team">Team</a><a href="#visit">Visit</a></nav>
+  <div class="top-end"><a class="btn sm" href="#book">Book now</a><button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span aria-hidden="true">◐</span></button></div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Hair · Colour · Skin — Riverside</p>
+      <h1>Slow beauty,<br><em>booked in a minute.</em></h1>
+      <p class="lead">Choose your treatment, pick who you’d like to see and a time that suits you. Hold it with a small deposit, or pay at the studio.</p>
+      <div class="hero-cta"><a class="btn" href="#book">Find a time</a><a class="btn ghost" href="#services">See treatments</a></div>
+      <ul class="facts" aria-label="Studio details"><li><strong>Tue–Sat</strong><span>10am – 8pm</span></li><li><strong>$20</strong><span>deposit holds a time</span></li><li><strong>24h</strong><span>free rescheduling</span></li></ul>
+    </div>
+    <figure class="hero-photo">
+      <img src="img/hero-960.webp" srcset="img/hero-480.webp 480w, img/hero-960.webp 960w" sizes="(max-width:900px) 100vw, 50vw" width="960" height="540" alt="Light-filled studio with oak styling stations, round mirrors, sage chairs and an olive tree" fetchpriority="high" decoding="async">
+    </figure>
+  </section>
+
+  <section class="band reveal" id="services" aria-labelledby="svc-h">
+    <div class="band-head"><p class="eyebrow">Treatments</p><h2 id="svc-h">Unhurried appointments, honest prices.</h2></div>
+    <div class="feature-grid">
+      <article class="feature"><img src="img/cut-480.webp" srcset="img/cut-480.webp 480w, img/cut-960.webp 960w" sizes="(max-width:700px) 100vw, 33vw" width="480" height="360" alt="Stylist cutting shoulder-length brown hair" loading="lazy" decoding="async"><h3>Cuts that grow out well</h3><p>Every cut starts with a proper consultation and ends with a finish you can recreate at home.</p></article>
+      <article class="feature"><img src="img/color-480.webp" srcset="img/color-480.webp 480w, img/color-960.webp 960w" sizes="(max-width:700px) 100vw, 33vw" width="480" height="360" alt="Colourist mixing warm copper colour in a ceramic bowl beside foils" loading="lazy" decoding="async"><h3>Colour, mixed for you</h3><p>Glosses and root refreshes in low-ammonia formulas, matched to your skin tone and routine.</p></article>
+      <article class="feature"><img src="img/facial-480.webp" srcset="img/facial-480.webp 480w, img/facial-960.webp 960w" sizes="(max-width:700px) 100vw, 33vw" width="480" height="360" alt="Client relaxing during a facial with a cream mask applied by brush" loading="lazy" decoding="async"><h3>Skin, calmly</h3><p>Facials and brow work in a quiet room upstairs — no upselling, just advice you can use.</p></article>
+    </div>
+  </section>
+
+  <section class="booker" id="book" aria-labelledby="book-h" data-flow>
+    <div class="band-head"><p class="eyebrow">Book online</p><h2 id="book-h">Your appointment</h2><p class="muted" data-mode hidden>Preview mode — bookings stay in this browser until the site is published.</p></div>
+    <div class="book-grid">
+      <div class="steps">
+        <section class="step" data-step="1" aria-labelledby="s1"><h3 id="s1"><span class="n">1</span>Choose a treatment</h3><div class="services" role="radiogroup" aria-labelledby="s1" data-services></div></section>
+        <section class="step" data-step="2" aria-labelledby="s2" id="team"><h3 id="s2"><span class="n">2</span>Who would you like to see?</h3><div class="staff" role="radiogroup" aria-labelledby="s2" data-staff></div></section>
+        <section class="step" data-step="3" aria-labelledby="s3">
+          <div class="step-head"><h3 id="s3"><span class="n">3</span>Pick a day &amp; time</h3><div class="arrows"><button type="button" data-prev aria-label="Previous month">‹</button><span class="month" data-month aria-live="polite"></span><button type="button" data-next aria-label="Next month">›</button></div></div>
+          <div class="cal-wrap"><div class="cal" data-cal></div><div class="times"><p class="muted" data-times-hint aria-live="polite"></p><div data-times></div></div></div>
+        </section>
+        <section class="step" data-step="4" aria-labelledby="s4">
+          <h3 id="s4"><span class="n">4</span>Your details &amp; payment</h3>
+          <form data-form id="details" novalidate>
+            <div class="fields">
+              <label>Full name<input name="name" autocomplete="name" required maxlength="80"></label>
+              <label>Email<input name="email" type="email" autocomplete="email" required maxlength="120"></label>
+              <label>Phone <span class="opt">(optional)</span><input name="phone" type="tel" autocomplete="tel" maxlength="30"></label>
+              <label class="wide">Anything we should know? <span class="opt">(optional)</span><textarea name="notes" rows="2" maxlength="600" placeholder="Allergies, inspiration photos, accessibility needs…"></textarea></label>
+            </div>
+            <fieldset class="pay"><legend>How would you like to pay?</legend><div data-pay></div></fieldset>
+          </form>
+        </section>
+      </div>
+      <aside class="summary" id="summary" aria-labelledby="sum-h">
+        <h3 id="sum-h">Booking summary</h3>
+        <dl class="sum" data-sum></dl>
+        <div class="tot"><span>Treatment</span><strong data-total>—</strong></div>
+        <div class="tot due"><span>Due</span><strong data-due>—</strong></div>
+        <button class="btn block" type="submit" form="details" data-submit disabled>Pick a service and time</button>
+        <p class="fine">Free changes up to 24 hours before. Payments, when connected, are taken by Stripe on its own secure page — this site never sees card details.</p>
+      </aside>
+    </div>
+  </section>
+  <section class="booker" data-confirm hidden aria-live="polite"></section>
+
+  <section class="band visit reveal" id="visit" aria-labelledby="visit-h">
+    <div><p class="eyebrow">Visit</p><h2 id="visit-h">Find the studio</h2><p class="muted">Second floor above the bakery on Mill Street, Riverside. Step-free entrance and lift at the side door. Street parking and a bike rack out front.</p></div>
+    <dl class="hours"><div><dt>Tue – Wed</dt><dd>10:00 – 19:00</dd></div><div><dt>Thu – Fri</dt><dd>10:00 – 20:00</dd></div><div><dt>Saturday</dt><dd>9:00 – 17:00</dd></div><div><dt>Sun – Mon</dt><dd>Closed</dd></div></dl>
+  </section>
+</main>
+
+<div class="mobile-bar" data-mobile-bar hidden><span data-mobile-sum></span><button type="button" class="btn sm" data-mobile-go>Review</button></div>
+<div class="toast" data-toast role="status" hidden></div>
+<footer class="foot">
+  <p><strong>Glow Studio</strong> is a fictional business — this is a demo booking site made with Spawn. Names, people and prices are illustrative.</p>
+  <p class="muted small">Photos are illustrative. <a href="owner.html" rel="nofollow">Owner view</a></p>
+</footer>
+<script src="config.js"></script>
+<script src="app.js" defer></script>
+</body>
+</html>

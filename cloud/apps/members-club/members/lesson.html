@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-members data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lesson — The Crumb Club</title>
+<meta name="description" content="Members' lesson.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f7f0e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17130f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='36' rx='26' ry='20' fill='%23b4682f'/%3E%3Cpath d='M18 32c6-6 22-6 28 0' stroke='%23f7f0e4' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<script>try{var t=localStorage.getItem("cc-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<p class="demo-bar" data-demo-banner hidden role="note"><strong>Demo — payments not connected.</strong> Sign up freely. Nothing is charged until the owner adds their own Stripe links.</p>
+<p class="paid-bar" data-paid hidden role="status">Thanks for joining! Your access is switched on once your payment is confirmed. Sign in with the same email.</p>
+<header class="top">
+  <a class="logo" href=".././" aria-label="The Crumb Club home"><span class="mark" aria-hidden="true"></span>The Crumb Club</a>
+  <nav class="nav" aria-label="Main"><a href="./">Library</a><a href="../account.html">Account</a></nav>
+  <div class="top-end"><button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span aria-hidden="true">◐</span></button></div>
+</header>
+<main id="main" class="wrap lesson" data-lesson></main>
+<footer class="foot">
+  <div><a class="logo" href=".././"><span class="mark" aria-hidden="true"></span>The Crumb Club</a><p class="muted"><strong>The Crumb Club is a fictional business.</strong> This is a demo membership site made with Spawn. The lessons are real baking guidance, but the people, prices and club are illustrative.</p></div>
+  <p class="muted small">Payments, once connected, are taken by Stripe on its own secure page. This site never sees card details. · <a href="../owner.html" rel="nofollow">Owner</a></p>
+</footer>
+<script src="../config.js"></script>
+<script src="lessons.js"></script>
+<script>
+(function(){var L=window.LESSONS||[],id=new URLSearchParams(location.search).get("l"),i=L.findIndex(function(x){return x.id===id}),x=L[i],root=document.querySelector("[data-lesson]"),e=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+if(!x){root.innerHTML='<h1>Lesson not found</h1><p><a href="./">Back to the library</a></p>';return}
+document.title=x.title+" — The Crumb Club";var done={};try{done=JSON.parse(localStorage.getItem("cc-done")||"{}")}catch(_){}
+var nx=L[i+1];
+root.innerHTML='<nav class="crumbs"><a href="./">Library</a> / Lesson '+x.n+'</nav><div class="lesson-grid"><div><p class="eyebrow">Lesson '+x.n+' · '+x.mins+' min · '+e(x.level)+'</p><h1>'+e(x.title)+'</h1><p class="lead">'+e(x.intro)+'</p><ol class="steps">'+x.steps.map(function(s){return"<li>"+e(s)+"</li>"}).join("")+'</ol><p class="tip"><strong>Tip.</strong> '+e(x.tip)+'</p><div class="cta"><button class="btn" type="button" data-done>'+(done[x.id]?"Marked as done ✓":"Mark as done")+'</button>'+(nx?'<a class="btn ghost" href="lesson.html?l='+nx.id+'">Next: '+e(nx.title)+' →</a>':'<a class="btn ghost" href="./">Back to the library</a>')+'</div></div><div class="lesson-img"><img src="../img/'+x.img+'-960.webp" srcset="../img/'+x.img+'-480.webp 480w, ../img/'+x.img+'-960.webp 960w" sizes="(max-width:900px) 100vw, 40vw" alt="" width="960" height="720"></div></div>';
+root.querySelector("[data-done]").addEventListener("click",function(){done[x.id]=1;try{localStorage.setItem("cc-done",JSON.stringify(done))}catch(_){}this.textContent="Marked as done ✓"})})();
+</script>
+<script src="../club.js" defer></script>
+</body>
+</html>

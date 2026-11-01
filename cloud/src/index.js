@@ -4,6 +4,7 @@ import { blobs } from "./blobs.js";
 import { json, withSecurity, HttpError, mimeFor, SECURITY_HEADERS } from "./util.js";
 import { handleShared } from "./shared.js";
 import { handleBidboard } from "./bidboard.js";
+import { handleMembers, gateMembersPage, MEMBERS_PREFIX } from "./members.js";
 
 const RUNTIMES = { bidboard: handleBidboard };
 const RESERVED = new Set(["www", "api", "app", "apps", "admin", "cloud", "static", "assets", "cdn", "mail", "status"]);
@@ -60,6 +61,7 @@ async function route(request, env, ctx) {
       const r = await rt(ctxApp);
       if (r) return r;
     }
+    if (path.startsWith("/api/owner/") || path === "/api/members/me") { const mm = await handleMembers(ctxApp); if (mm) return mm; }
     const s = await handleShared(ctxApp);
     if (s) return s;
     return json({ ok: false, error: "Not found" }, 404);
@@ -132,6 +134,8 @@ async function serveStatic({ env, ctx, app, slug, path, request }) {
     else if (app.files["404.html"]) { file = "404.html"; status = 404; }
     else return notFoundPage(404, "That page doesn't exist.");
   }
+  const gated = file.startsWith(MEMBERS_PREFIX);
+  if (gated) { const g = await gateMembersPage({ env, app, slug, url: new URL(request.url), path, request }, file); if (g) return g; }
   const meta = app.files[file];
   const isHtml = /\.html?$/.test(file);
   const og = isHtml && app.share && meta.s <= 2 * 1024 * 1024;
@@ -141,7 +145,8 @@ async function serveStatic({ env, ctx, app, slug, path, request }) {
   headers.set("ETag", etag);
   headers.set("Cache-Control", isHtml || file === "sw.js" ? "public, max-age=0, must-revalidate" : "public, max-age=3600, stale-while-revalidate=86400");
   headers.set("X-Spawn-Version", String(app.live_version));
-  if (status === 200 && request.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers });
+  if (gated) { headers.set("Cache-Control", "private, no-store"); headers.set("Vary", "Cookie"); }
+  if (status === 200 && !gated && request.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers });
 
   const key = "blob/" + slug + "/" + meta.h; // content-addressed: versions share unchanged files
   const cache = typeof caches !== "undefined" ? caches.default : null;

@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Browse live apps made with Spawn and five Spawn starters — restaurant, portfolio, booking, waitlist and a game. Remix one free." />
+  <meta name="description" content="Live apps made with Spawn, five free starters, and premium templates with Pro: booking with payments, a store and a membership site." />
     <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta property="og:title" content="Website Templates to Remix — Spawn Gallery &amp; Starters" />
-  <meta property="og:description" content="Browse live apps made with Spawn and five Spawn starters — restaurant, portfolio, booking, waitlist and a game. Remix one free." />
+  <meta property="og:description" content="Live apps made with Spawn, five free starters, and premium templates with Pro: booking with payments, a store and a membership site." />
   <meta property="og:url" content="https://spawnapp.org/gallery" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
@@ -20,7 +20,7 @@
   <meta property="og:image:alt" content="Website Templates to Remix — Spawn Gallery &amp; Starters" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Website Templates to Remix — Spawn Gallery &amp; Starters" />
-  <meta name="twitter:description" content="Browse live apps made with Spawn and five Spawn starters — restaurant, portfolio, booking, waitlist and a game. Remix one free." />
+  <meta name="twitter:description" content="Live apps made with Spawn, five free starters, and premium templates with Pro: booking with payments, a store and a membership site." />
   <meta name="twitter:image" content="https://spawnapp.org/og/gallery.png" />
   <title>Website Templates to Remix — Spawn Gallery &amp; Starters</title>
   <link rel="canonical" href="https://spawnapp.org/gallery" />
@@ -76,6 +76,21 @@
     .gl-cta h2 { margin: 0 0 .5rem; letter-spacing: -.02em; }
     .gl-cta p { margin: 0 0 1.2rem; color: var(--muted, #a8a49c); }
     .gl-fine { margin-top: 1.5rem; font-size: .82rem; color: #7f7b73; }
+    .gl-prem { margin: 0 0 2.6rem; padding: 1.6rem; border-radius: 22px; background: radial-gradient(120% 140% at 0% 0%, rgba(214,178,94,.16), transparent 55%), linear-gradient(180deg, #121214, #0d0d0f); border: 1px solid rgba(214,178,94,.32); }
+    .gl-prem-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .8rem 1.4rem; margin-bottom: 1.2rem; }
+    .gl-prem-head h2 { margin: .15rem 0 0; font-size: clamp(1.4rem, 3vw, 1.9rem); letter-spacing: -.02em; }
+    .gl-prem-head p { margin: .35rem 0 0; color: var(--muted, #a8a49c); max-width: 58ch; line-height: 1.55; }
+    .gl-prem-kicker { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; color: #e3c27a; }
+    .gl-card-premium { border-color: rgba(214,178,94,.38) !important; box-shadow: 0 0 0 1px rgba(214,178,94,.08), 0 18px 40px -24px rgba(214,178,94,.45); }
+    .gl-tag-premium { color: #1b1404; background: linear-gradient(135deg,#f3d58a,#c9a24a); border-color: transparent; font-weight: 700; }
+    .gl-card-premium [data-gl-premium] { border-color: rgba(214,178,94,.55); }
+    dialog.gl-up { max-width: 440px; padding: 0; overflow: hidden; }
+    .gl-up-top { padding: 1.5rem 1.5rem 1.1rem; background: radial-gradient(120% 120% at 0% 0%, rgba(214,178,94,.22), transparent 60%); border-bottom: 1px solid rgba(255,255,255,.08); }
+    .gl-up-top h3 { margin: .3rem 0 .4rem; font-size: 1.35rem; letter-spacing: -.015em; }
+    .gl-up-top p { margin: 0; color: #bdb8ae; line-height: 1.55; }
+    .gl-up ul { margin: 0; padding: 1.1rem 1.5rem .4rem 2.6rem; color: #e6e2da; line-height: 1.7; }
+    .gl-up .gl-dlg-actions { padding: .8rem 1.5rem 1.4rem; }
+    .gl-up-price { padding: 0 1.5rem; margin: .2rem 0 0; color: #a8a49c; font-size: .9rem; }
     dialog.gl-dlg { background: #141416; color: #f2f0eb; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 1.4rem; max-width: 380px; width: calc(100% - 2rem); }
     dialog.gl-dlg::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(3px); }
     .gl-dlg h3 { margin: 0 0 .8rem; }
@@ -139,6 +154,19 @@
       </div>
     </header>
 
+    <section class="gl-prem" id="premium" aria-labelledby="gl-prem-h" <!--GL_PREMIUM_HIDDEN-->>
+      <div class="gl-prem-head">
+        <div>
+          <span class="gl-prem-kicker">Premium templates</span>
+          <h2 id="gl-prem-h">Bigger builds, included with Pro</h2>
+          <p>Complete sites with real flows — bookings with deposits, an online store with a cart, a members area. Open any of them live for free. Remix one into your own build with a Spawn Pro account, at no extra charge.</p>
+        </div>
+        <a class="link-quiet" href="/pricing?ref=premium-template">See Pro →</a>
+      </div>
+      <ul class="gl-grid" data-gl-prem><!--GL_PREMIUM-->
+      </ul>
+    </section>
+
     <div class="gl-bar" role="toolbar" aria-label="Filter apps">
       <div class="gl-chips" data-gl-chips><!--GL_FILTERS--></div>
       <label class="sr-only" for="gl-sort">Sort</label>
@@ -164,8 +192,27 @@
       <p>Describe an app, edit it in chat, and publish it to its own address. Free to start.</p>
       <a class="btn-solid" href="/build">Start building</a>
     </section>
-    <p class="gl-fine">Apps here are published by Spawn users, who choose whether to list them. Cards marked “Spawn starter” are templates made by Spawn, with fictional businesses. Remixing copies an app’s pages, styles and images only — never its data, sign-ins or keys. See something wrong? Use “Report” on its card.</p>
+    <p class="gl-fine">Apps here are published by Spawn users, who choose whether to list them. Cards marked “Spawn starter” or “Premium” are templates made by Spawn, with fictional businesses; premium templates can be remixed with a Pro account. Remixing copies an app’s pages, styles and images only — never its data, sign-ins or keys. See something wrong? Use “Report” on its card.</p>
   </main>
+
+  <dialog class="gl-dlg gl-up" data-gl-up aria-labelledby="gl-up-h">
+    <div class="gl-up-top">
+      <span class="gl-prem-kicker">Premium template</span>
+      <h3 id="gl-up-h">Remix <span data-gl-up-title>this template</span> with Pro</h3>
+      <p>Premium templates are included with Spawn Pro — no extra charge per template. You can keep exploring the live demo for free.</p>
+    </div>
+    <ul>
+      <li>Every premium template, ready to remix</li>
+      <li>25 saved builds and 300 edits a day</li>
+      <li>Payments go to your own Stripe links — setup guide included</li>
+    </ul>
+    <p class="gl-up-price">Pro is $12/month or $120/year. Cancel anytime.</p>
+    <div class="gl-dlg-actions">
+      <button type="button" class="link-quiet" data-gl-up-close>Not now</button>
+      <a class="btn-solid" href="/pricing?ref=premium-template" data-gl-up-go>See Pro</a>
+    </div>
+    <p class="gl-up-price" data-gl-up-signin style="padding-bottom:1.2rem" hidden>Already on Pro? <a href="/build?signin=1">Sign in</a>, then remix again.</p>
+  </dialog>
 
   <dialog class="gl-dlg" data-gl-dlg aria-labelledby="gl-dlg-h">
     <form method="dialog" data-gl-form>
@@ -227,6 +274,29 @@
       var rep = e.target.closest("[data-gl-report]"); if (rep) openReport(rep.dataset.glReport);
     });
     track("gallery_viewed", { entries: cards.length, ref: params.get("ref") || undefined });
+
+    var prem = document.querySelector("[data-gl-prem]"), up = document.querySelector("[data-gl-up]"), me = null;
+    function getMe() { if (!me) me = fetch("/api/me", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }); return me; }
+    if (prem && prem.children.length) {
+      var seen = false;
+      var vis = function () { if (seen) return; seen = true; prem.querySelectorAll("[data-gl-premium]").forEach(function (a) { track("premium_template_viewed", { slug: a.dataset.glPremium }); }); };
+      if ("IntersectionObserver" in window) { var io = new IntersectionObserver(function (en) { if (en.some(function (x) { return x.isIntersecting; })) { vis(); io.disconnect(); } }); io.observe(prem); } else vis();
+      prem.addEventListener("click", function (e) {
+        var o = e.target.closest("[data-gl-open]"); if (o) track("gallery_open_live", { slug: o.dataset.glOpen, premium: true });
+        var rep = e.target.closest("[data-gl-report]"); if (rep) openReport(rep.dataset.glReport);
+        var a = e.target.closest("[data-gl-premium]"); if (!a) return;
+        e.preventDefault();
+        getMe().then(function (d) {
+          if (d && d.signedIn && d.plan === "pro") { track("gallery_remix_click", { slug: a.dataset.glPremium, premium: true }); location.href = a.getAttribute("href"); return; }
+          track("premium_remix_blocked", { slug: a.dataset.glPremium, signed_in: !!(d && d.signedIn), where: "gallery" });
+          up.querySelector("[data-gl-up-title]").textContent = a.dataset.glTitle || "this template";
+          up.querySelector("[data-gl-up-signin]").hidden = !!(d && d.signedIn);
+          if (up.showModal) up.showModal(); else location.href = "/pricing?ref=premium-template";
+        });
+      });
+      up.querySelector("[data-gl-up-close]").addEventListener("click", function () { up.close(); });
+      up.addEventListener("click", function (e) { if (e.target === up) up.close(); });
+    }
 
     var dlg = document.querySelector("[data-gl-dlg]"), form = document.querySelector("[data-gl-form]"), msg = document.querySelector("[data-gl-msg]"), current = null;
     function openReport(slug) {

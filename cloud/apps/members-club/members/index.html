@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-members data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Library — The Crumb Club</title>
+<meta name="description" content="Members' lesson library.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f7f0e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17130f" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='36' rx='26' ry='20' fill='%23b4682f'/%3E%3Cpath d='M18 32c6-6 22-6 28 0' stroke='%23f7f0e4' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<script>try{var t=localStorage.getItem("cc-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<p class="demo-bar" data-demo-banner hidden role="note"><strong>Demo — payments not connected.</strong> Sign up freely. Nothing is charged until the owner adds their own Stripe links.</p>
+<p class="paid-bar" data-paid hidden role="status">Thanks for joining! Your access is switched on once your payment is confirmed. Sign in with the same email.</p>
+<header class="top">
+  <a class="logo" href=".././" aria-label="The Crumb Club home"><span class="mark" aria-hidden="true"></span>The Crumb Club</a>
+  <nav class="nav" aria-label="Main"><a href="./">Library</a><a href="../account.html">Account</a></nav>
+  <div class="top-end"><button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span aria-hidden="true">◐</span></button></div>
+</header>
+<main id="main" class="wrap">
+  <p class="notice" data-preview hidden>Preview mode: this page is gated in your browser only. Once the site is published on Spawn, the server serves it only to approved members.</p>
+  <p class="eyebrow">Members’ library</p><h1>Welcome in, <span data-who>baker</span>.</h1>
+  <p class="muted sub">Work through the lessons in order, or jump to the one you need.</p>
+  <ul class="lib" data-lib></ul>
+  <section class="month"><p class="eyebrow">This month’s bake</p><h2>Seeded rye tin loaf</h2><p class="muted">Coming soon to the library. Members get it as soon as it’s published.</p></section>
+</main>
+<footer class="foot">
+  <div><a class="logo" href=".././"><span class="mark" aria-hidden="true"></span>The Crumb Club</a><p class="muted"><strong>The Crumb Club is a fictional business.</strong> This is a demo membership site made with Spawn. The lessons are real baking guidance, but the people, prices and club are illustrative.</p></div>
+  <p class="muted small">Payments, once connected, are taken by Stripe on its own secure page. This site never sees card details. · <a href="../owner.html" rel="nofollow">Owner</a></p>
+</footer>
+<script src="../config.js"></script>
+<script src="lessons.js"></script>
+<script>
+(function(){var l=window.LESSONS||[],e=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};var done={};try{done=JSON.parse(localStorage.getItem("cc-done")||"{}")}catch(_){}
+document.querySelector("[data-lib]").innerHTML=l.map(function(x){return '<li><a href="lesson.html?l='+x.id+'"><img src="../img/'+x.img+'-480.webp" srcset="../img/'+x.img+'-480.webp 480w, ../img/'+x.img+'-960.webp 960w" sizes="(max-width:700px) 100vw, 33vw" alt="" width="960" height="720" loading="lazy" decoding="async"><div><span class="num">Lesson '+x.n+(done[x.id]?' · <b class="pill ok">Done</b>':'')+'</span><h3>'+e(x.title)+'</h3><p class="muted">'+x.mins+' min · '+e(x.level)+'</p></div></a></li>'}).join("")})();
+</script>
+<script src="../club.js" defer></script>
+</body>
+</html>
