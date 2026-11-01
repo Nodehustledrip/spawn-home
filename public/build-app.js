@@ -524,7 +524,7 @@
       return;
     }
     if (submit) submit.disabled = true;
-    if (label) label.textContent = "Creating…";
+    if (label) label.textContent = state.aiReady && state.buildMode !== "offline" ? "Writing your site…" : "Creating…";
     setNote("");
 
     api("/api/builds", {
@@ -549,7 +549,13 @@
           return;
         }
         track("build_created", { template: res.data.build.template || state.selectedTemplate || null, signed_in: !!state.signedIn });
-        setNote("Created — preview on the right. Download the zip to keep it.");
+        setNote(
+          res.data.generated === "ai"
+            ? "Created — written for your description. Refine it in Build chat, or download the zip."
+            : res.data.note
+            ? "Created from a template. " + res.data.note
+            : "Created — preview on the right. Download the zip to keep it."
+        );
         state.builds = [res.data.build].concat(
           state.builds.filter(function (b) {
             return b.id !== res.data.build.id;
@@ -660,10 +666,10 @@
           badge.classList.toggle("is-degraded", !!data.degraded);
           badge.title =
             mode === "ai"
-              ? "Edits powered by " + (data.model || "AI") + " — falls back to free offline rules"
+              ? "AI edits — falls back to free offline rules"
               : mode === "free-cloud"
-              ? "Free cloud model (" + (data.model || "free tier") + ") — no API credits needed; offline rules as backup"
-              : "Free offline rules on this server — no API credits needed";
+              ? "Free cloud AI writes new builds and applies edits — offline rules as backup when the free daily budget runs out"
+              : data.message || "Free offline rules on this server — no API credits needed";
         }
         var hint = $("[data-chat-hint]");
         if (hint && mode !== "offline") {

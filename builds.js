@@ -331,6 +331,25 @@ function mount(app) {
     res.json({ ok: true, templates: webgen.listTemplates() });
   });
 
+  function aiFallbackNote(reason, kind) {
+    const tail = kind === "create" ? "so this starts from a template — describe changes in Build chat." : "used free offline rules instead.";
+    switch (reason) {
+      case "daily_cap":
+        return "Today's free AI budget is used up, " + tail;
+      case "ip_daily_cap":
+      case "owner_daily_cap":
+        return "You've used today's free AI requests, " + tail;
+      case "rate_limited":
+        return "Cloud AI is busy right now, " + tail;
+      case "quota":
+        return "Cloud AI hit its free-tier limit, " + tail;
+      case "timeout":
+        return "Cloud AI took too long, " + tail;
+      default:
+        return "Cloud AI couldn't finish that, " + tail;
+    }
+  }
+
   app.get("/api/builds/ai-status", function (_req, res) {
     res.setHeader("Cache-Control", "no-store");
     buildai
@@ -417,6 +436,24 @@ function mount(app) {
       { name: name, template: body.template, description: description, accent: accent },
       BUILDS_DIR
     );
+    /* Cloud AI writes a site that matches the prompt; on any limit/failure the
+     * template scaffold stays and the response says so honestly. */
+    let gen = null;
+    if (!(body.ai === false) && buildai.isConfigured()) {
+      const t0 = Date.now();
+      try {
+        gen = await buildai.generateSite(
+          result.path,
+          { name: name, description: description, template: result.template || body.template, accent: accent },
+          ip,
+          me
+        );
+      } catch (err) {
+        console.error("[builds] ai generate crashed:", (err && err.message) || "error");
+        gen = { ok: false, reason: "crash" };
+      }
+      console.log("[builds] generate", gen.ok ? "ok" : "fallback:" + gen.reason, Date.now() - t0 + "ms");
+    }
     try {
       await store.save(result.id, me, result.path);
     } catch (err) {
@@ -433,7 +470,17 @@ function mount(app) {
       createdAt: new Date().toISOString(),
     });
     console.log("[builds] created", result.id, result.template, "store=" + store.mode());
-    return res.status(201).json({ ok: true, build: summarizeBuild(result.id) });
+    return res.status(201).json({
+      ok: true,
+      build: summarizeBuild(result.id),
+      generated: gen ? (gen.ok ? "ai" : "template") : "template",
+      aiFallback: gen && !gen.ok ? gen.reason : undefined,
+      note: gen
+        ? gen.ok
+          ? "Written for your description — refine it in Build chat."
+          : aiFallbackNote(gen.reason, "create")
+        : undefined,
+    });
   }));
 
   app.get("/api/builds/:id", wrap(async function (req, res) {
@@ -547,7 +594,7 @@ function mount(app) {
       let ai = null;
       if (wantAi) {
         try {
-          ai = await buildai.applyAiEdit(root, message, ip);
+          ai = await buildai.applyAiEdit(root, message, ip, b.owner);
         } catch (err) {
           console.error("[builds] ai edit crashed:", (err && err.message) || "error");
           ai = { ok: false, reason: "crash" };
@@ -564,8 +611,8 @@ function mount(app) {
           return c.action !== "skip";
         });
         if (ai && !real.length && ai.reply) out.reply = ai.reply;
-        else if (ai && ai.reason === "rate_limited") {
-          out.reply = (out.reply || "") + " (Cloud model is busy — used free offline rules.)";
+        else if (ai && ai.reason !== "no_changes" && ai.reason !== "not_configured") {
+          out.reply = (out.reply || "") + " (" + aiFallbackNote(ai.reason, "edit") + ")";
         }
         out.mode = "offline";
         if (ai) out.aiFallback = ai.reason;

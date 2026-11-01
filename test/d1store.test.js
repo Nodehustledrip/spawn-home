@@ -1,4 +1,6 @@
 "use strict";
+/* Never call a real model from tests. */
+delete process.env.GEMINI_API_KEY;
 /* End-to-end: accounts + builds + cloud tokens on the D1 backend, against a
  * fake Cloudflare D1 REST API backed by node:sqlite. */
 const { test, before, after } = require("node:test");
