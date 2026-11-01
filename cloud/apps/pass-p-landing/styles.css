@@ -112,5 +112,8 @@ footer{margin-top:56px;padding:28px 0 8px;color:var(--faint);font-size:.85rem;bo
 .logo-row{display:flex;gap:18px;flex-wrap:wrap;opacity:.55;font-weight:700;font-size:.85rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-top:28px}
 
 /* forge-dark */
-body.dark, html.dark body { --bg:#070a0e; --panel:#0f141b; --text:#e8eef6; color-scheme: dark; }
-body.dark { background: var(--bg); color: var(--text); }
+/* Dark tweaks apply only while the dark theme is active, so the light theme
+ * stays fully light (the nav used to mix light surfaces with dark-theme text). */
+html:not([data-theme="light"]) body.dark { --bg:#070a0e; --panel:#0f141b; --text:#e8eef6; color-scheme: dark; }
+html:not([data-theme="light"]) body.dark { background: var(--bg); color: var(--text); }
+[data-theme="light"] body{color-scheme:light}
