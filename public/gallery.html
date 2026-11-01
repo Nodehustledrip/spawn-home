@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Apps people published with Spawn. Open one live, or remix it into your own build — free to start." />
+    <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#0a0a0b" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:title" content="Gallery — Spawn" />
+  <meta property="og:description" content="Apps people published with Spawn. Open one live, or remix it into your own build — free to start." />
+  <meta property="og:url" content="https://spawnapp.org/gallery" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Spawn" />
+  <meta property="og:image" content="https://spawnapp.org/og/gallery.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="The Spawn Gallery: apps people published with Spawn" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Gallery — Spawn" />
+  <meta name="twitter:description" content="Apps people published with Spawn. Open one live, or remix it into your own build — free to start." />
+  <meta name="twitter:image" content="https://spawnapp.org/og/gallery.png" />
+  <title>Gallery — Spawn</title>
+  <link rel="canonical" href="https://spawnapp.org/gallery" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0a0a0b; color: #f2f0eb; }
+    .skip { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; }
+    .skip:focus { position: fixed !important; width: auto !important; height: auto !important; clip: auto !important; z-index: 100; top: .75rem; left: .75rem; padding: .5rem .85rem; background: #d4a574; color: #1a1208; border-radius: 6px; }
+    .page-gallery { max-width: 1180px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2rem) 5rem; }
+    .gl-hero { position: relative; padding: clamp(3rem, 8vw, 5.5rem) 0 2rem; }
+    .gl-hero::before { content: ""; position: absolute; inset: -20% -10% auto auto; width: 520px; height: 420px; background: radial-gradient(closest-side, rgba(212,165,116,.18), transparent); filter: blur(10px); pointer-events: none; animation: gl-drift 14s ease-in-out infinite alternate; }
+    @keyframes gl-drift { to { transform: translate(-60px, 40px) scale(1.08); } }
+    .gl-hero h1 { margin: .4rem 0 .8rem; font-size: clamp(2.2rem, 5.5vw, 3.6rem); letter-spacing: -.035em; line-height: 1.02; }
+    .gl-hero .lead { max-width: 40rem; color: var(--muted, #a8a49c); font-size: 1.1rem; line-height: 1.6; margin: 0 0 1.4rem; }
+    .gl-hero-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .gl-bar { position: sticky; top: 0; z-index: 5; display: flex; gap: .75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: .8rem 0; margin-bottom: 1.25rem; background: linear-gradient(#0a0a0b 70%, rgba(10,10,11,0)); }
+    .gl-chips { display: flex; gap: .45rem; flex-wrap: wrap; }
+    .gl-chip { font: inherit; font-size: .88rem; color: #cfcac0; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: .42rem .85rem; cursor: pointer; transition: background .25s, border-color .25s, color .25s, transform .2s; }
+    .gl-chip span { opacity: .55; margin-left: .25rem; font-variant-numeric: tabular-nums; }
+    .gl-chip:hover { border-color: rgba(212,165,116,.5); transform: translateY(-1px); }
+    .gl-chip.is-on { background: #d4a574; border-color: #d4a574; color: #1a1208; }
+    .gl-sort { font: inherit; font-size: .88rem; color: #f2f0eb; background: #141416; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: .42rem .7rem; }
+    .gl-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+    .gl-card { --acc: #d4a574; position: relative; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,.09); border-radius: 18px; background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.01)); overflow: hidden; opacity: 0; transform: translateY(18px) scale(.985); animation: gl-in .7s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--i, 0) * 70ms); transition: transform .35s cubic-bezier(.2,.7,.2,1), border-color .35s, box-shadow .35s; }
+    @keyframes gl-in { to { opacity: 1; transform: none; } }
+    .gl-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--acc) 55%, transparent); box-shadow: 0 24px 60px -28px color-mix(in srgb, var(--acc) 60%, transparent); }
+    .gl-card.is-out { display: none; }
+    .gl-shot { position: relative; display: block; aspect-ratio: 1200 / 630; overflow: hidden; background: #111; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .gl-shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform .8s cubic-bezier(.2,.7,.2,1); }
+    .gl-card:hover .gl-shot img { transform: scale(1.04); }
+    .gl-live-pill { position: absolute; top: .7rem; right: .7rem; display: inline-flex; align-items: center; gap: .4rem; font-size: .75rem; font-weight: 600; padding: .25rem .6rem; border-radius: 999px; background: rgba(10,10,11,.72); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.12); }
+    .gl-live-pill span { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: gl-pulse 2.2s infinite; }
+    @keyframes gl-pulse { 70% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+    .gl-body { display: flex; flex-direction: column; gap: .45rem; padding: 1rem 1.1rem 1.1rem; flex: 1; }
+    .gl-tags { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .gl-tag { font-size: .72rem; font-weight: 600; letter-spacing: .02em; color: var(--acc); background: color-mix(in srgb, var(--acc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--acc) 35%, transparent); padding: .16rem .55rem; border-radius: 999px; }
+    .gl-tag-ghost { color: #bdb8ae; background: transparent; border-color: rgba(255,255,255,.14); }
+    .gl-title { margin: .2rem 0 0; font-size: 1.2rem; letter-spacing: -.015em; }
+    .gl-desc { margin: 0; color: var(--muted, #a8a49c); line-height: 1.55; font-size: .95rem; }
+    .gl-host { margin: 0; color: #7f7b73; font-size: .8rem; font-family: "JetBrains Mono", ui-monospace, monospace; }
+    .gl-actions { display: flex; align-items: center; gap: .6rem; margin-top: auto; padding-top: .7rem; flex-wrap: wrap; }
+    .gl-btn { font-size: .9rem; padding: .55rem .95rem; }
+    .gl-btn-ghost { display: inline-flex; align-items: center; color: #f2f0eb; text-decoration: none; border: 1px solid rgba(255,255,255,.16); border-radius: 10px; transition: border-color .25s, background .25s; }
+    .gl-btn-ghost:hover { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 10%, transparent); }
+    .gl-note { font-size: .82rem; color: #7f7b73; }
+    .gl-report { margin-left: auto; font: inherit; font-size: .78rem; color: #7f7b73; background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .gl-report:hover { color: #cfcac0; }
+    .gl-empty { text-align: center; padding: 4rem 1rem; border: 1px dashed rgba(255,255,255,.14); border-radius: 18px; color: var(--muted, #a8a49c); }
+    .gl-cta { margin: 4.5rem 0 0; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212,165,116,.25); background: radial-gradient(600px 200px at 10% 0%, rgba(212,165,116,.12), transparent), rgba(255,255,255,.02); }
+    .gl-cta h2 { margin: 0 0 .5rem; letter-spacing: -.02em; }
+    .gl-cta p { margin: 0 0 1.2rem; color: var(--muted, #a8a49c); }
+    .gl-fine { margin-top: 1.5rem; font-size: .82rem; color: #7f7b73; }
+    dialog.gl-dlg { background: #141416; color: #f2f0eb; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 1.4rem; max-width: 380px; width: calc(100% - 2rem); }
+    dialog.gl-dlg::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(3px); }
+    .gl-dlg h3 { margin: 0 0 .8rem; }
+    .gl-dlg label { display: flex; gap: .5rem; align-items: center; padding: .3rem 0; font-size: .95rem; }
+    .gl-dlg textarea { width: 100%; box-sizing: border-box; margin-top: .6rem; background: #0e0e10; color: inherit; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: .6rem; font: inherit; }
+    .gl-dlg-actions { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1rem; }
+    .gl-dlg-msg { min-height: 1.2em; font-size: .88rem; color: #d4a574; margin: .6rem 0 0; }
+    @media (max-width: 560px) { .gl-grid { grid-template-columns: 1fr; } .gl-bar { position: static; } .gl-cta { padding: 1.6rem; } }
+    @media (prefers-reduced-motion: reduce) { .gl-card { animation: none; opacity: 1; transform: none; } .gl-hero::before, .gl-live-pill span { animation: none; } .gl-card, .gl-shot img { transition: none; } }
+  </style>
+  <link rel="preload" href="/styles.css" as="style" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script type="application/ld+json">/*GL_LD*/</script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/product">Product</a>
+      <a class="nav-link" href="/tour">Tour</a>
+      <a class="nav-link is-active" href="/gallery" aria-current="page">Gallery</a>
+      <a class="nav-link" href="/showcase">Showcase</a>
+      <a class="nav-link" href="/pricing">Pricing</a>
+      <a class="nav-link nav-cta" href="/build">Build</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/product">Product</a>
+    <a href="/tour">Tour</a>
+    <a href="/gallery">Gallery</a>
+    <a href="/showcase">Showcase</a>
+    <a href="/build">Build an app</a>
+    <a href="/pricing">Pricing</a>
+    <span class="mobile-nav-label">More</span>
+    <a href="/why">Why</a>
+    <a href="/how">How it works</a>
+    <a href="/faq">FAQ</a>
+    <a href="/changelog">Changelog</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+
+  <main id="main" class="page-gallery">
+    <header class="gl-hero">
+      <p class="kicker">Gallery</p>
+      <h1>Made with Spawn</h1>
+      <p class="lead">Apps people published to their own <span class="mono">.spawnapp.org</span> address and chose to share. Open one live, or remix it — you get your own copy of its pages to edit in Build.</p>
+      <div class="gl-hero-actions">
+        <a class="btn-solid" href="/build">Build your own</a>
+        <a class="link-quiet" href="/showcase">See the showcase</a>
+      </div>
+    </header>
+
+    <div class="gl-bar" role="toolbar" aria-label="Filter apps">
+      <div class="gl-chips" data-gl-chips><!--GL_FILTERS--></div>
+      <label class="sr-only" for="gl-sort">Sort</label>
+      <select id="gl-sort" class="gl-sort" data-gl-sort>
+        <option value="new">Newest</option>
+        <option value="upd">Recently updated</option>
+        <option value="az">A–Z</option>
+      </select>
+    </div>
+
+    <section aria-labelledby="gl-h">
+      <h2 id="gl-h" class="sr-only">Published apps (<!--GL_COUNT-->)</h2>
+      <ul class="gl-grid" data-gl-grid><!--GL_CARDS-->
+      </ul>
+      <div class="gl-empty" data-gl-empty <!--GL_EMPTY_HIDDEN-->>
+        <p><strong>Nothing here yet.</strong> Publish an app from Build and tick “Show in the gallery”.</p>
+        <a class="btn-solid" href="/build">Start building</a>
+      </div>
+    </section>
+
+    <section class="gl-cta">
+      <h2>Yours could be next.</h2>
+      <p>Describe an app, edit it in chat, and publish it to its own address. Free to start.</p>
+      <a class="btn-solid" href="/build">Start building</a>
+    </section>
+    <p class="gl-fine">Apps here are made and published by Spawn users, who choose whether to list them. Remixing copies an app’s pages, styles and images only — never its data, sign-ins or keys. See something wrong? Use “Report” on its card.</p>
+  </main>
+
+  <dialog class="gl-dlg" data-gl-dlg aria-labelledby="gl-dlg-h">
+    <form method="dialog" data-gl-form>
+      <h3 id="gl-dlg-h">Report this app</h3>
+      <label><input type="radio" name="reason" value="broken" required /> Broken or empty</label>
+      <label><input type="radio" name="reason" value="spam" /> Spam</label>
+      <label><input type="radio" name="reason" value="scam" /> Scam or phishing</label>
+      <label><input type="radio" name="reason" value="offensive" /> Offensive content</label>
+      <label><input type="radio" name="reason" value="copyright" /> Copies someone else’s work</label>
+      <label><input type="radio" name="reason" value="other" /> Something else</label>
+      <textarea name="note" rows="2" maxlength="300" placeholder="Anything we should know? (optional)"></textarea>
+      <p class="gl-dlg-msg" data-gl-msg role="status"></p>
+      <div class="gl-dlg-actions">
+        <button type="button" class="link-quiet" data-gl-cancel>Cancel</button>
+        <button type="submit" class="btn-solid" value="send">Send report</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+  (function () {
+    var grid = document.querySelector("[data-gl-grid]");
+    if (!grid) return;
+    var cards = Array.prototype.slice.call(grid.querySelectorAll(".gl-card"));
+    var empty = document.querySelector("[data-gl-empty]");
+    var cat = "all";
+    var params = new URLSearchParams(location.search);
+    function track(e, p) { try { window.spawnTrack && window.spawnTrack(e, p || {}); } catch (_) {} }
+    function apply(animate) {
+      var sort = document.querySelector("[data-gl-sort]").value;
+      var keyed = cards.slice().sort(function (a, b) {
+        if (sort === "az") return a.dataset.title.localeCompare(b.dataset.title);
+        var k = sort === "upd" ? "upd" : "new";
+        return String(b.dataset[k]).localeCompare(String(a.dataset[k]));
+      });
+      var shown = 0;
+      keyed.forEach(function (c) {
+        var on = cat === "all" || c.dataset.cat === cat;
+        c.classList.toggle("is-out", !on);
+        if (on) { if (animate) { c.style.animation = "none"; void c.offsetWidth; c.style.animation = ""; } c.style.setProperty("--i", shown++); }
+        grid.appendChild(c);
+      });
+      if (empty) empty.hidden = shown > 0;
+    }
+    document.querySelectorAll("[data-gl-cat]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        cat = b.dataset.glCat;
+        document.querySelectorAll("[data-gl-cat]").forEach(function (o) { var on = o === b; o.classList.toggle("is-on", on); o.setAttribute("aria-pressed", on ? "true" : "false"); });
+        apply(true);
+        track("gallery_filter", { category: cat });
+      });
+    });
+    document.querySelector("[data-gl-sort]").addEventListener("change", function () { apply(true); });
+    var pre = params.get("category");
+    if (pre) { var btn = document.querySelector('[data-gl-cat="' + pre.replace(/[^a-z]/g, "") + '"]'); if (btn) btn.click(); }
+    grid.addEventListener("click", function (e) {
+      var r = e.target.closest("[data-gl-remix]"); if (r) track("gallery_remix_click", { slug: r.dataset.glRemix });
+      var o = e.target.closest("[data-gl-open]"); if (o) track("gallery_open_live", { slug: o.dataset.glOpen });
+      var rep = e.target.closest("[data-gl-report]"); if (rep) openReport(rep.dataset.glReport);
+    });
+    track("gallery_viewed", { entries: cards.length, ref: params.get("ref") || undefined });
+
+    var dlg = document.querySelector("[data-gl-dlg]"), form = document.querySelector("[data-gl-form]"), msg = document.querySelector("[data-gl-msg]"), current = null;
+    function openReport(slug) {
+      current = slug; form.reset(); msg.textContent = "";
+      if (dlg.showModal) dlg.showModal(); else location.href = "/contact";
+    }
+    document.querySelector("[data-gl-cancel]").addEventListener("click", function () { dlg.close(); });
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      msg.textContent = "Sending…";
+      fetch("/api/gallery/" + encodeURIComponent(current) + "/report", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ reason: fd.get("reason"), note: fd.get("note") }) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { msg.textContent = j.ok ? "Thanks — we’ll take a look." : (j.error || "Couldn’t send — try again."); if (j.ok) setTimeout(function () { dlg.close(); }, 1200); })
+        .catch(function () { msg.textContent = "Couldn’t send — try again."; });
+    });
+  })();
+  </script>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/product">Product</a>
+      <a href="/tour">Tour</a>
+      <a href="/gallery">Gallery</a>
+      <a href="/showcase">Showcase</a>
+      <a href="/how">How it works</a>
+      <a href="/why">Why</a>
+      <a href="/faq">FAQ</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/refund">Refunds</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>

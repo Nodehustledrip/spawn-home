@@ -394,26 +394,19 @@ function mount(app) {
     });
   }));
 
-  app.post("/api/builds", wrap(async function (req, res) {
+  /* Shared by create and remix: rate limits, anonymous/free/Pro build caps (with the sign-in or upgrade prompt), global cap. */
+  async function createGate(req, res) {
     const ip = clientIp(req);
     if (!hit("c", ip, CREATE_RATE) || !hit("cd", ip, CREATE_DAILY)) {
-      return res.status(429).json({ ok: false, error: "You're creating builds quickly — give it a few minutes, or keep editing an existing one." });
+      res.status(429).json({ ok: false, error: "You're creating builds quickly — give it a few minutes, or keep editing an existing one." });
+      return null;
     }
     await store.init();
     const who = await resolveOwner(req, res);
     const me = who.key;
-
-    const body = req.body || {};
-    if (body.company || body.website || body.url) {
-      return res.json({ ok: true, honeypot: true });
-    }
-    const name = String(body.name || "").replace(/\s+/g, " ").trim().slice(0, 64);
-    const description = String(body.description || "").replace(/\s+/g, " ").trim().slice(0, 240);
-    if (!name) return res.status(400).json({ ok: false, error: "App name is required" });
-
     const mine = await store.countByOwner(me, BUILDS_DIR);
     if (mine >= who.maxBuilds) {
-      return res.status(400).json({
+      res.status(400).json({
         ok: false,
         limit: "builds",
         upgrade: who.user && who.limits.plan !== "pro" ? "/pricing" : undefined,
@@ -424,12 +417,75 @@ function mount(app) {
           : "You've made " + mine + " builds without an account — the most a browser keeps. Sign in with your email (free, no password) to save up to " + auth.limitsFor({ plan: "free" }).maxBuilds + " builds to your account.",
         signin: !who.user && auth.enabled() ? true : undefined,
       });
+      return null;
     }
     const total = await store.countAll(BUILDS_DIR);
     if (total.count >= MAX_TOTAL_BUILDS) {
       console.error("[builds] global build cap reached", total.count);
-      return res.status(503).json({ ok: false, error: "On-site Build is at capacity right now — try again later." });
+      res.status(503).json({ ok: false, error: "On-site Build is at capacity right now — try again later." });
+      return null;
     }
+    return { ip, who, me };
+  }
+
+  /* Remix a gallery app: copy its published static files (never secrets, data or server code) into a new build
+   * owned by the visitor. Credit lives in forge.json only, never on the visible site. */
+  app.post("/api/builds/remix", wrap(async function (req, res) {
+    const slug = String((req.body && req.body.slug) || "").toLowerCase().trim();
+    if (!/^[a-z0-9-]{2,40}$/.test(slug)) return res.status(400).json({ ok: false, error: "Pick an app from the gallery to remix." });
+    const gallery = require("./gallery");
+    const cloud = require("./cloudpublish");
+    if (!cloud.enabled() || !cloud.backend()) return res.status(503).json({ ok: false, error: "Remix isn't available right now." });
+    const gstore = gallery.store || (gallery.store = gallery.createStore(() => cloud.backend()));
+    let src;
+    try { src = await gstore.remixSource(slug); } catch (err) {
+      if (err.status) return res.status(err.status).json({ ok: false, error: err.message });
+      throw err;
+    }
+    const g = await createGate(req, res);
+    if (!g) return;
+    const name = String(src.title || slug).replace(/\s+/g, " ").trim().slice(0, 56) || slug;
+    const result = webgen.createBuild({ name: name, template: "landing-paywall", description: "Remix of " + name, accent: "#5eead4" }, BUILDS_DIR);
+    const pub = path.join(result.path, "public");
+    try {
+      fs.rmSync(pub, { recursive: true, force: true });
+      for (const [rel, buf] of Object.entries(src.files)) {
+        const dest = path.join(pub, rel);
+        if (!dest.startsWith(pub + path.sep)) continue;
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        fs.writeFileSync(dest, /\.html?$/i.test(rel) ? Buffer.from(gallery.stripForRemix(buf.toString("utf8")), "utf8") : buf);
+      }
+      const mp = path.join(result.path, "forge.json");
+      const meta = JSON.parse(fs.readFileSync(mp, "utf8"));
+      meta.template = "remix";
+      meta.description = "";
+      meta.remixedFrom = { slug: slug, title: src.title, url: "https://" + slug + "." + (process.env.CLOUD_APEX || "spawnapp.org") + "/", at: new Date().toISOString() };
+      fs.writeFileSync(mp, JSON.stringify(meta, null, 2) + "\n", "utf8");
+      await store.save(result.id, g.me, result.path);
+    } catch (err) {
+      fs.rmSync(result.path, { recursive: true, force: true });
+      throw err;
+    }
+    try { await gstore.bumpRemix(slug); } catch (_) {}
+    dualWriteBuild("remix_created", { sessionId: g.me, id: result.id, source_slug: slug, files: Object.keys(src.files).length, storage: store.mode() });
+    console.log("[builds] remixed", slug, "->", result.id);
+    return res.status(201).json({ ok: true, build: summarizeBuild(result.id), remixedFrom: { slug: slug, title: src.title }, files: Object.keys(src.files).length });
+  }));
+
+  app.post("/api/builds", wrap(async function (req, res) {
+    const g = await createGate(req, res);
+    if (!g) return;
+    const ip = g.ip;
+    const who = g.who;
+    const me = g.me;
+
+    const body = req.body || {};
+    if (body.company || body.website || body.url) {
+      return res.json({ ok: true, honeypot: true });
+    }
+    const name = String(body.name || "").replace(/\s+/g, " ").trim().slice(0, 64);
+    const description = String(body.description || "").replace(/\s+/g, " ").trim().slice(0, 240);
+    if (!name) return res.status(400).json({ ok: false, error: "App name is required" });
 
     const accent = /^#[0-9a-f]{3,8}$/i.test(String(body.accent || "")) ? body.accent : "#5eead4";
     const result = webgen.createBuild(

@@ -136,7 +136,8 @@ app.use(function (req, res, next) {
 });
 app.use(compression());
 billing.mountWebhook(app); /* raw body — before express.json */
-require("./cloudpublish").mount(app); /* Spawn Cloud publish API — dormant (503) until CLOUD_PUBLISH_ENABLED + Cloudflare env exist */
+require("./cloudpublish").mount(app);
+/* Spawn Cloud publish API — dormant (503) until CLOUD_PUBLISH_ENABLED + Cloudflare env exist */
 app.use(express.json({ limit: "32kb" }));
 app.use(function (_req, res, next) {
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
@@ -163,6 +164,10 @@ app.use(function (_req, res, next) {
 });
 
 const PUBLIC_DIR = path.join(__dirname, "public");
+
+/* Public gallery, share cards, moderation (admin = WAITLIST_ADMIN_TOKEN). */
+require("./gallery").mount(app, { isAdmin: function (req) { return checkWaitlistAdmin(req); } });
+app.get("/gallery.html", function (_req, res) { res.redirect(301, "/gallery"); });
 
 /* Clean marketing URLs: /how → how.html; /how.html → 301 /how */
 const CLEAN_PAGES = ["how", "product", "access", "privacy", "pricing", "terms", "refund", "faq", "changelog", "tour", "showcase", "why", "build", "signin", "contact", "404"];

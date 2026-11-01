@@ -5,7 +5,7 @@
  * Injected at publish time (so a published version never changes underneath its owner) and when serving previews.
  */
 const MARK = "data-spawn-badge";
-const HREF = "https://spawnapp.org/?ref=badge";
+const HREF = "https://spawnapp.org/gallery?ref=badge";
 
 const BADGE_HTML =
   '<a ' + MARK + ' href="' + HREF + '" target="_blank" rel="noopener" aria-label="Made with Spawn" ' +

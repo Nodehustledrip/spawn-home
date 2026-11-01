@@ -89,19 +89,26 @@ async function slugForHost(env, host, apex) {
 async function loadApp(env, slug) {
   const hit = appCache.get(slug);
   if (hit && Date.now() - hit.at < APP_TTL_MS) return hit.app;
-  const row = await env.DB.prepare(
-    "SELECT a.slug, a.runtime, a.status, a.live_version, a.title, a.config, v.manifest FROM apps a " +
-      "LEFT JOIN versions v ON v.slug = a.slug AND v.version = a.live_version WHERE a.slug = ?1"
-  )
-    .bind(slug)
-    .first();
+  let row;
+  try {
+    row = await env.DB.prepare(
+      "SELECT a.slug, a.runtime, a.status, a.live_version, a.title, a.config, v.manifest, g.title AS g_title, g.description AS g_desc, g.hidden AS g_hidden, g.updated_at AS g_upd FROM apps a " +
+        "LEFT JOIN versions v ON v.slug = a.slug AND v.version = a.live_version LEFT JOIN gallery g ON g.slug = a.slug WHERE a.slug = ?1"
+    ).bind(slug).first();
+  } catch (_) { // gallery table not migrated yet
+    row = await env.DB.prepare(
+      "SELECT a.slug, a.runtime, a.status, a.live_version, a.title, a.config, v.manifest FROM apps a " +
+        "LEFT JOIN versions v ON v.slug = a.slug AND v.version = a.live_version WHERE a.slug = ?1"
+    ).bind(slug).first();
+  }
   let app = null;
   if (row) {
     let files = {};
     let config = {};
     try { files = (JSON.parse(row.manifest || "{}").files) || {}; } catch (_) {}
     try { config = JSON.parse(row.config || "{}"); } catch (_) {}
-    app = { slug: row.slug, runtime: row.runtime, status: row.status, live_version: row.live_version, title: row.title, config, files };
+    app = { slug: row.slug, runtime: row.runtime, status: row.status, live_version: row.live_version, title: row.title, config, files,
+      share: { title: row.g_title || row.title || row.slug, description: row.g_desc || "", v: String(row.g_upd || "").replace(/\D/g, "").slice(0, 14) } };
   }
   appCache.set(slug, { at: Date.now(), app });
   return app;
@@ -126,8 +133,9 @@ async function serveStatic({ env, ctx, app, slug, path, request }) {
     else return notFoundPage(404, "That page doesn't exist.");
   }
   const meta = app.files[file];
-  const etag = '"' + meta.h + '"';
   const isHtml = /\.html?$/.test(file);
+  const og = isHtml && app.share && meta.s <= 2 * 1024 * 1024;
+  const etag = '"' + meta.h + (og ? "-og" + app.share.v : "") + '"';
   const headers = new Headers(SECURITY_HEADERS);
   headers.set("Content-Type", meta.t || mimeFor(file));
   headers.set("ETag", etag);
@@ -141,6 +149,7 @@ async function serveStatic({ env, ctx, app, slug, path, request }) {
   if (cache && status === 200) {
     const hit = await cache.match(cacheKey);
     if (hit) {
+      if (og && request.method !== "HEAD") return new Response(injectShareTags(await hit.text(), app, env, request), { status, headers });
       const r = new Response(request.method === "HEAD" ? null : hit.body, { status, headers });
       return r;
     }
@@ -148,12 +157,42 @@ async function serveStatic({ env, ctx, app, slug, path, request }) {
   const obj = await blobs(env).get(key);
   if (!obj) return notFoundPage(404, "That page doesn't exist.");
   if (request.method === "HEAD") return new Response(null, { status, headers });
+  if (og) {
+    const text = await new Response(obj.body).text();
+    if (cache && status === 200) ctx.waitUntil(cache.put(cacheKey, new Response(text, { headers: { "Content-Type": headers.get("Content-Type"), "Cache-Control": "public, max-age=86400" } })));
+    return new Response(injectShareTags(text, app, env, request), { status, headers });
+  }
   if (cache && status === 200 && meta.s <= 5 * 1024 * 1024) {
     const [a, b] = obj.body.tee();
     ctx.waitUntil(cache.put(cacheKey, new Response(b, { headers: { "Content-Type": headers.get("Content-Type"), "Cache-Control": "public, max-age=86400" } })));
     return new Response(a, { status, headers });
   }
   return new Response(obj.body, { status, headers });
+}
+
+/* Share cards: add og:/twitter: tags the page doesn't already have, pointing og:image at the generated
+ * card on spawnapp.org. Pages that set their own og:image are left untouched. */
+const escAttr = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+export function injectShareTags(html, app, env, request) {
+  if (/<meta[^>]+property=["']og:image["']/i.test(html) || !/<\/head>/i.test(html)) return html;
+  const has = (re) => re.test(html);
+  const pageDesc = (/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["']/i.exec(html) || [])[1];
+  const pageTitle = (/<title[^>]*>([^<]*)<\/title>/i.exec(html) || [])[1];
+  const title = app.share.title || pageTitle || app.slug;
+  const desc = app.share.description || (pageDesc ? pageDesc.replace(/&quot;/g, '"').replace(/&amp;/g, "&") : "");
+  const site = "https://" + (env.SITE_HOST || env.APEX_DOMAIN || "spawnapp.org");
+  const img = site + "/og/app/" + encodeURIComponent(app.slug) + ".png" + (app.share.v ? "?v=" + app.share.v : "");
+  const url = new URL(request.url); url.search = ""; url.hash = "";
+  const t = [];
+  if (!has(/property=["']og:title["']/i)) t.push(`<meta property="og:title" content="${escAttr(title)}">`);
+  if (desc && !has(/property=["']og:description["']/i)) t.push(`<meta property="og:description" content="${escAttr(desc)}">`);
+  t.push(`<meta property="og:image" content="${escAttr(img)}">`, '<meta property="og:image:width" content="1200">', '<meta property="og:image:height" content="630">');
+  if (!has(/property=["']og:url["']/i)) t.push(`<meta property="og:url" content="${escAttr(url.toString())}">`);
+  if (!has(/property=["']og:type["']/i)) t.push('<meta property="og:type" content="website">');
+  if (!has(/name=["']twitter:card["']/i)) t.push('<meta name="twitter:card" content="summary_large_image">');
+  if (!has(/name=["']twitter:image["']/i)) t.push(`<meta name="twitter:image" content="${escAttr(img)}">`);
+  const block = "<!-- spawn-og -->" + t.join("") + "<!-- /spawn-og -->";
+  return html.replace(/<\/head>/i, block + "</head>");
 }
 
 export function notFoundPage(status, message) {

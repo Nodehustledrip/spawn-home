@@ -75,6 +75,18 @@
     .build-publish-row input { flex: 1 1 180px; min-width: 0; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 8px; color: var(--text); padding: .55rem .7rem; font: inherit; font-size: .9rem; }
     .build-publish-apex { color: var(--muted); font-size: .85rem; }
     .build-publish-fine { font-size: .8rem; }
+    .build-publish-opts { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; margin-top: .7rem; }
+    .build-publish-check { display: inline-flex; align-items: center; gap: .45rem; font-size: .88rem; color: var(--text); cursor: pointer; }
+    .build-publish-check input { accent-color: var(--accent, #d4a574); width: 16px; height: 16px; }
+    .build-publish-check a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    .build-publish-done { animation: pub-in .5s cubic-bezier(.2,.7,.2,1); }
+    @keyframes pub-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .build-publish-dot { display: inline-block; width: 8px; height: 8px; margin-right: .5rem; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.15); vertical-align: middle; }
+    .build-publish-link { flex: 1 1 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent, #d4a574); font-size: .95rem; padding: .5rem .7rem; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--bg); text-decoration: none; }
+    .build-upsell { margin: .9rem 0 .6rem; padding: .9rem 1rem; border-radius: 12px; border: 1px solid rgba(212,165,116,.35); background: radial-gradient(400px 120px at 0% 0%, rgba(212,165,116,.14), transparent), rgba(255,255,255,.02); }
+    .build-upsell-title { margin: 0 0 .4rem; font-weight: 600; }
+    .build-upsell-list { margin: 0 0 .8rem; padding-left: 1.1rem; color: var(--muted); font-size: .88rem; line-height: 1.6; }
+    @media (prefers-reduced-motion: reduce) { .build-publish-done { animation: none; } }
     .build-publish-live a { color: var(--accent); font-weight: 600; }
 </style>
   <link rel="preload" href="/styles.css?v=20261006" as="style" />
@@ -104,6 +116,7 @@
     <nav class="nav" aria-label="Primary">
       <a class="nav-link" href="/product">Product</a>
       <a class="nav-link" href="/tour">Tour</a>
+      <a class="nav-link" href="/gallery">Gallery</a>
       <a class="nav-link" href="/showcase">Showcase</a>
       <a class="nav-link" href="/pricing">Pricing</a>
       <a class="nav-link nav-cta is-active" href="/build" aria-current="page">Build</a>
@@ -115,6 +128,7 @@
   <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
     <a href="/product">Product</a>
     <a href="/tour">Tour</a>
+    <a href="/gallery">Gallery</a>
     <a href="/showcase">Showcase</a>
     <a href="/build">Build an app</a>
     <a href="/pricing">Pricing</a>
@@ -235,9 +249,33 @@
             <button type="submit" class="btn-solid" data-publish-submit>Publish</button>
             <button type="button" class="build-account-link" data-publish-close>Cancel</button>
           </div>
+          <div class="build-publish-opts">
+            <label class="build-publish-check"><input type="checkbox" data-publish-gallery /> <span>Show in the <a href="/gallery" target="_blank" rel="noopener">public gallery</a></span></label>
+            <label class="build-publish-check"><input type="checkbox" data-publish-remix checked /> <span>Let people remix it</span></label>
+          </div>
+          <p class="build-account-copy build-publish-fine" data-publish-gallery-fine>Listed apps appear on spawnapp.org/gallery with their title, a preview and a link. Remix copies only your pages, styles and images into someone else’s build — never data, sign-ins or keys. Change this anytime by publishing again.</p>
           <p class="build-account-note" data-publish-note role="status" aria-live="polite"></p>
           <p class="build-account-copy build-publish-fine" data-publish-fine></p>
         </form>
+        <div class="build-publish-done" data-publish-done hidden>
+          <p class="build-account-title"><span class="build-publish-dot" aria-hidden="true"></span>Your app is live</p>
+          <div class="build-publish-row">
+            <a class="build-publish-link mono" data-publish-done-url href="#" target="_blank" rel="noopener"></a>
+            <button type="button" class="build-account-link" data-publish-copy>Copy link</button>
+            <button type="button" class="build-account-link" data-publish-share>Share</button>
+          </div>
+          <p class="build-account-copy" data-publish-done-gallery></p>
+          <div class="build-upsell" data-publish-upsell hidden>
+            <p class="build-upsell-title">Make it yours with Pro</p>
+            <ul class="build-upsell-list">
+              <li>Connect your own domain</li>
+              <li>Remove the “Made with Spawn” badge</li>
+              <li>Keep more builds</li>
+            </ul>
+            <a class="btn-solid" href="/pricing?ref=publish" data-publish-upsell-cta>See Pro</a>
+          </div>
+          <div class="build-publish-row"><button type="button" class="build-account-link" data-publish-again>Publish settings</button><button type="button" class="build-account-link" data-publish-done-close>Close</button></div>
+        </div>
       </div>
 
       <div class="build-preview-wrap" data-preview-wrap>

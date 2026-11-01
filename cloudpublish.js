@@ -220,12 +220,17 @@ function checkManifest(m) {
 const mimeFor = (p) => MIME[(p.split(".").pop() || "").toLowerCase()] || "application/octet-stream";
 
 /* ---------------- routes ---------------- */
+let sharedBackend = null;
+function backend() { return sharedBackend ? sharedBackend() : null; }
 function mount(app, opts) {
   opts = opts || {};
   const auth = opts.auth || require("./auth");
   const tokens = opts.tokenStore || (mode() === "local" ? memoryTokenStore() : pgTokenStore(() => require("./buildstore").getPool && require("./buildstore").getPool()));
   let backend = opts.backend || null;
   const be = () => backend || (backend = mode() === "cloudflare" ? cloudflareBackend() : localBackend(env("CLOUD_PUBLISH_LOCAL_DIR")));
+  sharedBackend = be;
+  const gal = () => require("./gallery");
+  const galStore = () => gal().store || (gal().store = gal().createStore(() => be()));
   const r = express.Router();
   const rate = new Map();
   function limited(key, max, windowMs) {
@@ -248,6 +253,7 @@ function mount(app, opts) {
   r.get("/status", (req, res) => res.json({ ok: true, enabled: true, apex: apex() }));
 
   async function sessionUser(req) { const u = await auth.currentUser(req); if (!u) throw fail(401, "Sign in to spawnapp.org first."); return u; }
+  async function anyUser(req) { return /^Bearer /.test(String(req.headers.authorization || "")) ? tokenUser(req) : sessionUser(req); }
   async function tokenUser(req) {
     const m = /^Bearer\s+(spk_[A-Za-z0-9_-]{30,80})$/.exec(String(req.headers.authorization || ""));
     if (!m) throw fail(401, "Publish token required. Connect Spawn to your spawnapp.org account.");
@@ -369,9 +375,56 @@ function mount(app, opts) {
     if (a) await be().query("UPDATE apps SET live_version=?2, status='active', title=?3, updated_at=?4 WHERE slug=?1", [slug, version, title, nowIso()]);
     else await be().query("INSERT INTO apps (slug, owner, runtime, status, live_version, title) VALUES (?1,?2,?3,'active',?4,?5)", [slug, "u:" + u.id, backendWanted ? "spawn-backend" : "static", version, title]);
     await prune(slug, version);
+    let gallery = null;
+    try { gallery = await applyGallery(account, slug, out, title, body); } catch (e) { console.warn("[cloud] gallery update failed for " + slug + ": " + e.message); }
     if (APP_PRESETS[slug]) { try { await syncPresets(be(), slug); } catch (e) { console.warn("[cloud] preset sync failed for " + slug + ": " + e.message); } }
-    return { ok: true, slug, version, url: "https://" + slug + "." + apex() + "/", files: Object.keys(out).length, bytes: total, badge: withBadge };
+    return { ok: true, slug, version, url: "https://" + slug + "." + apex() + "/", files: Object.keys(out).length, bytes: total, badge: withBadge, gallery };
   }
+  /* Gallery opt-in. Web publishes default ON for free accounts (disclosed in the publish panel) and OFF for Pro;
+   * desktop/API publishes only change the listing when `gallery` is sent. Existing choices persist across versions. */
+  async function applyGallery(account, slug, files, title, body) {
+    const G = gal(); const st = galStore();
+    const cur = (await st.q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
+    let want = typeof body.gallery === "boolean" ? body.gallery : undefined;
+    if (want === undefined && !cur && body.galleryDefault) want = !badge.exempt(account);
+    if (want === undefined && !cur) return null;
+    let meta = { description: "", accent: null };
+    if (files["index.html"]) { const buf = await be().get(`blob/${slug}/${files["index.html"].h}`); if (buf) meta = G.metaFromHtml(buf.toString("utf8")); }
+    const f = {};
+    if (want !== undefined) f.listed = want;
+    if (typeof body.remixable === "boolean") f.remixable = body.remixable;
+    if (!cur || !cur.title || body.title) f.title = title;
+    if (!cur || !cur.description) f.description = G.checkText(meta.description) ? "" : meta.description;
+    if (!cur || !cur.accent) f.accent = meta.accent;
+    if (!cur) f.category = G.CAT_IDS.has(body.category) ? body.category : G.guessCategory(title + " " + meta.description);
+    else if (G.CAT_IDS.has(body.category)) f.category = body.category;
+    let note = null;
+    if ((want || (cur && cur.listed && want !== false)) && G.checkTitle(f.title || cur.title)) { note = G.checkTitle(f.title || cur.title) + " Not listed in the gallery."; f.listed = false; }
+    const row = await st.upsert(slug, "u:" + account.id, f);
+    if (G.bust) G.bust();
+    return { listed: !!row.listed && !row.hidden, remixable: !!row.remixable, hidden: !!row.hidden, category: row.category, url: "https://" + env("SITE_ORIGIN_HOST", "spawnapp.org") + "/gallery", note };
+  }
+  r.get("/apps/:slug/gallery", wrap(async (req, res) => {
+    const u = await anyUser(req); const slug = String(req.params.slug || "").toLowerCase(); await ownedApp(u, slug, false);
+    const row = (await galStore().q("SELECT listed, remixable, hidden, title, description, category FROM gallery WHERE slug=?1", [slug]))[0] || { listed: 0, remixable: 1, hidden: 0 };
+    res.json({ ok: true, gallery: { listed: !!row.listed, remixable: !!row.remixable, hidden: !!row.hidden, title: row.title || null, description: row.description || null, category: row.category || null } });
+  }));
+  r.put("/apps/:slug/gallery", wrap(async (req, res) => {
+    const u = await anyUser(req); const slug = String(req.params.slug || "").toLowerCase(); const a = await ownedApp(u, slug, false);
+    const G = gal(); const b = req.body || {}; const f = {};
+    if (typeof b.listed === "boolean") f.listed = b.listed;
+    if (typeof b.remixable === "boolean") f.remixable = b.remixable;
+    if (b.title !== undefined) { const e = G.checkTitle(b.title); if (e) throw fail(400, e); f.title = String(b.title).trim().slice(0, 80); }
+    if (b.description !== undefined) { const e = G.checkText(b.description); if (e) throw fail(400, e); f.description = String(b.description).replace(/<[^>]*>/g, "").trim().slice(0, 200); }
+    if (b.category !== undefined) { if (!G.CAT_IDS.has(b.category)) throw fail(400, "Unknown category."); f.category = b.category; }
+    const cur = (await galStore().q("SELECT title FROM gallery WHERE slug=?1", [slug]))[0];
+    if (!cur && f.title === undefined) f.title = (a && a.title) || slug;
+    if (f.listed) { const e = G.checkTitle(f.title || (cur && cur.title) || (a && a.title) || slug); if (e) throw fail(400, e); }
+    if (!cur && !f.category) f.category = G.guessCategory(f.title);
+    const row = await galStore().upsert(slug, "u:" + u.id, f);
+    if (G.bust) G.bust();
+    res.json({ ok: true, gallery: { listed: !!row.listed, remixable: !!row.remixable, hidden: !!row.hidden, title: row.title, description: row.description, category: row.category } });
+  }));
   async function prune(slug, live) {
     const v = await be().query("SELECT version FROM versions WHERE slug=?1 ORDER BY version DESC", [slug]);
     for (const row of v.slice(LIMITS.keepVersions)) {
@@ -496,7 +549,7 @@ function mount(app, opts) {
       if (!(await be().head(key))) await be().put(key, buf, mimeFor(p));
     }
     const title = String((req.body && req.body.title) || (a && a.title) || slug).slice(0, 80);
-    const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build" });
+    const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build", gallery: req.body.gallery, remixable: req.body.remixable, category: req.body.category, galleryDefault: true });
     res.json(out);
   }));
 
@@ -559,4 +612,4 @@ var m=document.getElementById('m');if(x.s===401){location.href='/signin?next='+e
 if(x.j.ok){m.textContent='Connected. You can return to Spawn.';document.getElementById('b').remove()}else m.textContent=x.j.error||'Something went wrong.'})};
 </script>`;
 
-module.exports = { mount, enabled, mode, encryptSecret, pgTokenStore, syncPresets, APP_PRESETS, checkManifest, validPath, memoryTokenStore, localBackend, LIMITS };
+module.exports = { mount, backend, enabled, mode, encryptSecret, pgTokenStore, syncPresets, APP_PRESETS, checkManifest, validPath, memoryTokenStore, localBackend, LIMITS };

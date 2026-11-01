@@ -341,8 +341,25 @@
       ? "Pro: no badge. Connect your own domain anytime from spawnapp.org/cloud/domains."
       : "Free plan: your app shows a small “Made with Spawn” badge. Pro removes it and adds custom domains.";
     setPubNote("");
+    var gal = $("[data-publish-gallery]");
+    if (gal) gal.checked = state.plan !== "pro";
+    var done = $("[data-publish-done]");
+    if (done) done.hidden = true;
+    var form = $("[data-publish-form]");
+    if (form) form.hidden = false;
     panel.hidden = false;
     updatePubUrl();
+    if (saved) {
+      api("/api/cloud/apps/" + encodeURIComponent(saved) + "/gallery", { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || !d.ok || !d.gallery) return;
+          if (gal) gal.checked = !!d.gallery.listed;
+          var rx = $("[data-publish-remix]");
+          if (rx) rx.checked = !!d.gallery.remixable;
+        })
+        .catch(function () {});
+    }
     try { input.focus(); input.select(); } catch (_) {}
   }
   function updatePubUrl() {
@@ -362,7 +379,13 @@
     api("/api/cloud/web/publish", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ buildId: state.activeId, slug: slug, title: (state.builds.filter(function (x) { return x.id === state.activeId; })[0] || {}).name }),
+      body: JSON.stringify({
+        buildId: state.activeId,
+        slug: slug,
+        title: (state.builds.filter(function (x) { return x.id === state.activeId; })[0] || {}).name,
+        gallery: !!($("[data-publish-gallery]") || {}).checked,
+        remixable: !!($("[data-publish-remix]") || {}).checked,
+      }),
     })
       .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
       .then(function (res) {
@@ -373,20 +396,97 @@
           return;
         }
         store("spawn_pub_" + state.activeId, slug);
-        track("publish_completed", { version: d.version || null, badge: !!d.badge });
-        var wrap = el("span", "build-publish-live");
-        wrap.appendChild(document.createTextNode("Live — "));
-        var a = el("a", null, d.url.replace(/^https:\/\//, "").replace(/\/$/, ""));
-        a.href = d.url; a.target = "_blank"; a.rel = "noopener";
-        wrap.appendChild(a);
-        wrap.appendChild(document.createTextNode(" (version " + d.version + "). Publish again anytime to update it."));
-        setPubNote(wrap);
+        track("publish_completed", { version: d.version || null, badge: !!d.badge, gallery: !!(d.gallery && d.gallery.listed) });
+        setPubNote("");
+        showPublished(d);
         appendChat("build", "Published to " + d.url + " — share the link.");
       })
       .catch(function () { setPubNote("Network error — try again.", "error"); })
       .finally(function () { btn.disabled = false; });
   }
+  /* Success panel: live link, copy/share, gallery status, and (free plan only) the Pro offer. */
+  function showPublished(d) {
+    var form = $("[data-publish-form]");
+    var done = $("[data-publish-done]");
+    if (!done) return;
+    var host = d.url.replace(/^https:\/\//, "").replace(/\/$/, "");
+    var a = $("[data-publish-done-url]");
+    if (a) { a.href = d.url; a.textContent = host; }
+    var g = $("[data-publish-done-gallery]");
+    if (g) {
+      g.textContent = "";
+      if (d.gallery && d.gallery.listed) {
+        g.appendChild(document.createTextNode("Listed in the "));
+        var gl = el("a", null, "gallery");
+        gl.href = "/gallery"; gl.target = "_blank"; gl.rel = "noopener";
+        g.appendChild(gl);
+        g.appendChild(document.createTextNode(d.gallery.remixable ? " — others can remix it. " : ". "));
+      } else if (d.gallery && d.gallery.note) {
+        g.appendChild(document.createTextNode(d.gallery.note + " "));
+      }
+      g.appendChild(document.createTextNode("Version " + d.version + ". Publish again anytime to update it."));
+    }
+    var up = $("[data-publish-upsell]");
+    if (up) {
+      up.hidden = !d.badge;
+      if (d.badge) track("upsell_shown", { placement: "publish_success" });
+    }
+    if (form) form.hidden = true;
+    done.hidden = false;
+    state.lastPublished = d.url;
+  }
+  function bindPublishDone() {
+    var copy = $("[data-publish-copy]");
+    if (copy) copy.addEventListener("click", function () {
+      var u = state.lastPublished; if (!u) return;
+      var ok = function () { copy.textContent = "Copied"; setTimeout(function () { copy.textContent = "Copy link"; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(ok, function () { window.prompt("Copy this link", u); });
+      else window.prompt("Copy this link", u);
+      track("publish_link_copied", {});
+    });
+    var share = $("[data-publish-share]");
+    if (share) share.addEventListener("click", function () {
+      var u = state.lastPublished; if (!u) return;
+      track("publish_shared", { native: !!navigator.share });
+      if (navigator.share) { navigator.share({ title: "My app", url: u }).catch(function () {}); return; }
+      window.open("https://x.com/intent/post?url=" + encodeURIComponent(u) + "&text=" + encodeURIComponent("Just published this with Spawn:"), "_blank", "noopener");
+    });
+    var cta = $("[data-publish-upsell-cta]");
+    if (cta) cta.addEventListener("click", function () { track("upsell_clicked", { placement: "publish_success" }); });
+    var again = $("[data-publish-again]");
+    if (again) again.addEventListener("click", function () { $("[data-publish-done]").hidden = true; $("[data-publish-form]").hidden = false; });
+    var close = $("[data-publish-done-close]");
+    if (close) close.addEventListener("click", function () { $("[data-publish-panel]").hidden = true; });
+  }
+
+  /* Remix from the gallery: /build?remix=<slug> copies that app's static files into a new build you own. */
+  function startRemix() {
+    var slug = null;
+    try { slug = new URLSearchParams(location.search).get("remix"); } catch (_) {}
+    if (!slug || !/^[a-z0-9-]{2,40}$/.test(slug)) return false;
+    try { history.replaceState(null, "", location.pathname); } catch (_) {}
+    track("remix_started", { source_slug: slug, signed_in: !!state.signedIn });
+    setNote("Remixing " + slug + "…");
+    api("/api/builds/remix", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: slug }) })
+      .then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
+      .then(function (res) {
+        var d = res.data || {};
+        if (!d.ok || !d.build) {
+          setNote(d.error || "Couldn’t remix that app — try again.", true);
+          upgradeLink($("[data-create-note]"), d);
+          return;
+        }
+        setNote("Remixed — this copy is yours. Change anything in Build chat, then publish it under your own name.");
+        state.builds = [d.build].concat(state.builds.filter(function (b) { return b.id !== d.build.id; }));
+        renderList();
+        openBuild(d.build.id);
+      })
+      .catch(function () { setNote("Network error — try again.", true); });
+    return true;
+  }
+
   function bindPublish() {
+    bindPublishDone();
     var b = $("[data-publish]");
     if (b) b.addEventListener("click", openPublish);
     var f = $("[data-publish-form]");
@@ -858,7 +958,7 @@
     loadTemplates();
     loadAccount().then(function (active) {
       if (active) loadBuilds();
-    });
+    }).finally(function () { startRemix(); });
     loadBuilds();
   }
 

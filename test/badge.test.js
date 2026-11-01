@@ -7,7 +7,7 @@ test("badge: injects once before </body>, links to spawnapp.org with ref", () =>
   const html = "<html><body><h1>Hi</h1></body></html>";
   const out = badge.inject(html);
   assert.ok(out.indexOf("Made with Spawn") > 0);
-  assert.ok(out.indexOf("https://spawnapp.org/?ref=badge") > 0);
+  assert.ok(out.indexOf("https://spawnapp.org/gallery?ref=badge") > 0);
   assert.ok(out.indexOf(badge.MARK) < out.indexOf("</body>"));
   assert.equal(badge.inject(out), out, "idempotent");
   assert.ok(badge.inject("<p>no body</p>").endsWith("\n"));

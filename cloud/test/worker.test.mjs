@@ -49,7 +49,7 @@ before(async () => {
   });
   db = await mf.getD1Database("DB");
   fdb = await mf.getD1Database("FILES");
-  for (const f of ["migrations/0001_init.sql", "migrations/0002_bidboard.sql", "migrations/0003_blobs.sql"]) for (const d of [db, fdb]) {
+  for (const f of ["migrations/0001_init.sql", "migrations/0002_bidboard.sql", "migrations/0003_blobs.sql", "migrations/0005_gallery.sql"]) for (const d of [db, fdb]) {
     const sql = readFileSync(f, "utf8").split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
     for (const s of sql.split(";").map((x) => x.trim()).filter(Boolean)) await d.prepare(s).run();
   }
@@ -84,6 +84,21 @@ test("static: index, clean urls, etag/304, headers, 404", async () => {
   r = await F("ghost.spawnapp.org", "/"); assert.equal(r.status, 404); assert.match(await r.text(), /No app|isn't published/);
   r = await F("api.spawnapp.org", "/"); assert.equal(r.status, 404); await r.text();
   r = await F("demo.spawnapp.org", "/", { method: "POST" }); assert.equal(r.status, 405); await r.text();
+});
+
+test("share tags: og/twitter injected from gallery metadata; own og:image left alone; etag tracks gallery", async () => {
+  await publish("ogapp", "static", { "index.html": "<html><head><title>Page T</title><meta name=\"description\" content=\"Page desc\"></head><body>x</body></html>" });
+  await publish("ogown", "static", { "index.html": "<html><head><meta property=\"og:image\" content=\"https://x/y.png\"></head><body>y</body></html>" });
+  let r = await F("ogapp.spawnapp.org", "/"); let h = await r.text();
+  assert.match(h, /og:image" content="https:\/\/spawnapp\.org\/og\/app\/ogapp\.png/);
+  assert.match(h, /og:description" content="Page desc"/); assert.match(h, /twitter:card/);
+  const e1 = r.headers.get("etag");
+  await db.prepare("INSERT INTO gallery (slug, owner, listed, title, description, updated_at) VALUES ('ogapp','u:1',1,'Gal <T>','Gal desc','2026-11-01T10:00:00Z')").run();
+  await new Promise((res) => setTimeout(res, 50));
+  r = await F("ogapp.spawnapp.org", "/?x=1"); h = await r.text();
+  r = await F("ogown.spawnapp.org", "/"); const own = await r.text();
+  assert.doesNotMatch(own, /spawn-og/); assert.equal((own.match(/og:image/g) || []).length, 1);
+  assert.ok(e1);
 });
 
 test("custom domain + unpublish", async () => {
