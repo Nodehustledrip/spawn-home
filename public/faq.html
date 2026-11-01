@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn FAQ — waitlist, private machine vs public URL, Go Live, custom domains, secrets, Build chat, and pricing." />
+  <meta name="description" content="Answers about Spawn: free hosting on Spawn Cloud, custom domains on Pro, the gallery and Remix, starters, AI limits and pricing." />
     <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta property="og:title" content="FAQ — Spawn" />
-  <meta property="og:description" content="Plain answers: waitlist, private machine, Go Live, domains, secrets, and how Spawn differs from chat-only builders." />
+  <meta property="og:title" content="Spawn FAQ — Hosting, Custom Domains, Remix &amp; Limits" />
+  <meta property="og:description" content="Answers about Spawn: free hosting on Spawn Cloud, custom domains on Pro, the gallery and Remix, starters, AI limits and pricing." />
   <meta property="og:url" content="https://spawnapp.org/faq" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
   <meta property="og:image" content="https://spawnapp.org/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
+  <meta property="og:image:alt" content="Spawn FAQ — Hosting, Custom Domains, Remix &amp; Limits" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="FAQ — Spawn" />
-  <meta name="twitter:description" content="Plain answers: waitlist, private machine, Go Live, domains, secrets, and how Spawn differs from chat-only builders." />
+  <meta name="twitter:title" content="Spawn FAQ — Hosting, Custom Domains, Remix &amp; Limits" />
+  <meta name="twitter:description" content="Answers about Spawn: free hosting on Spawn Cloud, custom domains on Pro, the gallery and Remix, starters, AI limits and pricing." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
-  <title>FAQ — Spawn</title>
+  <title>Spawn FAQ — Hosting, Custom Domains, Remix &amp; Limits</title>
   <link rel="canonical" href="https://spawnapp.org/faq" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -46,93 +46,169 @@
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
   <script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
   {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Spawn",
-    "url": "https://spawnapp.org"
-  }
-  </script>
-  <script type="application/ld+json">
+   "@type": "Organization",
+   "@id": "https://spawnapp.org/#org",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "logo": "https://spawnapp.org/apple-touch-icon.png"
+  },
   {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is Spawn?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Spawn is a private app builder that runs on your machine. You create a real app, run a local preview, change it in Build chat, then Go Live for a public HTTPS URL — with domains, secrets, and plugins in the same place."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is Spawn local or cloud?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Building stays local. Your project files, preview, and secrets live on your machine until you choose to publish. Go Live puts a public site on the internet; the builder itself is not a browser-only sandbox that holds your code."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Do I need an invite?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Spawn is free to use today at spawnapp.org/build — no invite or waitlist needed. Pro plans are on spawnapp.org/pricing."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What happens when I Go Live?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Publish to Spawn Cloud from the desktop app and your project goes live at https://<name>.spawnapp.org — copy the link or scan the QR. It stays up 24/7, even with your PC off. Keep iterating in Spawn and republish to ship changes."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I use a custom domain?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes. Every published app lives at https://<name>.spawnapp.org, and you can connect a domain you own from Spawn's Domains screen or spawnapp.org/cloud/domains. Buy the domain at any registrar, set the two nameservers Spawn shows, and it goes live with HTTPS automatically — root and www together. Custom domains are part of Spawn Pro ($12/month); every free published app keeps its <name>.spawnapp.org address."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Where do my code and secrets live?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Code stays on your machine until you publish. Secrets (API keys, env vars) are stored in Spawn’s Secrets and injected at run and deploy time — they don’t belong in your source tree."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How is this different from chat-only builders?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Spawn edits real project files, shows the preview on your machine, and ships a public URL with domains and secrets included. It’s a builder loop — create → run → build → live — not a one-shot chat that dumps disposable code."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Does my computer need to stay on for my site to be live?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No. Apps published to Spawn Cloud are served from the cloud at https://<name>.spawnapp.org and stay up 24/7 with your PC off."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How much does Spawn cost?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Free covers templates, live preview, chat edits and zip download — 2 builds and 20 edits a day with no account, or 5 saved builds and 30 edits a day with a free account (email link, no password). Free accounts can publish to Spawn Cloud at yourname.spawnapp.org with a small Made with Spawn badge. Pro is $12/month or $120/year: connect your own domain, no badge, 25 saved builds with undo history, 300 edits a day, and priority email support. Create an account on spawnapp.org, then subscribe from the pricing page. Billed by Degen Social; manage or cancel anytime with Manage billing; 7-day refund."
-        }
-      }
+   "@type": "WebSite",
+   "@id": "https://spawnapp.org/#website",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   }
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://spawnapp.org/faq#webpage",
+   "url": "https://spawnapp.org/faq",
+   "name": "Spawn FAQ — Hosting, Custom Domains, Remix & Limits",
+   "description": "Answers about Spawn: free hosting on Spawn Cloud, custom domains on Pro, the gallery and Remix, starters, AI limits and pricing.",
+   "isPartOf": {
+    "@id": "https://spawnapp.org/#website"
+   },
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   },
+   "inLanguage": "en",
+   "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+     {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://spawnapp.org/"
+     },
+     {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "FAQ",
+      "item": "https://spawnapp.org/faq"
+     }
     ]
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://spawnapp.org/faq#faq",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "What is Spawn?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "An AI website and app builder. Describe the app you want at /build and Spawn’s AI builds a real site you can preview, change in plain words, and publish free to Spawn Cloud at yourname.spawnapp.org. Prefer working locally? The desktop app does the same with real files on your machine."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can Spawn build an app from a description?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. On /build, describe your app in a sentence or two and the AI builds a real multi-page site with its own pages, styles and scripts. Then keep changing it in plain words. AI builds and edits count toward your daily limit: 2 builds and 20 edits a day without an account, 5 saved builds and 30 edits a day on a free account, and 25 saved builds and 300 edits a day on Pro."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is hosting free?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Free accounts can publish straight from the browser to Spawn Cloud at https://yourname.spawnapp.org, with HTTPS included. Your app stays up 24/7 — your computer doesn’t need to be on. Free apps show a small “Made with Spawn” badge; Pro removes it."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What are the gallery and Remix?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The gallery lists apps people chose to share, plus five Spawn starters: a restaurant site, a designer portfolio, a booking page, a launch waitlist and a stacking game. Remix copies an app’s pages, styles and images into your own build so you can edit it — never its data, sign-ins or keys."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How is this different from chat-only builders?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Spawn edits real project files, shows the preview on your machine, and ships a public URL with domains and secrets included. It’s a builder loop — create → run → build → live — not a one-shot chat that dumps disposable code. See Why Spawn."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What do I need to get started?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Just a browser — Build is free, no account. When you’re ready, publish to Spawn Cloud for a live <name>.spawnapp.org URL that stays up 24/7. Describe an app or open existing files, hit Run for a localhost preview, then iterate in chat. No separate deploy dance just to try a change. Walkthrough: How it works."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is Spawn local or cloud?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Building stays local. Project files, preview, and secrets live on your machine until you choose to publish. Go Live puts a public site on the internet; the builder is not a browser-only sandbox that holds your code."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Where do my code and secrets live?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Code stays on your machine until you publish. Secrets (API keys, env vars) live in Spawn’s Secrets and inject at run and deploy — not in your source tree. This site’s waitlist email handling is on Privacy."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What happens when I Go Live?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Publish to Spawn Cloud from the browser or the desktop app and your project goes live at https://<name>.spawnapp.org — copy the link or scan the QR. Up 24/7 even with your PC off. Keep iterating and republish to ship changes."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can I use a custom domain?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Every published app lives at https://<name>.spawnapp.org, and you can connect a domain you own from Spawn’s Domains screen or spawnapp.org/cloud/domains. Buy the domain at any registrar, set the two nameservers Spawn shows, and it goes live with HTTPS automatically — root and www together, with your existing email records carried over. Custom domains are part of Spawn Pro; every free published app keeps its <name>.spawnapp.org address."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Does my computer need to stay on?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Apps published to Spawn Cloud are served from the cloud at https://<name>.spawnapp.org and stay up 24/7 with your PC off. Your source and secrets still live on your machine."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Do I need an invite?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Spawn is free to use today at /build. Pro plans are on the pricing page."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How much does Spawn cost?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Free covers templates, live preview, chat edits and zip download — 2 builds and 20 edits a day with no account, or 5 saved builds and 30 edits a day with a free account (email link, no password). Free accounts can publish to Spawn Cloud at yourname.spawnapp.org with a small “Made with Spawn” badge. Pro is $12/month or $120/year: connect your own domain, no badge, 25 saved builds with undo history, 300 edits a day, and priority email support. Create an account on spawnapp.org, then subscribe from pricing. Billed by Degen Social; manage or cancel anytime with Manage billing; 7-day refund."
+     }
+    }
+   ]
   }
-  </script>
+ ]
+}
+</script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -200,12 +276,56 @@
           <summary>What is Spawn?</summary>
           <div class="faq-body">
             <p>
-              A private app builder on your machine. Create a real app, run a
-              localhost preview, change it in Build chat, then Go Live for a
-              public HTTPS URL — with domains, secrets, and plugins in the same place.
+              An AI website and app builder. Describe the app you want at
+              <a href="/build">/build</a> and Spawn&rsquo;s AI builds a real site
+              you can preview, change in plain words, and publish free to Spawn
+              Cloud at yourname.spawnapp.org. Prefer working locally? The desktop
+              app does the same with real files on your machine.
             </p>
           </div>
         </details>
+
+        <details class="faq-item" id="ai-builder">
+          <summary>Can Spawn build an app from a description?</summary>
+          <div class="faq-body">
+            <p>
+              Yes. On <a href="/build">/build</a>, describe your app in a sentence
+              or two and the AI builds a real multi-page site with its own pages,
+              styles and scripts. Then keep changing it in plain words. AI builds
+              and edits count toward your daily limit: 2 builds and 20 edits a day
+              without an account, 5 saved builds and 30 edits a day on a free
+              account, and 25 saved builds and 300 edits a day on
+              <a href="/pricing">Pro</a>.
+            </p>
+          </div>
+        </details>
+
+        <details class="faq-item" id="hosting">
+          <summary>Is hosting free?</summary>
+          <div class="faq-body">
+            <p>
+              Yes. Free accounts can publish straight from the browser to Spawn
+              Cloud at https://yourname.spawnapp.org, with HTTPS included. Your
+              app stays up 24/7 &mdash; your computer doesn&rsquo;t need to be on.
+              Free apps show a small &ldquo;Made with Spawn&rdquo; badge;
+              <a href="/pricing">Pro</a> removes it.
+            </p>
+          </div>
+        </details>
+
+        <details class="faq-item" id="gallery">
+          <summary>What are the gallery and Remix?</summary>
+          <div class="faq-body">
+            <p>
+              The <a href="/gallery">gallery</a> lists apps people chose to share,
+              plus five Spawn starters: a restaurant site, a designer portfolio, a
+              booking page, a launch waitlist and a stacking game. Remix copies an
+              app&rsquo;s pages, styles and images into your own build so you can
+              edit it &mdash; never its data, sign-ins or keys.
+            </p>
+          </div>
+        </details>
+
 
         <details class="faq-item">
           <summary>How is this different from chat-only builders?</summary>
@@ -269,15 +389,15 @@
           <summary>What happens when I Go Live?</summary>
           <div class="faq-body">
             <p>
-              Publish to Spawn Cloud from the desktop app and your project goes
+              Publish to Spawn Cloud from <a href="/build">the browser</a> or the desktop app and your project goes
               live at https://&lt;name&gt;.spawnapp.org — copy the link or scan the
-              QR. Same project you ran on localhost, now up 24/7 even with your
+              QR. Up 24/7 even with your
               PC off. Keep iterating and republish to ship changes.
             </p>
           </div>
         </details>
 
-        <details class="faq-item">
+        <details class="faq-item" id="domains">
           <summary>Can I use a custom domain?</summary>
           <div class="faq-body">
             <p>

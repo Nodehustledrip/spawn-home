@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn product: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — a private app builder on your machine that ships a public URL." />
+  <meta name="description" content="Everything in Spawn: an AI builder that turns a prompt into a site, chat edits, free Spawn Cloud hosting, custom domains with HTTPS and Remix." />
     <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta property="og:title" content="Product — Spawn" />
-  <meta property="og:description" content="What’s in Spawn: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — private machine to public URL." />
+  <meta property="og:title" content="Spawn Product — AI App Builder, Hosting &amp; Domains" />
+  <meta property="og:description" content="Everything in Spawn: an AI builder that turns a prompt into a site, chat edits, free Spawn Cloud hosting, custom domains with HTTPS and Remix." />
   <meta property="og:url" content="https://spawnapp.org/product" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
   <meta property="og:image" content="https://spawnapp.org/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
+  <meta property="og:image:alt" content="Spawn Product — AI App Builder, Hosting &amp; Domains" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Product — Spawn" />
-  <meta name="twitter:description" content="What’s in Spawn: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — private machine to public URL." />
+  <meta name="twitter:title" content="Spawn Product — AI App Builder, Hosting &amp; Domains" />
+  <meta name="twitter:description" content="Everything in Spawn: an AI builder that turns a prompt into a site, chat edits, free Spawn Cloud hosting, custom domains with HTTPS and Remix." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
-  <title>Product — Spawn</title>
+  <title>Spawn Product — AI App Builder, Hosting &amp; Domains</title>
   <link rel="canonical" href="https://spawnapp.org/product" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -46,45 +46,121 @@
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
   <script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
   {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Product — Spawn",
-    "description": "Spawn product surfaces: Create, Run, Build chat, Go Live, Domains, Secrets, Plugins, and Account — a private app builder that ships a public URL.",
-    "url": "https://spawnapp.org/product",
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "Spawn",
-      "url": "https://spawnapp.org"
-    }
-  }
-  </script>
-  <script type="application/ld+json">
+   "@type": "Organization",
+   "@id": "https://spawnapp.org/#org",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "logo": "https://spawnapp.org/apple-touch-icon.png"
+  },
   {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Spawn",
-    "url": "https://spawnapp.org"
-  }
-  </script>
-  <script type="application/ld+json">
+   "@type": "WebSite",
+   "@id": "https://spawnapp.org/#website",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   }
+  },
   {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Spawn",
-    "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "macOS, Windows, Linux",
-    "description": "Private app builder on your machine — Create, Run, Build chat, Go Live with Domains, Secrets, Plugins, and Account.",
-    "url": "https://spawnapp.org/product",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
+   "@type": "WebPage",
+   "@id": "https://spawnapp.org/product#webpage",
+   "url": "https://spawnapp.org/product",
+   "name": "Spawn Product — AI App Builder, Hosting & Domains",
+   "description": "Everything in Spawn: an AI builder that turns a prompt into a site, chat edits, free Spawn Cloud hosting, custom domains with HTTPS and Remix.",
+   "isPartOf": {
+    "@id": "https://spawnapp.org/#website"
+   },
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   },
+   "inLanguage": "en",
+   "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+     {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://spawnapp.org/"
+     },
+     {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Product",
+      "item": "https://spawnapp.org/product"
+     }
+    ]
+   },
+   "about": {
+    "@id": "https://spawnapp.org/#app"
+   }
+  },
+  {
+   "@type": "WebApplication",
+   "@id": "https://spawnapp.org/#app",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "applicationCategory": "DeveloperApplication",
+   "operatingSystem": "Any (web browser)",
+   "browserRequirements": "Requires a modern web browser",
+   "description": "AI website and app builder: describe an app, get a real AI-built site, edit it in plain words and publish it free to Spawn Cloud at yourname.spawnapp.org. Pro adds custom domains with free HTTPS and removes the Made with Spawn badge.",
+   "featureList": [
+    "AI builder: describe an app and get a real site",
+    "Edit in plain words",
+    "Free publishing to Spawn Cloud at yourname.spawnapp.org, up 24/7",
+    "Publish from the browser or the desktop app",
+    "Custom domains with free HTTPS (Pro)",
+    "Public gallery with Remix",
+    "Five Spawn starters"
+   ],
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   },
+   "offers": [
+    {
+     "@type": "Offer",
+     "name": "Free",
+     "price": "0",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing"
+    },
+    {
+     "@type": "Offer",
+     "name": "Pro (monthly)",
+     "price": "12",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing",
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "12",
       "priceCurrency": "USD",
-      "availability": "https://schema.org/LimitedAvailability",
-      "description": "Free to start; Pro from $12/month"
+      "billingDuration": "P1M",
+      "unitCode": "MON"
+     }
+    },
+    {
+     "@type": "Offer",
+     "name": "Pro (yearly)",
+     "price": "120",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing",
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "120",
+      "priceCurrency": "USD",
+      "billingDuration": "P1Y",
+      "unitCode": "ANN"
+     }
     }
+   ]
   }
-  </script>
+ ]
+}
+</script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>

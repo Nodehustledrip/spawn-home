@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Real apps running on Spawn Cloud at their own .spawnapp.org addresses, like the BidBoard marketplace, plus design concepts and remixable starters." />
+  <meta name="description" content="Real apps running on Spawn Cloud at their own .spawnapp.org addresses, plus five remixable Spawn starters to make your own." />
     <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta property="og:title" content="Showcase — Spawn" />
-  <meta property="og:description" content="Real apps running on Spawn Cloud at their own .spawnapp.org addresses, like the BidBoard marketplace, plus design concepts and remixable starters." />
+  <meta property="og:title" content="Spawn Showcase — Live Apps Built with Spawn" />
+  <meta property="og:description" content="Real apps running on Spawn Cloud at their own .spawnapp.org addresses, plus five remixable Spawn starters to make your own." />
   <meta property="og:url" content="https://spawnapp.org/showcase" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
   <meta property="og:image" content="https://spawnapp.org/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
+  <meta property="og:image:alt" content="Spawn Showcase — Live Apps Built with Spawn" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Showcase — Spawn" />
-  <meta name="twitter:description" content="Real apps running on Spawn Cloud at their own .spawnapp.org addresses, like the BidBoard marketplace, plus design concepts and remixable starters." />
+  <meta name="twitter:title" content="Spawn Showcase — Live Apps Built with Spawn" />
+  <meta name="twitter:description" content="Real apps running on Spawn Cloud at their own .spawnapp.org addresses, plus five remixable Spawn starters to make your own." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
-  <title>Showcase — Spawn</title>
+  <title>Spawn Showcase — Live Apps Built with Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/showcase" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -61,19 +61,59 @@
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
   <script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
   {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": "Spawn Showcase",
-    "description": "Real apps running on Spawn Cloud at their own .spawnapp.org addresses, like the BidBoard marketplace, plus design concepts and remixable starters.",
-    "url": "https://spawnapp.org/showcase",
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "Spawn",
-      "url": "https://spawnapp.org"
-    }
+   "@type": "Organization",
+   "@id": "https://spawnapp.org/#org",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "logo": "https://spawnapp.org/apple-touch-icon.png"
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://spawnapp.org/#website",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   }
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://spawnapp.org/showcase#webpage",
+   "url": "https://spawnapp.org/showcase",
+   "name": "Spawn Showcase — Live Apps Built with Spawn",
+   "description": "Real apps running on Spawn Cloud at their own .spawnapp.org addresses, plus five remixable Spawn starters to make your own.",
+   "isPartOf": {
+    "@id": "https://spawnapp.org/#website"
+   },
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   },
+   "inLanguage": "en",
+   "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+     {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://spawnapp.org/"
+     },
+     {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Showcase",
+      "item": "https://spawnapp.org/showcase"
+     }
+    ]
+   }
   }
-  </script>
+ ]
+}
+</script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>

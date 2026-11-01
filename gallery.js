@@ -365,9 +365,11 @@ function mount(app, opts) {
       .replace("<!--GL_COUNT-->", String(list.length))
       .replace("<!--GL_EMPTY_HIDDEN-->", list.length ? "hidden" : "")
       .replace("/*GL_LD*/", JSON.stringify({
-        "@context": "https://schema.org", "@type": "CollectionPage", name: "Spawn Gallery", url: "https://spawnapp.org/gallery",
-        description: "Apps people published with Spawn — open them live or remix one into your own build.",
-        mainEntity: { "@type": "ItemList", itemListElement: list.slice(0, 50).map((e, i) => ({ "@type": "ListItem", position: i + 1, url: e.url, name: e.title })) },
+        "@context": "https://schema.org", "@type": "CollectionPage", "@id": "https://spawnapp.org/gallery#webpage", name: "Spawn Gallery — website templates to remix", url: "https://spawnapp.org/gallery",
+        description: "Live apps made with Spawn and five Spawn starters. Open one live, or remix it into your own build for free.",
+        isPartOf: { "@type": "WebSite", "@id": "https://spawnapp.org/#website", name: "Spawn", url: "https://spawnapp.org/" },
+        breadcrumb: { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://spawnapp.org/" }, { "@type": "ListItem", position: 2, name: "Gallery", item: "https://spawnapp.org/gallery" }] },
+        mainEntity: { "@type": "ItemList", numberOfItems: Math.min(list.length, 50), itemListElement: list.slice(0, 50).map((e, i) => ({ "@type": "ListItem", position: i + 1, url: /^https?:/.test(e.url) ? e.url : "https://" + e.url, name: e.title })) },
       }).replace(/</g, "\\u003c"));
     res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
     res.type("html").send(html);
@@ -414,7 +416,7 @@ function mount(app, opts) {
     res.type("image/png").send(png);
   }));
   app.get("/og/gallery.png", (req, res) => {
-    const png = cardPng({ slug: "gallery", title: "The Spawn Gallery", description: "Apps people published with Spawn. Open one live, or remix it into your own build.", kicker: "Gallery", accent: "#d4a574", url: "spawnapp.org/gallery" });
+    const png = cardPng({ slug: "gallery", title: "Website templates to remix", description: "Live apps made with Spawn plus five Spawn starters. Open one live or remix it free.", kicker: "Spawn Gallery", accent: "#d4a574", url: "spawnapp.org/gallery" });
     if (!png) return res.redirect(302, "/og.png");
     res.setHeader("Cache-Control", "public, max-age=86400");
     res.type("image/png").send(png);

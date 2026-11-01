@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Spawn — describe an app, change it in plain words, and get it live at yourname.spawnapp.org. Free to start; Pro adds custom domains and more builds." />
+  <meta name="description" content="Describe an app and Spawn&#x27;s AI builds a real site. Publish free at yourname.spawnapp.org, up 24/7. Pro adds custom domains." />
     <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta property="og:title" content="Spawn — Build an app. Put it on the internet." />
-  <meta property="og:description" content="Describe an app, change it in plain words, and get it live at yourname.spawnapp.org. Free to start." />
-  <meta property="og:url" content="https://spawnapp.org" />
+  <meta property="og:title" content="AI Website Builder with Free Hosting — Spawn" />
+  <meta property="og:description" content="Describe an app and Spawn&#x27;s AI builds a real site. Publish free at yourname.spawnapp.org, up 24/7. Pro adds custom domains." />
+  <meta property="og:url" content="https://spawnapp.org/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
   <meta property="og:image" content="https://spawnapp.org/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
+  <meta property="og:image:alt" content="AI Website Builder with Free Hosting — Spawn" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Spawn — Build an app. Put it on the internet." />
-  <meta name="twitter:description" content="Describe an app, change it in plain words, and get it live at yourname.spawnapp.org. Free to start." />
+  <meta name="twitter:title" content="AI Website Builder with Free Hosting — Spawn" />
+  <meta name="twitter:description" content="Describe an app and Spawn&#x27;s AI builds a real site. Publish free at yourname.spawnapp.org, up 24/7. Pro adds custom domains." />
   <meta name="twitter:image" content="https://spawnapp.org/og.png" />
-  <title>Spawn — Build an app. Put it on the internet.</title>
+  <title>AI Website Builder with Free Hosting — Spawn</title>
   <link rel="canonical" href="https://spawnapp.org/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -63,22 +63,104 @@
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
   <script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
   {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "name": "Spawn",
-        "url": "https://spawnapp.org"
-      },
-      {
-        "@type": "Organization",
-        "name": "Spawn",
-        "url": "https://spawnapp.org"
-      }
-    ]
+   "@type": "Organization",
+   "@id": "https://spawnapp.org/#org",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "logo": "https://spawnapp.org/apple-touch-icon.png"
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://spawnapp.org/#website",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   }
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://spawnapp.org/#webpage",
+   "url": "https://spawnapp.org/",
+   "name": "AI Website Builder with Free Hosting — Spawn",
+   "description": "Describe an app and Spawn's AI builds a real site. Publish free at yourname.spawnapp.org, up 24/7. Pro adds custom domains.",
+   "isPartOf": {
+    "@id": "https://spawnapp.org/#website"
+   },
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   },
+   "inLanguage": "en",
+   "about": {
+    "@id": "https://spawnapp.org/#app"
+   }
+  },
+  {
+   "@type": "WebApplication",
+   "@id": "https://spawnapp.org/#app",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "applicationCategory": "DeveloperApplication",
+   "operatingSystem": "Any (web browser)",
+   "browserRequirements": "Requires a modern web browser",
+   "description": "AI website and app builder: describe an app, get a real AI-built site, edit it in plain words and publish it free to Spawn Cloud at yourname.spawnapp.org. Pro adds custom domains with free HTTPS and removes the Made with Spawn badge.",
+   "featureList": [
+    "AI builder: describe an app and get a real site",
+    "Edit in plain words",
+    "Free publishing to Spawn Cloud at yourname.spawnapp.org, up 24/7",
+    "Publish from the browser or the desktop app",
+    "Custom domains with free HTTPS (Pro)",
+    "Public gallery with Remix",
+    "Five Spawn starters"
+   ],
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   },
+   "offers": [
+    {
+     "@type": "Offer",
+     "name": "Free",
+     "price": "0",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing"
+    },
+    {
+     "@type": "Offer",
+     "name": "Pro (monthly)",
+     "price": "12",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing",
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "12",
+      "priceCurrency": "USD",
+      "billingDuration": "P1M",
+      "unitCode": "MON"
+     }
+    },
+    {
+     "@type": "Offer",
+     "name": "Pro (yearly)",
+     "price": "120",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing",
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "120",
+      "priceCurrency": "USD",
+      "billingDuration": "P1Y",
+      "unitCode": "ANN"
+     }
+    }
+   ]
   }
-  </script>
+ ]
+}
+</script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -415,6 +497,28 @@
             <span class="home-explore-idx" aria-hidden="true">04</span>
             <strong>Build</strong>
             <span>Create in the browser — preview and edit now</span>
+          </a>
+        </div>
+        <div class="home-explore-grid home-explore-grid-4" style="margin-top:1rem">
+          <a class="home-explore-card" href="/gallery">
+            <span class="home-explore-idx" aria-hidden="true">05</span>
+            <strong>Gallery</strong>
+            <span>Live apps made with Spawn — remix one</span>
+          </a>
+          <a class="home-explore-card" href="/gallery">
+            <span class="home-explore-idx" aria-hidden="true">06</span>
+            <strong>Starters</strong>
+            <span>Restaurant, portfolio, booking, waitlist, game</span>
+          </a>
+          <a class="home-explore-card" href="/pricing">
+            <span class="home-explore-idx" aria-hidden="true">07</span>
+            <strong>Pricing</strong>
+            <span>Free hosting; Pro $12/mo for your domain</span>
+          </a>
+          <a class="home-explore-card" href="/faq#domains">
+            <span class="home-explore-idx" aria-hidden="true">08</span>
+            <strong>Custom domains</strong>
+            <span>Your own domain with free HTTPS on Pro</span>
           </a>
         </div>
       </div>

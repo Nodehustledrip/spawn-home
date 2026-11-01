@@ -16,7 +16,7 @@
   <meta property="og:image" content="https://spawnapp.org/og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Spawn — Build. Run. Ship." />
+  <meta property="og:image:alt" content="Sign in — Spawn" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Sign in — Spawn" />
   <meta name="twitter:description" content="Sign in or create your Spawn account with a one-time email link — no password." />
@@ -44,28 +44,6 @@
   </style>
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Sign in — Spawn",
-    "description": "Sign in or create your Spawn account with a one-time email link — no password.",
-    "url": "https://spawnapp.org/signin",
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "Spawn",
-      "url": "https://spawnapp.org"
-    }
-  }
-  </script>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Spawn",
-    "url": "https://spawnapp.org"
-  }
-  </script>
   <meta name="robots" content="noindex,follow" />
   <style>
     .signin-wrap { max-width: 440px; margin: 0 auto; padding: 7.5rem 1.25rem 4rem; }
@@ -85,6 +63,60 @@
     .signin-card [hidden] { display: none !important; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   </style>
+  <script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://spawnapp.org/#org",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "logo": "https://spawnapp.org/apple-touch-icon.png"
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://spawnapp.org/#website",
+   "name": "Spawn",
+   "url": "https://spawnapp.org/",
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   }
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://spawnapp.org/signin#webpage",
+   "url": "https://spawnapp.org/signin",
+   "name": "Sign in — Spawn",
+   "description": "Sign in or create your Spawn account with a one-time email link — no password.",
+   "isPartOf": {
+    "@id": "https://spawnapp.org/#website"
+   },
+   "publisher": {
+    "@id": "https://spawnapp.org/#org"
+   },
+   "inLanguage": "en",
+   "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+     {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://spawnapp.org/"
+     },
+     {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Sign in",
+      "item": "https://spawnapp.org/signin"
+     }
+    ]
+   }
+  }
+ ]
+}
+</script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
