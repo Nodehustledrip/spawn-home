@@ -257,11 +257,11 @@ function contactSection() {
           var fd=new FormData(form);
           fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({name:fd.get('name'),email:fd.get('email'),message:fd.get('message')})})
-            .then(function(r){return r.json()}).then(function(){
+            .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||!j.ok)throw new Error(j.error||'Could not send — try again.');})}).then(function(){
               document.getElementById('contactMsg').textContent='Thanks — we got your message.';
               form.reset();
-            }).catch(function(){
-              document.getElementById('contactMsg').textContent='Saved locally (demo).';
+            }).catch(function(err){
+              document.getElementById('contactMsg').textContent=(err&&err.message)||'Could not send — try again.';
             });
         });
       })();

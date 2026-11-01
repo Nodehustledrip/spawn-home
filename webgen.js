@@ -441,10 +441,10 @@ ${qs.slice(0, 2).map(function (q) { return '      <div class="card">\n        <d
       var fd = new FormData(form);
       fetch('/api/lead', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ email: fd.get('email'), name: fd.get('name') }) })
-        .then(function(r){return r.json()}).then(function(){
+        .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||!j.ok)throw new Error(j.error||'Could not send — try again.');})}).then(function(){
           document.getElementById('leadMsg').textContent = 'Thanks — we got your request.';
           form.reset();
-        });
+        }).catch(function(err){ document.getElementById('leadMsg').textContent = err.message; });
     });
   </script>
 </body>
@@ -611,10 +611,10 @@ ${L.kpis.map(function (k) { return '      <div class="card"><div class="kpi-labe
       var fd = new FormData(e.target);
       fetch('/api/lead', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ name: fd.get('name'), phone: fd.get('phone'), email: fd.get('email'), message: fd.get('message') }) })
-        .then(function(r){return r.json()}).then(function(){
+        .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||!j.ok)throw new Error(j.error||'Could not send — try again.');})}).then(function(){
           document.getElementById('leadMsg').textContent = ${JSON.stringify(L.success).replace(/</g, "\\u003c")};
           e.target.reset();
-        });
+        }).catch(function(err){ document.getElementById('leadMsg').textContent = err.message; });
     });
   </script>
 </body>
@@ -769,10 +769,10 @@ function templateContentFeed(opts) {
       var fd = new FormData(e.target);
       fetch('/api/lead', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ email: fd.get('email') }) })
-        .then(function(r){return r.json()}).then(function(){
+        .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||!j.ok)throw new Error(j.error||'Could not send — try again.');})}).then(function(){
           document.getElementById('leadMsg').textContent = 'You are on the list.';
           e.target.reset();
-        });
+        }).catch(function(err){ document.getElementById('leadMsg').textContent = err.message; });
     });
   </script>
 </body>
@@ -894,10 +894,10 @@ function templateMarketplace(opts) {
       var fd = new FormData(e.target);
       fetch('/api/lead', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ title: fd.get('title'), trade: fd.get('trade'), zip: fd.get('zip'), email: fd.get('email'), message: fd.get('message') }) })
-        .then(function(r){return r.json()}).then(function(){
+        .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok||!j.ok)throw new Error(j.error||'Could not send — try again.');})}).then(function(){
           document.getElementById('leadMsg').textContent = 'Posted — your job is on the board (demo).';
           e.target.reset();
-        });
+        }).catch(function(err){ document.getElementById('leadMsg').textContent = err.message; });
     });
   </script>
 </body>

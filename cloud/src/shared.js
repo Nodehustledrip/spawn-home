@@ -24,7 +24,7 @@ export async function handleShared(c) {
     await rateLimit(env, `w:${slug}:${ip}`, 30, 600);
     const b = await readJson(request, 16384);
     const email = clip(b.email, 254).toLowerCase();
-    if (!email && !b.title) throw new HttpError(400, "email or title required");
+    if (!email && !["title", "name", "phone", "message"].some((k) => clip(b[k], 4000).trim())) throw new HttpError(400, "Add an email, name, phone, or message.");
     if (email && !validEmail(email)) throw new HttpError(400, "Enter a valid email address.");
     await insertRecord(env, slug, "lead", email, b);
     return json({ ok: true, message: "Thanks — we got your message." });
