@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Stack Up — How high can you build?</title>
+<meta name="description" content="A one-tap tower stacking game. Time each drop, chain perfect placements and beat your best. A Spawn starter you can remix.">
+<meta name="theme-color" content="#1b1530">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="c" aria-label="Stack Up game board. Tap, click or press space to drop the block." role="img"></canvas>
+<div class="hud">
+  <div class="score" aria-live="polite"><span data-score>0</span><small>Best <b data-best>0</b></small></div>
+  <button class="snd" type="button" data-sound aria-pressed="false" aria-label="Sound off. Turn sound on"><span data-snd-ic>🔇</span></button>
+</div>
+<div class="combo" data-combo aria-hidden="true"></div>
+
+<section class="screen" data-start>
+  <h1><span>Stack</span><span>Up</span></h1>
+  <p>Drop each block on the one below. Overhang gets sliced off — line it up perfectly to keep it whole.</p>
+  <button class="play" type="button" data-play>Play</button>
+  <p class="hint"><kbd>Tap</kbd> or <kbd>Space</kbd> to drop</p>
+</section>
+
+<section class="screen over" data-over hidden aria-labelledby="go-h">
+  <p class="k">Tower toppled</p>
+  <h2 id="go-h"><span data-final>0</span></h2>
+  <p class="sub" data-final-sub></p>
+  <div class="btns">
+    <button class="play" type="button" data-again>Play again</button>
+    <button class="ghost" type="button" data-share>Share score</button>
+  </div>
+  <p class="toast" role="status" aria-live="polite" data-toast></p>
+</section>
+<p class="credit">A Spawn starter</p>
+<script src="app.js" defer></script>
+</body>
+</html>

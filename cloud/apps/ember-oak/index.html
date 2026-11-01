@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember &amp; Oak — Wood-fired kitchen</title>
+<meta name="description" content="A wood-fired neighborhood kitchen: seasonal plates, a menu by category, opening hours and a table request form. A Spawn starter you can remix.">
+<meta name="theme-color" content="#14100c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("eo-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" data-nav>
+  <a class="brand" href="#top" aria-label="Ember &amp; Oak home"><span class="brand-mark" aria-hidden="true"></span>Ember &amp; Oak</a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="#menu">Menu</a><a href="#hours">Hours</a><a href="#visit">Visit</a>
+  </nav>
+  <div class="nav-end">
+    <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span aria-hidden="true">◐</span></button>
+    <a class="btn btn-solid" href="#reserve">Request a table</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-copy">
+      <p class="eyebrow reveal">Wood-fired · Seasonal · Neighborhood</p>
+      <h1 class="reveal">Cooked over <em>live fire</em>, served at a long oak table.</h1>
+      <p class="lead reveal">A small kitchen built around one hearth. The menu follows what’s good this week — charred vegetables, slow-cooked meats, bread from the oven every evening.</p>
+      <div class="hero-cta reveal">
+        <a class="btn btn-solid btn-lg" href="#reserve">Request a table</a>
+        <a class="btn btn-ghost btn-lg" href="#menu">See the menu</a>
+      </div>
+    </div>
+    <div class="hero-art reveal" aria-hidden="true">
+      <div class="plate p1"><span></span></div>
+      <div class="plate p2"><span></span></div>
+      <div class="plate p3"><span></span></div>
+      <div class="embers"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </section>
+
+  <section class="strip" aria-label="From the kitchen">
+    <div class="strip-track">
+      <figure class="tile t1"><div class="art"></div><figcaption>Charred leeks, hazelnut</figcaption></figure>
+      <figure class="tile t2"><div class="art"></div><figcaption>Hearth bread, cultured butter</figcaption></figure>
+      <figure class="tile t3"><div class="art"></div><figcaption>Embered beets, labneh</figcaption></figure>
+      <figure class="tile t4"><div class="art"></div><figcaption>Oak-smoked short rib</figcaption></figure>
+      <figure class="tile t5"><div class="art"></div><figcaption>Burnt honey tart</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="section" id="menu" aria-labelledby="menu-h">
+    <div class="section-head reveal">
+      <p class="eyebrow">This week</p>
+      <h2 id="menu-h">The menu</h2>
+      <p class="muted">Changes with the season. Tell us about allergies when you book — most dishes can be adapted.</p>
+    </div>
+    <div class="tabs reveal" role="tablist" aria-label="Menu categories" data-tabs>
+      <button role="tab" aria-selected="true" aria-controls="m-small" id="t-small">Small plates</button>
+      <button role="tab" aria-selected="false" aria-controls="m-fire" id="t-fire" tabindex="-1">From the fire</button>
+      <button role="tab" aria-selected="false" aria-controls="m-sides" id="t-sides" tabindex="-1">Sides</button>
+      <button role="tab" aria-selected="false" aria-controls="m-sweet" id="t-sweet" tabindex="-1">Sweet</button>
+      <button role="tab" aria-selected="false" aria-controls="m-drink" id="t-drink" tabindex="-1">Drinks</button>
+    </div>
+    <div class="menu-panels">
+      <div class="menu-panel is-on" role="tabpanel" id="m-small" aria-labelledby="t-small">
+        <article class="dish"><h3>Hearth bread</h3><p>Sourdough baked in the oven every evening, cultured butter, flaky salt</p><span class="price">$7</span></article>
+        <article class="dish"><h3>Charred leeks <span class="tag">V</span></h3><p>Romesco, toasted hazelnut, lemon</p><span class="price">$12</span></article>
+        <article class="dish"><h3>Embered beets <span class="tag">V</span></h3><p>Labneh, dill, smoked chili oil</p><span class="price">$13</span></article>
+        <article class="dish"><h3>Grilled flatbread</h3><p>Whipped feta, honey, thyme from the garden</p><span class="price">$11</span></article>
+        <article class="dish"><h3>Ash-roasted carrots <span class="tag">VG</span></h3><p>Carrot-top salsa verde, pepitas</p><span class="price">$12</span></article>
+      </div>
+      <div class="menu-panel" role="tabpanel" id="m-fire" aria-labelledby="t-fire" hidden>
+        <article class="dish"><h3>Oak-smoked short rib</h3><p>Twelve-hour braise, finished over coals, pickled shallot</p><span class="price">$34</span></article>
+        <article class="dish"><h3>Whole grilled fish</h3><p>Market catch, fennel, brown butter, capers</p><span class="price">$31</span></article>
+        <article class="dish"><h3>Half chicken</h3><p>Brined overnight, charred lemon, salsa verde</p><span class="price">$26</span></article>
+        <article class="dish"><h3>Hearth mushrooms <span class="tag">VG</span></h3><p>Wild and cultivated, miso glaze, crispy grains</p><span class="price">$22</span></article>
+      </div>
+      <div class="menu-panel" role="tabpanel" id="m-sides" aria-labelledby="t-sides" hidden>
+        <article class="dish"><h3>Coal potatoes <span class="tag">V</span></h3><p>Crushed, smoked garlic aioli</p><span class="price">$9</span></article>
+        <article class="dish"><h3>Bitter leaves <span class="tag">VG</span></h3><p>Radicchio, citrus, mustard dressing</p><span class="price">$9</span></article>
+        <article class="dish"><h3>Charred greens <span class="tag">VG</span></h3><p>Chili, garlic, lemon</p><span class="price">$8</span></article>
+      </div>
+      <div class="menu-panel" role="tabpanel" id="m-sweet" aria-labelledby="t-sweet" hidden>
+        <article class="dish"><h3>Burnt honey tart</h3><p>Crème fraîche, sea salt</p><span class="price">$11</span></article>
+        <article class="dish"><h3>Grilled stone fruit <span class="tag">V</span></h3><p>Brown-butter crumble, vanilla cream</p><span class="price">$10</span></article>
+        <article class="dish"><h3>Dark chocolate pot</h3><p>Smoked sugar, olive oil, rye crisp</p><span class="price">$10</span></article>
+      </div>
+      <div class="menu-panel" role="tabpanel" id="m-drink" aria-labelledby="t-drink" hidden>
+        <article class="dish"><h3>Smoked old fashioned</h3><p>Rye, demerara, orange, oak smoke</p><span class="price">$15</span></article>
+        <article class="dish"><h3>Garden spritz</h3><p>Bitter aperitivo, sparkling wine, herbs</p><span class="price">$13</span></article>
+        <article class="dish"><h3>Hearth lemonade</h3><p>Charred lemon, honey, soda — no alcohol</p><span class="price">$6</span></article>
+        <article class="dish"><h3>Wine by the glass</h3><p>A short, changing list — ask your server</p><span class="price">from $11</span></article>
+      </div>
+    </div>
+    <p class="fine">V vegetarian · VG vegan. Prices and dishes are examples — edit them to match your kitchen.</p>
+  </section>
+
+  <section class="section split" id="hours" aria-labelledby="hours-h">
+    <div class="reveal">
+      <p class="eyebrow">When we’re open</p>
+      <h2 id="hours-h">Hours</h2>
+      <p class="muted">Walk-ins welcome at the bar. The kitchen closes thirty minutes before the doors.</p>
+      <p class="open-now" data-open-now aria-live="polite"></p>
+    </div>
+    <dl class="hours reveal" data-hours>
+      <div data-day="1"><dt>Monday</dt><dd>Closed</dd></div>
+      <div data-day="2"><dt>Tuesday</dt><dd>5:00 – 10:00 pm</dd></div>
+      <div data-day="3"><dt>Wednesday</dt><dd>5:00 – 10:00 pm</dd></div>
+      <div data-day="4"><dt>Thursday</dt><dd>5:00 – 10:00 pm</dd></div>
+      <div data-day="5"><dt>Friday</dt><dd>5:00 – 11:00 pm</dd></div>
+      <div data-day="6"><dt>Saturday</dt><dd>11:30 am – 11:00 pm</dd></div>
+      <div data-day="0"><dt>Sunday</dt><dd>11:30 am – 9:00 pm</dd></div>
+    </dl>
+  </section>
+
+  <section class="section reserve" id="reserve" aria-labelledby="res-h">
+    <div class="reserve-card reveal">
+      <div class="reserve-copy">
+        <p class="eyebrow">Reservations</p>
+        <h2 id="res-h">Request a table</h2>
+        <p class="muted">Send a request and we’ll reply to confirm — your table isn’t booked until you hear back from us. Parties of seven or more, mention it in the note.</p>
+      </div>
+      <form class="form" data-reserve novalidate>
+        <div class="row2">
+          <label>Name<input name="name" autocomplete="name" required></label>
+          <label>Email<input name="email" type="email" autocomplete="email" required></label>
+        </div>
+        <div class="row3">
+          <label>Date<input name="date" type="date" required data-date></label>
+          <label>Time
+            <select name="time" required>
+              <option value="">Choose</option><option>5:30 pm</option><option>6:00 pm</option><option>6:30 pm</option><option>7:00 pm</option><option>7:30 pm</option><option>8:00 pm</option><option>8:30 pm</option><option>9:00 pm</option>
+            </select>
+          </label>
+          <label>Guests
+            <select name="guests" required><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7+</option></select>
+          </label>
+        </div>
+        <label><span>Note <span class="opt">(optional)</span></span><textarea name="message" rows="3" placeholder="Allergies, occasions, seating preferences"></textarea></label>
+        <input class="hp" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="btn btn-solid btn-lg" type="submit">Send request</button>
+        <p class="form-msg" role="status" aria-live="polite" data-msg></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="section split" id="visit" aria-labelledby="visit-h">
+    <div class="reveal">
+      <p class="eyebrow">Find us</p>
+      <h2 id="visit-h">Visit</h2>
+      <p class="muted">Your street address goes here. Add parking, transit and accessibility notes so guests arrive relaxed.</p>
+      <ul class="facts">
+        <li><span>Area</span>Your neighborhood, Your City</li>
+        <li><span>Phone</span>Add your number</li>
+        <li><span>Access</span>Step-free entrance and restroom</li>
+      </ul>
+    </div>
+    <div class="map reveal" role="img" aria-label="Map placeholder — replace with your own map embed">
+      <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs><pattern id="g" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="currentColor" stroke-opacity=".08"/></pattern></defs>
+        <rect width="400" height="260" fill="url(#g)"/>
+        <path d="M-10 190 C80 160 120 210 210 170 S330 120 420 150" fill="none" stroke="currentColor" stroke-opacity=".18" stroke-width="14"/>
+        <path d="M120 -10 L160 280" stroke="currentColor" stroke-opacity=".12" stroke-width="9"/>
+        <path d="M-10 70 L420 100" stroke="currentColor" stroke-opacity=".12" stroke-width="7"/>
+        <path d="M290 -10 L250 280" stroke="currentColor" stroke-opacity=".1" stroke-width="6"/>
+      </svg>
+      <div class="pin" aria-hidden="true"><span></span></div>
+      <p class="map-note">Map placeholder — embed yours</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p class="brand-foot">Ember &amp; Oak</p>
+  <p class="fine">Ember &amp; Oak is a fictional restaurant — a Spawn starter. Swap in your name, dishes, hours and address.</p>
+</footer>
+<script src="app.js" defer></script>
+</body>
+</html>

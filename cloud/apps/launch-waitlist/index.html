@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocketbook — Join the waitlist</title>
+<meta name="description" content="A launch page with a live countdown, email waitlist, shareable referral link and FAQ. A Spawn starter you can remix for your own product.">
+<meta name="theme-color" content="#07070c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("lw-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="top">
+  <a class="logo" href="#"><span class="mark" aria-hidden="true"></span>Pocketbook</a>
+  <button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme">◐</button>
+</header>
+<main>
+  <section class="hero">
+    <p class="badge"><span class="pulse" aria-hidden="true"></span>Early access opens soon</p>
+    <h1>Shared money, <span class="grad">without the awkward.</span></h1>
+    <p class="lead">Pocketbook is a shared budget for households and housemates. Split bills, plan big purchases and see where things stand — together. Join the list to get in first.</p>
+
+    <div class="count" data-count role="timer" aria-label="Time until launch">
+      <div><b data-d>00</b><span>days</span></div><div><b data-h>00</b><span>hours</span></div><div><b data-m>00</b><span>min</span></div><div><b data-s>00</b><span>sec</span></div>
+    </div>
+    <p class="count-note" data-count-note></p>
+
+    <form class="join" data-join novalidate>
+      <label class="sr" for="email">Email address</label>
+      <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+      <input class="hp" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button type="submit">Join the waitlist</button>
+    </form>
+    <p class="msg" role="status" aria-live="polite" data-msg></p>
+    <p class="small">One email when we launch, plus the occasional update. Unsubscribe any time.</p>
+
+    <div class="ref" data-ref hidden>
+      <div class="ref-head"><span class="ok" aria-hidden="true">✓</span><div><h2>You’re on the list.</h2><p>Want in sooner? Share your link. Friends who join with it are credited to you, and we invite people with the most referrals first.</p></div></div>
+      <div class="ref-row"><input data-ref-link readonly aria-label="Your referral link"><button type="button" data-copy>Copy</button></div>
+      <div class="share"><button type="button" data-share>Share…</button><a data-x target="_blank" rel="noopener">Post on X</a><a data-mail>Email a friend</a></div>
+      <p class="small" data-ref-note></p>
+    </div>
+  </section>
+
+  <section class="feat" aria-label="What’s coming">
+    <article><div class="ic" aria-hidden="true">⇄</div><h3>Split anything</h3><p>Even, by share or by item. Pocketbook keeps a running balance so nobody keeps score in their head.</p></article>
+    <article><div class="ic" aria-hidden="true">◎</div><h3>Goals you can see</h3><p>Save for a sofa, a trip or a deposit with a shared target and a clear plan to reach it.</p></article>
+    <article><div class="ic" aria-hidden="true">☰</div><h3>One calm view</h3><p>Upcoming bills, recent spending and who owes what — on a single screen.</p></article>
+  </section>
+
+  <section class="faq" aria-labelledby="faq-h">
+    <h2 id="faq-h">Questions</h2>
+    <details><summary>When does it launch?</summary><p>The countdown shows the date we’re aiming for. Everyone on the list hears first, and invites go out in waves.</p></details>
+    <details><summary>How do referrals work?</summary><p>After you join you get a personal link. When someone signs up through it, they’re credited to you. We use that to decide the order of early invites — no points, no prizes, just earlier access.</p></details>
+    <details><summary>Will it cost anything?</summary><p>Early access is free. We’ll share pricing before launch, well before anything is charged.</p></details>
+    <details><summary>What will you do with my email?</summary><p>Only use it to tell you about Pocketbook. We don’t sell or share your address.</p></details>
+  </section>
+</main>
+<footer class="foot">Pocketbook is a fictional product — a Spawn starter. Set your own launch date in <code>app.js</code>.</footer>
+<script src="app.js" defer></script>
+</body>
+</html>

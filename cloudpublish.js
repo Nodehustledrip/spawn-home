@@ -83,7 +83,10 @@ function localBackend(dir) {
   fs.mkdirSync(dir, { recursive: true });
   const db = new DatabaseSync(path.join(dir, "d1.sqlite"));
   const migDir = path.join(__dirname, "cloud", "migrations");
-  for (const f of fs.readdirSync(migDir).sort()) db.exec(fs.readFileSync(path.join(migDir, f), "utf8"));
+  for (const f of fs.readdirSync(migDir).sort()) {
+    try { db.exec(fs.readFileSync(path.join(migDir, f), "utf8")); }
+    catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; } // ALTER migrations re-run on reopen
+  }
   async function query(sql, params) { const st = db.prepare(sql); return /^\s*(select|with)|returning/i.test(sql) ? st.all(...(params || [])) : (st.run(...(params || [])), []); }
   return Object.assign({ kind: "local", dir, db, query }, blobOps(query));
 }

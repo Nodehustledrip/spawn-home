@@ -86,6 +86,12 @@ test("owner toggle, title checks, admin hide/unhide, report, remix source", asyn
   x = await call("POST", "/api/admin/gallery/private-one", null, { hidden: true }); assert.equal(x.status, 401);
   x = await call("POST", "/api/admin/gallery/private-one", null, { hidden: true }, { "x-admin": "yes" }); assert.equal(x.body.entry.hidden, 1);
   x = await call("GET", "/api/gallery"); assert.deepEqual(x.body.entries.map((e) => e.slug), ["cedar-lawn"]);
+  assert.equal(x.body.entries[0].starter, false);
+  await call("PUT", "/api/cloud/apps/cedar-lawn/gallery", "free", { starter: true }); // owners can't self-label
+  x = await call("GET", "/api/gallery"); assert.equal(x.body.entries[0].starter, false);
+  x = await call("POST", "/api/admin/gallery/cedar-lawn", null, { starter: true }, { "x-admin": "yes" }); assert.equal(x.body.entry.starter, 1);
+  x = await call("GET", "/api/gallery"); assert.equal(x.body.entries[0].starter, true);
+  assert.match(await (await fetch(base + "/gallery")).text(), /Spawn starter/);
   x = await call("POST", "/api/gallery/cedar-lawn/report", null, { reason: "spam" }); assert.equal(x.body.ok, true);
   x = await call("POST", "/api/gallery/cedar-lawn/report", null, { reason: "nope" }); assert.equal(x.status, 400);
   x = await call("GET", "/api/admin/gallery/reports", null, null, { "x-admin": "yes" }); assert.equal(x.body.reports.length, 1);

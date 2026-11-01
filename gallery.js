@@ -19,12 +19,14 @@ const CATEGORIES = [
   ["tool", "Tool & dashboard"],
   ["content", "Blog & content"],
   ["portfolio", "Portfolio"],
+  ["game", "Game"],
   ["other", "Other"],
 ];
 const CAT_IDS = new Set(CATEGORIES.map((c) => c[0]));
 const catLabel = (id) => (CATEGORIES.find((c) => c[0] === id) || CATEGORIES[CATEGORIES.length - 1])[1];
 
 const GUESS = [
+  ["game", /\b(game|arcade|puzzle|high ?score|play now)\b/i],
   ["marketplace", /\b(marketplace|bids?|jobs? board|hire|listings?|vendors?|gigs?)\b/i],
   ["membership", /\b(members?(hip)?|subscription|course|community|patreon)\b/i],
   ["store", /\b(shop|store|checkout|merch|products?|pricing|buy|cart|order)\b/i],
@@ -90,7 +92,13 @@ function createStore(getBackend) {
     if (!ready) {
       const ddl = fs.readFileSync(path.join(__dirname, "cloud", "migrations", "0005_gallery.sql"), "utf8")
         .replace(/--[^\n]*/g, "").split(";").map((s) => s.trim()).filter(Boolean);
-      ready = (async () => { for (const s of ddl) await be().query(s, []); })().catch((e) => { ready = null; throw e; });
+      ready = (async () => {
+        for (const s of ddl) await be().query(s, []);
+        /* 0006: starter flag (ALTER is not idempotent, so ignore "duplicate column") */
+        const cols = await be().query("SELECT name FROM pragma_table_info('gallery')", []).catch(() => []);
+        if (!cols.some((c) => c.name === "starter")) try { await be().query("ALTER TABLE gallery ADD COLUMN starter INTEGER NOT NULL DEFAULT 0", []); }
+        catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; }
+      })().catch((e) => { ready = null; throw e; });
     }
     await ready;
     return be().query(sql, p || []);
@@ -105,22 +113,22 @@ function createStore(getBackend) {
     /** Insert or update an entry. Only provided fields change. */
     async upsert(slug, owner, f) {
       const cur = (await q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
-      const row = Object.assign({ listed: 0, remixable: 1, hidden: 0, title: null, description: null, category: "other", accent: null, thumb_key: null, listed_at: null }, cur || {});
+      const row = Object.assign({ listed: 0, remixable: 1, hidden: 0, starter: 0, title: null, description: null, category: "other", accent: null, thumb_key: null, listed_at: null }, cur || {});
       for (const k of ["title", "description", "category", "accent", "thumb_key"]) if (f[k] !== undefined) row[k] = f[k];
-      for (const k of ["listed", "remixable", "hidden"]) if (f[k] !== undefined) row[k] = f[k] ? 1 : 0;
+      for (const k of ["listed", "remixable", "hidden", "starter"]) if (f[k] !== undefined) row[k] = f[k] ? 1 : 0;
       if (row.listed && !row.listed_at) row.listed_at = now();
       if (!CAT_IDS.has(row.category)) row.category = "other";
       if (cur) {
-        await q("UPDATE gallery SET listed=?2, remixable=?3, hidden=?4, title=?5, description=?6, category=?7, accent=?8, thumb_key=?9, listed_at=?10, updated_at=?11 WHERE slug=?1",
-          [slug, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, now()]);
+        await q("UPDATE gallery SET listed=?2, remixable=?3, hidden=?4, title=?5, description=?6, category=?7, accent=?8, thumb_key=?9, listed_at=?10, updated_at=?11, starter=?12 WHERE slug=?1",
+          [slug, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, now(), row.starter ? 1 : 0]);
       } else {
-        await q("INSERT INTO gallery (slug, owner, listed, remixable, hidden, title, description, category, accent, thumb_key, listed_at) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
-          [slug, owner, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at]);
+        await q("INSERT INTO gallery (slug, owner, listed, remixable, hidden, title, description, category, accent, thumb_key, listed_at, starter) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
+          [slug, owner, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, row.starter ? 1 : 0]);
       }
       return (await q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
     },
     async list() {
-      return q("SELECT g.slug, g.title, g.description, g.category, g.accent, g.remixable, g.thumb_key, g.listed_at, g.updated_at, g.remix_count, a.title AS app_title, a.updated_at AS app_updated, a.runtime " +
+      return q("SELECT g.slug, g.title, g.description, g.category, g.accent, g.remixable, g.starter, g.thumb_key, g.listed_at, g.updated_at, g.remix_count, a.title AS app_title, a.updated_at AS app_updated, a.runtime " +
         "FROM gallery g JOIN apps a ON a.slug=g.slug WHERE g.listed=1 AND g.hidden=0 AND a.status='active' AND a.live_version IS NOT NULL ORDER BY g.listed_at DESC LIMIT 300", []);
     },
     async report(slug, reason, note, reporter) {
@@ -272,6 +280,7 @@ function entryView(r, apex) {
     categoryLabel: catLabel(r.category),
     accent: accentFor(r.slug, r.accent),
     remixable: !!r.remixable,
+    starter: !!r.starter,
     url: "https://" + r.slug + "." + apex + "/",
     host: r.slug + "." + apex,
     thumb: "/gallery/thumb/" + r.slug + ".png?v=" + v,
@@ -289,7 +298,7 @@ function renderCards(entries) {
           <span class="gl-live-pill"><span aria-hidden="true"></span>Live</span>
         </a>
         <div class="gl-body">
-          <div class="gl-tags"><span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
+          <div class="gl-tags">${e.starter ? '<span class="gl-tag gl-tag-starter" title="Made by Spawn as a starting point — remix it into your own app">Spawn starter</span>' : ""}<span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
           <h2 class="gl-title">${x(e.title)}</h2>
           ${e.description ? `<p class="gl-desc">${x(e.description)}</p>` : ""}
           <p class="gl-host mono">${x(e.host)}</p>
@@ -432,6 +441,7 @@ function mount(app, opts) {
     if (typeof b.hidden === "boolean") f.hidden = b.hidden;
     if (typeof b.listed === "boolean") f.listed = b.listed;
     if (typeof b.remixable === "boolean") f.remixable = b.remixable;
+    if (typeof b.starter === "boolean") f.starter = b.starter;
     if (b.title !== undefined) { const e = checkTitle(b.title); if (e) return res.status(400).json({ ok: false, error: e }); f.title = clean(b.title, 80); }
     if (b.description !== undefined) { const e = checkText(b.description); if (e) return res.status(400).json({ ok: false, error: e }); f.description = clean(b.description, 200); }
     if (b.category !== undefined) f.category = CAT_IDS.has(b.category) ? b.category : "other";

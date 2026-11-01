@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Folio — Independent design studio</title>
+<meta name="description" content="A portfolio for an independent designer or small studio: filterable case studies with detail views, an about section and a contact form. A Spawn starter you can remix.">
+<meta name="theme-color" content="#0d0d10">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("sf-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursor-glow" aria-hidden="true"></div>
+<header class="nav">
+  <a class="brand" href="#top">Folio<span>.</span></a>
+  <nav aria-label="Sections"><a href="#work">Work</a><a href="#about">About</a><a href="#contact">Contact</a></nav>
+  <button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme"><span class="sun" aria-hidden="true"></span></button>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <p class="status reveal"><span class="dot" aria-hidden="true"></span>Taking on new projects</p>
+    <h1 class="reveal">Brand, product &amp; web design for teams who <em>care about the details.</em></h1>
+    <p class="lead reveal">An independent studio. I partner with founders and small teams to shape identities, design interfaces and ship websites that feel considered from the first pixel to the last.</p>
+    <div class="hero-cta reveal"><a class="btn btn-solid" href="#work">See selected work</a><a class="btn btn-line" href="#contact">Start a project <span aria-hidden="true">→</span></a></div>
+  </section>
+
+  <section class="work" id="work" aria-labelledby="work-h">
+    <div class="work-head reveal">
+      <h2 id="work-h">Selected work</h2>
+      <div class="filters" role="group" aria-label="Filter projects" data-filters>
+        <button aria-pressed="true" data-f="all">All</button>
+        <button aria-pressed="false" data-f="brand">Brand</button>
+        <button aria-pressed="false" data-f="product">Product</button>
+        <button aria-pressed="false" data-f="web">Web</button>
+      </div>
+    </div>
+    <div class="grid" data-grid></div>
+    <p class="fine">These are example case studies — replace them with your own projects.</p>
+  </section>
+
+  <section class="about" id="about" aria-labelledby="about-h">
+    <div class="about-art reveal" aria-hidden="true"><div class="orb"></div><div class="ring"></div></div>
+    <div class="reveal">
+      <p class="kicker">About</p>
+      <h2 id="about-h">Small studio, <em>close collaboration.</em></h2>
+      <p>You work directly with the person doing the design — no hand-offs, no account managers. Projects start with a short discovery call, move through a few focused rounds, and end with files and guidelines your team can actually use.</p>
+      <div class="caps">
+        <div><h3>Brand</h3><p>Naming support, identity systems, type and colour, guidelines.</p></div>
+        <div><h3>Product</h3><p>UX flows, interface design, design systems, prototypes.</p></div>
+        <div><h3>Web</h3><p>Marketing sites, art direction, responsive builds.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact" aria-labelledby="contact-h">
+    <div class="contact-card reveal">
+      <div>
+        <p class="kicker">Contact</p>
+        <h2 id="contact-h">Have a project in mind?</h2>
+        <p class="muted">Tell me a little about it. I reply to every message, usually within two working days.</p>
+      </div>
+      <form class="form" data-contact novalidate>
+        <div class="two"><label>Your name<input name="name" autocomplete="name" required></label><label>Email<input name="email" type="email" autocomplete="email" required></label></div>
+        <fieldset><legend>What do you need?</legend>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" name="need" value="Brand"><span>Brand</span></label>
+            <label class="chip"><input type="checkbox" name="need" value="Product"><span>Product</span></label>
+            <label class="chip"><input type="checkbox" name="need" value="Website"><span>Website</span></label>
+            <label class="chip"><input type="checkbox" name="need" value="Not sure yet"><span>Not sure yet</span></label>
+          </div>
+        </fieldset>
+        <label>About the project<textarea name="message" rows="4" required placeholder="Goals, timeline, anything useful"></textarea></label>
+        <input class="hp" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="btn btn-solid" type="submit">Send message</button>
+        <p class="msg" role="status" aria-live="polite" data-msg></p>
+      </form>
+    </div>
+  </section>
+</main>
+<footer class="foot"><span>Folio — a Spawn starter. Make it yours.</span><a href="#top">Back to top ↑</a></footer>
+
+<dialog class="modal" data-modal aria-labelledby="m-title">
+  <div class="modal-inner">
+    <button class="close" type="button" data-close aria-label="Close case study">×</button>
+    <div class="m-cover" data-m-cover></div>
+    <div class="m-body">
+      <p class="kicker" data-m-kind></p>
+      <h2 id="m-title" data-m-title></h2>
+      <dl class="m-meta" data-m-meta></dl>
+      <div class="m-sections" data-m-text></div>
+      <div class="m-nav"><button class="btn btn-line" type="button" data-prev>← Previous</button><button class="btn btn-line" type="button" data-next>Next →</button></div>
+    </div>
+  </div>
+</dialog>
+<script src="app.js" defer></script>
+</body>
+</html>

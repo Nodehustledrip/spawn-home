@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fade Theory — Book a chair</title>
+<meta name="description" content="A booking page for a barber, studio or coach: services with prices, an interactive date and time picker, a live summary and an appointment request form. A Spawn starter you can remix.">
+<meta name="theme-color" content="#0e1116">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>try{var t=localStorage.getItem("bs-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#book">Skip to booking</a>
+<header class="top">
+  <a class="logo" href="#"><span class="pole" aria-hidden="true"></span>Fade Theory</a>
+  <div class="top-end">
+    <span class="hours-pill">Tue–Sat · 9–7</span>
+    <button class="theme" type="button" data-theme-toggle aria-label="Switch light or dark theme">◑</button>
+  </div>
+</header>
+
+<main>
+  <section class="intro">
+    <p class="eyebrow">Barbershop · Walk-ins when we can</p>
+    <h1>Book your chair <span class="hl">in under a minute.</span></h1>
+    <p class="lead">Pick a service, choose a time that suits you, and send a request. We’ll confirm by email — nothing is charged online.</p>
+  </section>
+
+  <section class="booker" id="book" aria-label="Book an appointment">
+    <div class="steps">
+      <section class="step" aria-labelledby="s1">
+        <h2 id="s1"><span class="n">1</span>Choose a service</h2>
+        <div class="services" role="radiogroup" aria-labelledby="s1" data-services></div>
+      </section>
+
+      <section class="step" aria-labelledby="s2">
+        <div class="step-head"><h2 id="s2"><span class="n">2</span>Pick a day</h2>
+          <div class="arrows"><button type="button" data-scroll="-1" aria-label="Earlier days">‹</button><button type="button" data-scroll="1" aria-label="Later days">›</button></div></div>
+        <div class="days" role="radiogroup" aria-labelledby="s2" data-days></div>
+      </section>
+
+      <section class="step" aria-labelledby="s3">
+        <h2 id="s3"><span class="n">3</span>Pick a time</h2>
+        <div data-slots-wrap>
+          <div class="slot-group"><h3>Morning</h3><div class="slots" data-slots="am"></div></div>
+          <div class="slot-group"><h3>Afternoon</h3><div class="slots" data-slots="pm"></div></div>
+          <div class="slot-group"><h3>Evening</h3><div class="slots" data-slots="eve"></div></div>
+        </div>
+        <p class="note">Example availability — connect your own calendar or edit the hours in <code>app.js</code>.</p>
+      </section>
+
+      <section class="step" aria-labelledby="s4">
+        <h2 id="s4"><span class="n">4</span>Your details</h2>
+        <form class="form" data-form novalidate>
+          <div class="two"><label>Name<input name="name" autocomplete="name" required></label><label><span>Phone <span class="opt">(optional)</span></span><input name="phone" type="tel" autocomplete="tel"></label></div>
+          <label>Email<input name="email" type="email" autocomplete="email" required></label>
+          <label><span>Anything we should know? <span class="opt">(optional)</span></span><textarea name="message" rows="2" placeholder="Reference photo, sensitive skin, first visit…"></textarea></label>
+          <input class="hp" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+        </form>
+      </section>
+    </div>
+
+    <aside class="summary" aria-label="Booking summary">
+      <div class="sum-card">
+        <p class="sum-k">Your request</p>
+        <dl>
+          <div><dt>Service</dt><dd data-sum-service>—</dd></div>
+          <div><dt>Day</dt><dd data-sum-day>—</dd></div>
+          <div><dt>Time</dt><dd data-sum-time>—</dd></div>
+          <div><dt>Duration</dt><dd data-sum-dur>—</dd></div>
+        </dl>
+        <div class="total"><span>Estimated total</span><strong data-sum-total>$0</strong></div>
+        <button class="cta" type="button" data-submit disabled>Choose a service</button>
+        <p class="sum-msg" role="status" aria-live="polite" data-msg></p>
+        <p class="sum-fine">This sends a request, not a confirmed booking. Pay in the shop after your cut.</p>
+      </div>
+    </aside>
+  </section>
+
+  <section class="done" data-done hidden tabindex="-1" aria-labelledby="done-h">
+    <div class="check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
+    <h2 id="done-h">Request sent</h2>
+    <p data-done-text></p>
+    <p class="muted">Your appointment isn’t confirmed until we email you back. No payment was taken.</p>
+    <button class="cta ghost" type="button" data-again>Make another request</button>
+  </section>
+</main>
+<footer class="foot">Fade Theory is a fictional shop — a Spawn starter. Swap in your services, prices and hours.</footer>
+<div class="mbar" data-mbar><div><span data-m-line>Choose a service</span><strong data-m-total>$0</strong></div><button class="cta" type="button" data-submit disabled>Request</button></div>
+<script src="app.js" defer></script>
+</body>
+</html>
