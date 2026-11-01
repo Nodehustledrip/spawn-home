@@ -53,7 +53,9 @@ function isPro(user) {
 function configured() {
   const flag = String(process.env.AUTH_ENABLED || "").toLowerCase();
   if (flag === "0" || flag === "false" || flag === "off") return false;
-  return !!(process.env.DATABASE_URL && process.env.RESEND_API_KEY);
+  if (!process.env.RESEND_API_KEY) return false;
+  if (store.backendWanted && store.backendWanted() === "d1") return !!(process.env.CF_D1_APP_DATABASE_ID && process.env.CF_API_TOKEN && process.env.CF_ACCOUNT_ID);
+  return !!process.env.DATABASE_URL;
 }
 
 /** Live check: keys present AND Postgres store is ready. */
@@ -94,6 +96,13 @@ function appendCookie(res, c) {
   res.setHeader("Set-Cookie", prev ? [].concat(prev, c) : c);
 }
 
+/* In-memory session cache (D1 only, where each lookup is an HTTP round trip).
+ * Entries expire after SESSION_CACHE_MS and are dropped whenever users or
+ * sessions are written (pool.gen changes), so plan changes and sign-outs
+ * apply immediately on this instance. */
+const SESSION_CACHE_MS = 60 * 1000;
+const sessionCache = new Map();
+
 /** Signed-in user for this request (cached), or null. Never throws. */
 async function currentUser(req) {
   if (req._spawnUser !== undefined) return req._spawnUser;
@@ -102,13 +111,27 @@ async function currentUser(req) {
   const sid = parseCookies(req)[SESSION_COOKIE];
   if (!sid || !/^[A-Za-z0-9_-]{32,64}$/.test(sid)) return null;
   try {
-    const r = await store
-      .getPool()
-      .query(
-        "SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash=$1 AND s.expires_at > now()",
-        [sha("s:" + sid)]
-      );
-    req._spawnUser = r.rows[0] || null;
+    const pool = store.getPool();
+    const key = sha("s:" + sid);
+    const hit = pool.cacheable ? sessionCache.get(key) : null;
+    if (hit && hit.gen === pool.gen && Date.now() - hit.at < SESSION_CACHE_MS && (!hit.exp || hit.exp > Date.now())) {
+      req._spawnUser = hit.user;
+      return hit.user;
+    }
+    const r = await pool.query(
+      "SELECT u.*, s.expires_at AS session_expires_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash=$1 AND s.expires_at > now()",
+      [key]
+    );
+    const row = r.rows[0] || null;
+    if (row) {
+      var exp = row.session_expires_at ? new Date(row.session_expires_at).getTime() : 0;
+      delete row.session_expires_at;
+    }
+    req._spawnUser = row;
+    if (pool.cacheable) {
+      if (sessionCache.size > 5000) sessionCache.clear();
+      sessionCache.set(key, { user: row, gen: pool.gen, at: Date.now(), exp: exp || 0 });
+    }
   } catch (err) {
     console.error("[auth] session lookup failed", err && err.message);
   }

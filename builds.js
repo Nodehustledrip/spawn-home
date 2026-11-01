@@ -632,7 +632,7 @@ function mount(app) {
         /* Soft X-Robots so previews are not indexed as real apps */
         res.setHeader("X-Robots-Tag", "noindex, nofollow");
         res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
-        res.setHeader("X-Build-Source", source === "postgres" ? "postgres" : store.mode() + "-cache");
+        res.setHeader("X-Build-Source", source === "postgres" || source === "d1" ? source : store.mode() + "-cache");
         const isHtml = req.path === "/" || req.path === "" || /\.html?$/i.test(req.path);
         if (isHtml && (req.method === "GET" || req.method === "HEAD")) {
           const rel = req.path === "/" || req.path === "" ? "index.html" : decodeURIComponent(req.path).replace(/^\/+/, "");

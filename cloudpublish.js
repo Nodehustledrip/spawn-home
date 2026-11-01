@@ -559,4 +559,4 @@ var m=document.getElementById('m');if(x.s===401){location.href='/signin?next='+e
 if(x.j.ok){m.textContent='Connected. You can return to Spawn.';document.getElementById('b').remove()}else m.textContent=x.j.error||'Something went wrong.'})};
 </script>`;
 
-module.exports = { mount, enabled, mode, encryptSecret, syncPresets, APP_PRESETS, checkManifest, validPath, memoryTokenStore, localBackend, LIMITS };
+module.exports = { mount, enabled, mode, encryptSecret, pgTokenStore, syncPresets, APP_PRESETS, checkManifest, validPath, memoryTokenStore, localBackend, LIMITS };

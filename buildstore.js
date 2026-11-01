@@ -34,7 +34,7 @@ function durable(owner) {
 }
 
 function mode() {
-  return ready ? "postgres" : "disk";
+  return ready ? backend : "disk";
 }
 
 function safeRel(rel) {
@@ -44,8 +44,57 @@ function safeRel(rel) {
   });
 }
 
+let backend = "postgres";
+const CHUNK_CHARS = 512 * 1024;
+
+function backendWanted() {
+  return String(process.env.STORAGE_BACKEND || "").toLowerCase() === "d1" ? "d1" : "postgres";
+}
+
+/** D1 config: a dedicated app database (CF_D1_APP_DATABASE_ID) via the Cloudflare REST API. */
+function d1Config() {
+  const accountId = process.env.CF_ACCOUNT_ID;
+  const token = process.env.CF_API_TOKEN;
+  const databaseId = process.env.CF_D1_APP_DATABASE_ID;
+  return accountId && token && databaseId ? { accountId, token, databaseId } : null;
+}
+
+function initD1() {
+  backend = "d1";
+  const cfg = d1Config();
+  if (!cfg) {
+    console.error("[buildstore] STORAGE_BACKEND=d1 but CF_ACCOUNT_ID / CF_API_TOKEN / CF_D1_APP_DATABASE_ID missing — disk-only mode");
+    initPromise = Promise.resolve(false);
+    return initPromise;
+  }
+  const d1 = require("./d1pool");
+  pool = d1.create(cfg);
+  initPromise = (async function () {
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      try {
+        await pool.batch(d1.SCHEMA.map(function (sql) { return { sql: sql, raw: true }; }));
+        ready = true;
+        console.log("[buildstore] d1 ready");
+        return true;
+      } catch (err) {
+        initError = err;
+        console.error("[buildstore] d1 init attempt " + attempt + " failed:", err && err.message);
+        await new Promise(function (r) { setTimeout(r, attempt * 1500); });
+      }
+    }
+    console.error("[buildstore] giving up on d1 — disk-only mode");
+    return false;
+  })();
+  return initPromise;
+}
+
+function isD1() {
+  return backend === "d1";
+}
+
 function init() {
   if (initPromise) return initPromise;
+  if (backendWanted() === "d1") return initD1();
   const url = process.env.DATABASE_URL;
   if (!url) {
     console.log("[buildstore] DATABASE_URL not set — disk-only mode (builds are ephemeral)");
@@ -124,6 +173,7 @@ function init() {
             ")"
         );
         await pool.query("CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions (user_id)");
+        await pool.query("CREATE TABLE IF NOT EXISTS waitlist (email TEXT PRIMARY KEY, source TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now())");
         ready = true;
         console.log("[buildstore] postgres ready");
         return true;
@@ -215,6 +265,25 @@ async function save(id, owner, root, opts) {
     err.status = 413;
     throw err;
   }
+  if (isD1()) {
+    const blob = JSON.stringify({ files: data.files, history: data.history });
+    const stmts = [
+      {
+        sql:
+          "INSERT INTO builds (id, owner, name, template, files, history, size_bytes, edit_count, created_at, updated_at)" +
+          " VALUES ($1,$2,$3,$4,'{}','{}',$5,0,COALESCE($6, now()),now())" +
+          " ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, template=EXCLUDED.template," +
+          " size_bytes=EXCLUDED.size_bytes, edit_count = builds.edit_count + $7, updated_at=now()",
+        params: [id, owner, String(meta.name || id).slice(0, 120), meta.template || null, data.bytes, meta.createdAt || null, opts.edited ? 1 : 0],
+      },
+      { sql: "DELETE FROM build_chunks WHERE id=$1", params: [id] },
+    ];
+    for (let i = 0, n = 0; i < blob.length; i += CHUNK_CHARS, n++) {
+      stmts.push({ sql: "INSERT INTO build_chunks (id, idx, data) VALUES ($1,$2,$3)", params: [id, n, blob.slice(i, i + CHUNK_CHARS)] });
+    }
+    await pool.batch(stmts);
+    return { ok: true, mode: "d1", bytes: data.bytes };
+  }
   await pool.query(
     "INSERT INTO builds (id, owner, name, template, files, history, size_bytes, edit_count, created_at, updated_at)" +
       " VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7,0,COALESCE($8::timestamptz, now()),now())" +
@@ -236,13 +305,28 @@ async function save(id, owner, root, opts) {
   return { ok: true, mode: "postgres", bytes: data.bytes };
 }
 
+/** Full build row { owner, files, history } from the durable store, or null. */
+async function loadRow(id) {
+  if (isD1()) {
+    const res = await pool.batch([
+      { sql: "SELECT owner FROM builds WHERE id=$1", params: [id] },
+      { sql: "SELECT data FROM build_chunks WHERE id=$1 ORDER BY idx", params: [id] },
+    ]);
+    if (!res[0].length) return null;
+    const text = res[1].map(function (c) { return c.data; }).join("");
+    const body = text ? JSON.parse(text) : {};
+    return { owner: res[0][0].owner, files: body.files || {}, history: body.history || {} };
+  }
+  const r = await pool.query("SELECT owner, files, history FROM builds WHERE id=$1", [id]);
+  return r.rows[0] || null;
+}
+
 /** Make sure the disk cache for a build exists; pull it from Postgres if not. */
 async function hydrate(id, root) {
   if (fs.existsSync(path.join(root, "forge.json"))) return "disk";
   if (!ready) return null;
-  const r = await pool.query("SELECT owner, files, history FROM builds WHERE id=$1", [id]);
-  if (!r.rows.length) return null;
-  const row = r.rows[0];
+  const row = await loadRow(id);
+  if (!row) return null;
   const tmp = root + ".hydrate-" + process.pid + "-" + Date.now();
   fs.mkdirSync(tmp, { recursive: true });
   writeTree(tmp, row.files);
@@ -255,8 +339,8 @@ async function hydrate(id, root) {
     fs.rmSync(tmp, { recursive: true, force: true });
     if (!fs.existsSync(path.join(root, "forge.json"))) throw err;
   }
-  console.log("[buildstore] hydrated", id, "from postgres");
-  return "postgres";
+  console.log("[buildstore] hydrated", id, "from " + backend);
+  return backend;
 }
 
 function rowSummary(row) {
@@ -354,7 +438,8 @@ async function countAll(buildsDir) {
 }
 
 async function remove(id, root) {
-  if (ready) await pool.query("DELETE FROM builds WHERE id=$1", [id]);
+  if (ready && isD1()) await pool.batch([{ sql: "DELETE FROM build_chunks WHERE id=$1", params: [id] }, { sql: "DELETE FROM builds WHERE id=$1", params: [id] }]);
+  else if (ready) await pool.query("DELETE FROM builds WHERE id=$1", [id]);
   try {
     fs.rmSync(root, { recursive: true, force: true });
   } catch (_) {}
@@ -388,9 +473,9 @@ async function health() {
   if (!ready) return { mode: "disk", durable: false, error: initError ? String(initError.message || initError) : undefined };
   try {
     await pool.query("SELECT 1");
-    return { mode: "postgres", durable: true };
+    return { mode: backend, durable: true };
   } catch (err) {
-    return { mode: "postgres", durable: true, ok: false, error: err.message };
+    return { mode: backend, durable: true, ok: false, error: err.message };
   }
 }
 
@@ -408,6 +493,8 @@ module.exports = {
   isAccount,
   getPool,
   health,
+  loadRow,
+  backendWanted,
   serialize,
   publicBytes,
   MAX_BUILD_BYTES,
