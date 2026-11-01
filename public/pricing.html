@@ -136,8 +136,7 @@
           <li>Starter templates</li>
           <li>Live preview</li>
           <li>Change your app in Build chat</li>
-          <li>Zip download of your files</li>
-          <li>Session builds — kept until the service restarts, so download the zip to keep one</li>
+          <li>Zip download of your files, anytime</li>
           <li>Without an account: 2 builds and 20 edits a day in this browser</li>
           <li>Free account (email link): 5 saved builds, 30 edits a day</li>
         </ul>
@@ -164,7 +163,7 @@
           <p class="plan-sub" style="margin:0"><strong>You’re on Pro.</strong> <span data-pro-renew></span></p>
           <button type="button" class="btn-ghost-gold btn-wide" data-manage>Manage billing</button>
         </div>
-        <p class="plan-note" data-buy-note role="status" aria-live="polite">Sign-up opens shortly. Until then, everything on /build stays free.</p>
+        <p class="plan-note" data-buy-note role="status" aria-live="polite"></p>
       </section>
     </div>
 
@@ -234,7 +233,7 @@
         .then(function (cfg) {
           if (!cfg || !cfg.enabled || !cfg.billing) {
             btns.forEach(function (x) { x.disabled = true; x.setAttribute("aria-disabled", "true"); });
-            say("Sign-up opens shortly. Until then, everything on /build stays free.");
+            say("Checkout is unavailable for a moment — try again shortly. Everything on /build stays free.");
             return;
           }
           return fetch("/api/me", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (me) {
