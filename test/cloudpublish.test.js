@@ -100,7 +100,9 @@ test("local mode: device sign-in, publish, dedupe, versions, rollback, unpublish
   x = await call("PUT", "/api/cloud/apps/acme/secrets/AI_API_KEY", { token: tokA, body: { value: "sk-test-not-real" } }); assert.equal(x.body.ok, true);
   x = await call("GET", "/api/cloud/apps/acme/secrets", { token: tokA }); assert.deepEqual(x.body.names.map((n) => n.name), ["AI_API_KEY"]); assert.ok(!JSON.stringify(x.body).includes("sk-test"));
   x = await call("PUT", "/api/cloud/apps/acme/secrets/bad-name", { token: tokA, body: { value: "v" } }); assert.equal(x.status, 400);
-  x = await call("POST", "/api/cloud/apps/acme/domains", { token: tokA, body: { hostname: "shop.example.com" } }); assert.equal(x.status, 501);
+  x = await call("POST", "/api/cloud/apps/acme/domains", { token: tokA, body: { hostname: "not a domain" } }); assert.equal(x.status, 400);
+  x = await call("GET", "/api/cloud/apps/acme/domains", { token: tokA }); assert.deepEqual(x.body.domains, []);
+  x = await call("GET", "/api/cloud/apps/acme/domains", { token: tokB }); assert.equal(x.status, 409);
   x = await call("GET", "/api/cloud/apps", { token: tokA }); assert.deepEqual(x.body.apps.map((a) => a.slug), ["acme"]);
   // revoke
   const list = (await call("GET", "/api/cloud/tokens", { user: "b" })).body.tokens; assert.equal(list.length, 1);

@@ -101,6 +101,27 @@
     </header>
 
     <div class="changelog-timeline">
+      <section class="changelog-day" aria-labelledby="day-2026-11-01">
+        <h2 id="day-2026-11-01" class="changelog-date">
+          <time datetime="2026-11-01">November 1, 2026</time>
+        </h2>
+        <ol class="changelog-entries">
+          <li class="changelog-entry">
+            <h3>Spawn Cloud — custom domains</h3>
+            <p>
+              Published apps can now live at your own domain, with HTTPS issued
+              automatically. Connect a domain from Spawn&rsquo;s Domains screen
+              or <a href="/cloud/domains">spawnapp.org/cloud/domains</a>, set the
+              two nameservers we show at your registrar, and the domain goes live
+              on its own — root and www together, existing email records carried
+              over. No domain yet? <em>Find a domain</em> opens popular
+              registrars with your app&rsquo;s name filled in. Custom domains are
+              included at no extra cost.
+            </p>
+          </li>
+        </ol>
+      </section>
+
       <section class="changelog-day" aria-labelledby="day-2026-10-31">
         <h2 id="day-2026-10-31" class="changelog-date">
           <time datetime="2026-10-31">October 31, 2026</time>
@@ -253,10 +274,12 @@
             <p>
               PostHog still shows almost all traffic on <a href="/">/</a> alone.
               Closed the leftover soft overclaim on the home Go Live IDE:
-              replaced “Live on the internet — without leaving Spawn” with
-              Ship → Open to the internet copy (copy/QR from your machine,
-              tunnel can refresh, PC stays on for lasting traffic). Domain row
-              now says DNS + port-forward; captions and publish feedback match.
+              replaced “Live on the internet — without leaving Spawn” with the
+              going-live path of the time: Ship → Open to the internet, a
+              copyable link and QR served from your own machine. (That
+              machine-hosted approach has since been replaced by Spawn Cloud,
+              which keeps apps online with your computer off.) The Domain row,
+              captions and publish feedback were aligned to match.
               Added the same “How public actually works” strip used on
               <a href="/how">/how</a> and <a href="/why">/why</a> so strangers
               get honest internet-launch expectations without leaving home.
@@ -276,9 +299,10 @@
               Closed the remaining overclaim gap on <a href="/why">/why</a> after
               the Sep 30 internet-launch pass: removed “HTTPS that stays up” /
               “doesn’t vanish when the tab closes” language. Why now matches How /
-              Product / FAQ — Ship → Open to the internet for shareable HTTPS from
-              your machine; lasting custom domains need DNS + port-forward; PC stays
-              on for lasting traffic. Added the same “How public actually works”
+              Product / FAQ, describing the machine-hosted Ship → Open to the
+              internet path Spawn used then — an approach now replaced by Spawn
+              Cloud, where apps stay online around the clock and connect to
+              custom domains without any home-network setup. Added the same “How public actually works”
               strip and tightened Who it’s for.
             </p>
           </li>
@@ -293,11 +317,12 @@
           <li class="changelog-entry">
             <h3>Go Live — honest internet-launch path</h3>
             <p>
-              Marketing copy now matches how Spawn actually ships: <strong>Ship →
-              Open to the internet</strong> for a copyable public HTTPS URL (and QR)
-              from your machine; lasting custom domains need DNS to your WAN IP plus
-              router port-forward; PC stays on for lasting traffic; tunnel links can
-              refresh after reconnect. Removed false <code>*.spawnapp.org</code>
+              Marketing copy was aligned with how Spawn shipped at the time:
+              <strong>Ship → Open to the internet</strong>, a copyable public HTTPS
+              URL (and QR) served from your own machine. This was the earlier
+              approach to going live; it has since been replaced by Spawn Cloud,
+              which hosts published apps around the clock — no computer left
+              running, no router configuration. Removed then-inaccurate <code>*.spawnapp.org</code>
               user-app URL claims from Home / How / Tour / Product. Elevated
               <a href="/how">/how</a> with a “How public actually works” strip and
               <a href="/faq">/faq</a> Shipping answers (including “Does my computer

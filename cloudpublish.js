@@ -396,14 +396,50 @@ function mount(app, opts) {
     res.json({ ok: true });
   }));
 
-  // Custom domains need Cloudflare for SaaS (card on file), so they're off. Apps live at <slug>.spawnapp.org.
+  // Custom domains (card-free): the domain becomes a free zone in the Spawn Cloudflare account; see clouddomains.js.
+  // Publish token (desktop) or a signed-in spawnapp.org session; only the app's owner.
+  const dom = opts.domains || require("./clouddomains").create({ env, apex, fail, query: (sql, p) => be().query(sql, p), cf: opts.cf });
+  async function anyUser(req) {
+    if (/^Bearer\s/.test(String(req.headers.authorization || ""))) return tokenUser(req);
+    const u = await auth.currentUser(req); if (!u) throw fail(401, "Sign in to spawnapp.org or connect Spawn first."); return u;
+  }
+  const domainsOn = () => mode() === "local" || (env("CLOUD_DOMAINS_ENABLED", "1") === "1");
+  r.get("/apps/:slug/domains", wrap(async (req, res) => {
+    const u = await anyUser(req); const a = await ownedApp(u, req.params.slug, false);
+    res.json({ ok: true, enabled: domainsOn(), slug: a.slug, defaultUrl: "https://" + a.slug + "." + apex() + "/", domains: await dom.list(a.slug) });
+  }));
   r.post("/apps/:slug/domains", wrap(async (req, res) => {
-    const u = await tokenUser(req); await ownedApp(u, req.params.slug, false);
-    res.status(501).json({ ok: false, error: "Custom domains aren't available on Spawn Cloud. Your app is live at " + req.params.slug + "." + apex() + "." });
+    const u = await anyUser(req); const a = await ownedApp(u, req.params.slug, false);
+    if (!domainsOn()) throw fail(503, "Custom domains are paused. Try again soon.");
+    if (limited("dom:" + u.id, 20, 3600000)) throw fail(429, "Too many domain changes. Try again in an hour.");
+    const d = await dom.attach("u:" + u.id, a.slug, String((req.body && (req.body.hostname || req.body.domain)) || ""));
+    res.status(201).json({ ok: true, domain: d });
+  }));
+  r.post("/apps/:slug/domains/check", wrap(async (req, res) => {
+    const u = await anyUser(req); const a = await ownedApp(u, req.params.slug, false);
+    res.json({ ok: true, domains: await dom.check(a.slug) });
+  }));
+  r.delete("/apps/:slug/domains/:host", wrap(async (req, res) => {
+    const u = await anyUser(req); const a = await ownedApp(u, req.params.slug, false);
+    res.json(await dom.remove("u:" + u.id, a.slug, String(req.params.host)));
+  }));
+  r.get("/domain-search", (req, res) => res.json({ ok: true, links: require("./clouddomains").registrarLinks(req.query.q) }));
+  r.get("/my-apps", wrap(async (req, res) => {
+    const u = await sessionUser(req);
+    const apps = await be().query("SELECT slug, status, live_version, title FROM apps WHERE owner=?1 ORDER BY updated_at DESC", ["u:" + u.id]);
+    res.json({ ok: true, apex: apex(), apps });
   }));
 
   app.use("/api/cloud", r);
+  if (enabled() && !opts.noPresetSync) setInterval(() => { dom.sweep().catch((e) => console.warn("[cloud-domains] sweep failed: " + e.message)); }, 5 * 60000).unref();
   if (enabled() && !opts.noPresetSync) setTimeout(() => { syncPresets(be()).catch((e) => console.warn("[cloud] preset sync failed: " + e.message)); }, 5000).unref();
+
+  // Manage custom domains for your published apps (signed-in session).
+  app.get("/cloud/domains", (req, res) => {
+    res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Robots-Tag", "noindex");
+    if (!enabled()) return res.status(503).type("html").send(page("Custom domains", "<h1>Custom domains</h1><p>Spawn Cloud isn't available right now.</p>"));
+    res.type("html").send(page("Custom domains", DOMAINS_HTML, true));
+  });
 
   // Approval page for desktop sign-in.
   app.get("/cloud/connect", (req, res) => {
@@ -414,10 +450,30 @@ function mount(app, opts) {
   });
 }
 
-function page(title, body) {
+function page(title, body, wide) {
   return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>' + title +
-    ' · Spawn</title><style>body{font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;background:#0b0b0f;color:#ececf1;display:grid;place-items:center;min-height:100vh;margin:0}main{max-width:440px;padding:32px;border:1px solid #26262e;border-radius:16px;background:#121218}h1{font-size:22px;margin:0 0 8px}p{color:#a9a9b6}code{font-size:22px;letter-spacing:2px;color:#fff}button{background:#fff;color:#000;border:0;border-radius:10px;padding:12px 18px;font-weight:600;cursor:pointer}a{color:#c9c9ff}</style></head><body><main>' + body + "</main></body></html>";
+    ' · Spawn</title><style>body{font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;background:#0b0b0f;color:#ececf1;display:grid;place-items:center;min-height:100vh;margin:0}main{max-width:'+(wide?'640px':'440px')+';padding:32px;border:1px solid #26262e;border-radius:16px;background:#121218}h1{font-size:22px;margin:0 0 8px}p{color:#a9a9b6}code{font-size:22px;letter-spacing:2px;color:#fff}button{background:#fff;color:#000;border:0;border-radius:10px;padding:12px 18px;font-weight:600;cursor:pointer}a{color:#c9c9ff}</style></head><body><main>' + body + "</main></body></html>";
 }
+const DOMAINS_HTML = `<style>.app{border-top:1px solid #26262e;padding:18px 0}.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}input{flex:1;min-width:200px;background:#0b0b0f;border:1px solid #33333d;border-radius:10px;color:#fff;padding:11px 12px;font:inherit}.ghost{background:transparent;color:#ececf1;border:1px solid #33333d}.d{background:#0e0e14;border:1px solid #26262e;border-radius:12px;padding:14px;margin:10px 0}.pill{font-size:12px;border-radius:99px;padding:2px 9px;margin-left:6px}.active{background:#123d2a;color:#7ff0b5}.pending{background:#3a3014;color:#f5d27a}.failed{background:#40171b;color:#ff9aa2}ol{color:#c9c9d6;padding-left:20px}.ns{font-family:ui-monospace,monospace;color:#fff;background:#1b1b24;padding:2px 6px;border-radius:6px}small{color:#8b8b98}h2{font-size:17px;margin:0}</style>
+<h1>Custom domains</h1><p>Serve a published app at your own domain, with HTTPS. Don't have one yet? Buy one at any registrar, then connect it here — no extra cost from Spawn.</p>
+<div id="apps"><p>Loading…</p></div>
+<script>
+function e(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function j(m,u,b){return fetch(u,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined}).then(function(r){if(r.status===401){location.href='/signin?next=/cloud/domains';throw 0}return r.json()})}
+function dom(slug,d){var h='<div class="d"><strong>'+e(d.hostnames.join(' + '))+'</strong><span class="pill '+e(d.status)+'">'+(d.status==='active'?'Live':d.status==='pending'?'Waiting for nameservers':'Needs attention')+'</span>';
+if(d.status==='active')h+='<p><a href="'+e(d.url)+'" target="_blank" rel="noopener">'+e(d.url)+'</a></p>';
+else{h+='<ol>'+d.dns.steps.map(function(s){return'<li>'+e(s)+'</li>'}).join('')+'</ol><p>Nameservers: '+d.nameservers.map(function(n){return'<span class="ns">'+e(n)+'</span>'}).join(' ')+'</p>'+(d.dns.notes||[]).map(function(n){return'<small>'+e(n)+'</small><br>'}).join('')}
+if(d.error)h+='<p>'+e(d.error)+'</p>';
+return h+'<div class="row"><button class="ghost" onclick="chk(\''+slug+'\')">Check now</button><button class="ghost" onclick="rm(\''+slug+'\',\''+e(d.hostname)+'\')">Remove</button></div></div>'}
+function draw(slug,ds){document.getElementById('l-'+slug).innerHTML=ds.map(function(d){return dom(slug,d)}).join('')||'<small>No custom domain yet.</small>'}
+function load(slug){j('GET','/api/cloud/apps/'+slug+'/domains').then(function(x){draw(slug,x.domains||[])})}
+function chk(slug){j('POST','/api/cloud/apps/'+slug+'/domains/check').then(function(x){draw(slug,x.domains||[])})}
+function rm(slug,h){if(!confirm('Disconnect '+h+'?'))return;j('DELETE','/api/cloud/apps/'+slug+'/domains/'+encodeURIComponent(h)).then(function(x){alert(x.note||x.error);load(slug)})}
+function add(slug){var i=document.getElementById('i-'+slug),m=document.getElementById('m-'+slug);m.textContent='Connecting…';j('POST','/api/cloud/apps/'+slug+'/domains',{hostname:i.value}).then(function(x){m.textContent=x.ok?'':x.error;if(x.ok){i.value='';load(slug)}})}
+function find(slug){var q=document.getElementById('i-'+slug).value||slug;j('GET','/api/cloud/domain-search?q='+encodeURIComponent(q)).then(function(x){document.getElementById('m-'+slug).innerHTML='Find a domain: '+x.links.map(function(l){return'<a href="'+e(l.url)+'" target="_blank" rel="noopener">'+e(l.name)+'</a>'}).join(' · ')+' <small>(you buy it directly from the registrar)</small>'})}
+j('GET','/api/cloud/my-apps').then(function(x){var el=document.getElementById('apps');if(!x.apps||!x.apps.length){el.innerHTML='<p>Publish an app from Spawn first — then connect a domain here.</p>';return}
+el.innerHTML=x.apps.map(function(a){var s=e(a.slug);return'<div class="app"><h2>'+e(a.title||a.slug)+'</h2><small>'+s+'.'+e(x.apex)+'</small><div id="l-'+s+'"></div><div class="row"><input id="i-'+s+'" placeholder="example.com or shop.example.com"><button onclick="add(\''+s+'\')">Connect domain</button><button class="ghost" onclick="find(\''+s+'\')">Find a domain</button></div><p id="m-'+s+'"></p></div>'}).join('');x.apps.forEach(function(a){load(a.slug)})})['catch'](function(){});
+</script>`;
 const CONNECT_HTML = `<h1>Connect Spawn on this computer</h1><p>Confirm the code matches the one shown in Spawn. This lets Spawn publish apps to your account.</p>
 <p><code id="c"></code></p><p id="m"></p><button id="b">Approve</button>
 <script>

@@ -23,7 +23,16 @@ written, 500 MB per database, 5 GB per account. KV was rejected for files: 1,000
 
 Render API token: D1 Edit only. Deploy token (wrangler): Workers Scripts Edit, Workers Routes Edit (zone), D1 Edit.
 
-Custom domains: off. They need Cloudflare for SaaS (card) or the customer's zone inside this account; apps use `<slug>.spawnapp.org`.
+Custom domains (card-free, `clouddomains.js`): each customer domain is added as a **free zone in this Cloudflare account**
+(jump_start imports existing records). The customer sets the two assigned nameservers at their registrar; spawn-home polls
+(every 5 min + "Check now") and, once the zone is active, replaces address records for the host with a proxied `AAAA 100::`,
+adds a Worker route `<host>/*` → `spawn-cloud`, and writes the host to D1 `domains` (which the Worker serves). Root domains
+attach root + www. Free Universal SSL covers both. Removing deletes routes/records; a still-pending zone is deleted.
+Why not Render custom domains: the Hobby workspace includes 2 (both used by spawnapp.org/www), extra ones bill $0.25/mo.
+Why not CNAME-only: needs Cloudflare for SaaS or partial zones (paid). Limits: `CLOUD_DOMAINS_PER_USER` (default 10);
+Cloudflare rate-limits pending zones per account. API: GET/POST `/api/cloud/apps/:slug/domains`, POST `.../domains/check`,
+DELETE `.../domains/:host` (publish token or session). UI: `/cloud/domains` and the desktop Domains screen.
+Token needs Zone Edit (create/delete), DNS Edit and Workers Routes Edit on all zones of the account. Migration 0004.
 
 ## Moving the desktop apps
 1. Set `BIDBOARD_OWNER_EMAIL` on Render first (the spawnapp.org account that owns BidBoard; the `bidboard` name is reserved for it).
