@@ -77,7 +77,7 @@ test("webhook security: unsigned, bad signature, wrong secret, stale timestamp, 
   assert.equal((await hookRaw("glow.spawnapp.org", body, "t=1,v1=deadbeef")).status, 400);
   assert.equal((await hookRaw("glow.spawnapp.org", body, sign(body, "whsec_wrong"))).status, 400);
   assert.equal((await hookRaw("glow.spawnapp.org", body, sign(body, WHSEC, Math.floor(Date.now() / 1000) - 3600))).status, 400);
-  assert.equal((await hookRaw("glow.spawnapp.org", body, sign(body).replace(/v1=./, "v1=0"))).status, 400);
+  assert.equal((await hookRaw("glow.spawnapp.org", body, sign(body).replace(/v1=(.)/, (m, c) => "v1=" + (c === "0" ? "1" : "0")))).status, 400);
   assert.equal((await hookRaw("glow.spawnapp.org", "not json", sign("not json"))).status, 400);
   assert.equal((await hookRaw("glow.spawnapp.org", body, sign(body))).status, 200); // valid but unknown session -> ignored
 });
