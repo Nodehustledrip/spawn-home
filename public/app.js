@@ -101,7 +101,7 @@
     var CAPTIONS = {
       home: "Home — your app files and a live preview on your machine.",
       build: "Example: ask Spawn to add pricing — it edits the file.",
-      live: "Go Live — Ship → Open to the internet; lasting domains need DNS + port-forward; PC stays on."
+      live: "Go Live — Publish to Spawn Cloud; live at name.spawnapp.org, up 24/7 with your PC off."
     };
 
     var PROMPT = "Add a pricing table with three tiers and a monthly toggle.";
@@ -298,7 +298,7 @@
             urlBadge.classList.add("is-live");
           }
           if (liveHint) {
-            liveHint.textContent = "Shareable HTTPS from this machine — tunnel can refresh; PC stays on for lasting traffic.";
+            liveHint.textContent = "Live on Spawn Cloud — stays up 24/7, even with your PC off.";
             liveHint.classList.add("is-done");
           }
           goLiveBtn.textContent = "Live";

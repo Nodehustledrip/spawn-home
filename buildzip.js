@@ -171,7 +171,7 @@ function exportSite(root, meta) {
     "Open index.html in any browser — no install or server needed.\n" +
     "It is a plain static site (HTML + CSS), so you can also drop this folder on any static host.\n\n" +
     "Forms are demo-only here: they show a thank-you message but do not send data anywhere.\n" +
-    "Spawn desktop (Ship -> Open to the internet) gives you a lasting public URL or custom domain.\n";
+    "Publish from the Spawn desktop app to Spawn Cloud for a live <name>.spawnapp.org URL that stays up 24/7 with your PC off.\n";
   entries.push({ name: slug + "/README.txt", data: readme });
   return { buffer: createZip(entries), filename: slug + ".zip" };
 }

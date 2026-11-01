@@ -245,7 +245,7 @@ function summarizeBuild(id, meta) {
 }
 
 const LIMITS_NOTE =
-  "On-site Build creates, edits, previews, and exports a zip. A lasting public URL or custom domain still needs Spawn desktop (Ship → Open to the internet).";
+  "On-site Build creates, edits, previews, and exports a zip. To go live, publish from the Spawn desktop app to Spawn Cloud for a <name>.spawnapp.org URL that stays up 24/7.";
 
 
 /* Builds made before 2026-10-06 shipped `.grid.2{…}` — an invalid selector browsers drop, so every
