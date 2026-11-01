@@ -8,13 +8,14 @@ import os from "node:os";
 import { execFileSync } from "node:child_process";
 import { createHash, createHmac, randomBytes, createCipheriv } from "node:crypto";
 import { createStripeMock } from "./stripe-mock.mjs";
+import { putBlob } from "./blob-helper.mjs";
 const SK = "sk_test_mock_" + randomBytes(6).toString("hex");
 const stripe = createStripeMock({ key: SK, prices: { price_lead_e2e: { amount: 2500 }, price_pro_e2e: { amount: 9900 } } });
 
 const DATA = process.env.BIDBOARD_DATA || "/workspace/app-forge/generated/bidboard/data";
 const has = fs.existsSync(path.join(DATA, "jobs.json"));
 const KEY = randomBytes(32);
-let mf, db, r2, out;
+let mf, db, out;
 const H = "https://bidboard.spawnapp.org";
 const enc = (slug, name, value) => { const iv = randomBytes(12); const c = createCipheriv("aes-256-gcm", KEY, iv); c.setAAD(Buffer.from(slug + ":" + name)); const ct = Buffer.concat([c.update(value), c.final()]); return Buffer.concat([iv, ct, c.getAuthTag()]).toString("base64"); };
 async function runSql(file) { for (const s of fs.readFileSync(file, "utf8").split(/;\n/).map((x) => x.replace(/^--.*$/gm, "").trim()).filter(Boolean)) await db.prepare(s).run(); }
@@ -24,8 +25,8 @@ before(async () => {
   out = fs.mkdtempSync(path.join(os.tmpdir(), "bbimp-"));
   execFileSync("node", ["scripts/import-desktop-data.js", "--app", "bidboard", "--data", DATA, "--out", out]);
   execFileSync("node", ["scripts/import-desktop-data.js", "--places", path.join(DATA, "us-places.json"), "--out", out]);
-  mf = new Miniflare({ modules: true, scriptPath: "dist/index.js", compatibilityDate: "2026-08-01", compatibilityFlags: ["nodejs_compat"], d1Databases: { DB: "bbe2e" }, r2Buckets: { APPS: "bbe2e" }, bindings: { APEX_DOMAIN: "spawnapp.org", SECRETS_KEY: KEY.toString("base64"), STRIPE_API_BASE: "https://stripe.mock" }, outboundService: stripe.fetcher });
-  db = await mf.getD1Database("DB"); r2 = await mf.getR2Bucket("APPS");
+  mf = new Miniflare({ modules: true, scriptPath: "dist/index.js", compatibilityDate: "2026-08-01", compatibilityFlags: ["nodejs_compat"], d1Databases: { DB: "bbe2e" }, bindings: { APEX_DOMAIN: "spawnapp.org", SECRETS_KEY: KEY.toString("base64"), STRIPE_API_BASE: "https://stripe.mock" }, outboundService: stripe.fetcher });
+  db = await mf.getD1Database("DB"); // no FILES binding: blobs fall back to DB
   for (const f of fs.readdirSync("migrations").sort()) await runSql(path.join("migrations", f));
   await runSql(path.join(out, "places.sql"));
   await runSql(path.join(out, "bidboard.sql"));
@@ -33,7 +34,7 @@ before(async () => {
   const files = {};
   (function walk(d, rel) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name), r = rel ? rel + "/" + e.name : e.name; if (e.isDirectory()) walk(p, r); else files[r] = fs.readFileSync(p); } })("apps/bidboard", "");
   const manifest = {};
-  for (const [r, b] of Object.entries(files)) { manifest[r] = { h: createHash("sha256").update(b).digest("hex"), s: b.length, t: r.endsWith(".html") ? "text/html; charset=utf-8" : r.endsWith(".js") ? "text/javascript" : "application/octet-stream" }; await r2.put("apps/bidboard/v1/" + r, b); }
+  for (const [r, b] of Object.entries(files)) { manifest[r] = { h: createHash("sha256").update(b).digest("hex"), s: b.length, t: r.endsWith(".html") ? "text/html; charset=utf-8" : r.endsWith(".js") ? "text/javascript" : "application/octet-stream" }; await putBlob(db, "blob/bidboard/" + manifest[r].h, b); }
   await db.prepare("INSERT INTO apps (slug, owner, runtime, live_version, title, config) VALUES ('bidboard','u:1','bidboard',1,'BidBoard',?1)").bind(JSON.stringify({ LEAD_FEE_CENTS: 2500, PRO_FEE_CENTS: 9900, STRIPE_PRICE_LEAD: "price_lead_e2e", STRIPE_PRICE_PRO: "price_pro_e2e" })).run();
   await db.prepare("INSERT INTO versions (slug, version, manifest, file_count, total_bytes) VALUES ('bidboard',1,?1,?2,0)").bind(JSON.stringify({ files: manifest }), Object.keys(files).length).run();
   for (const [n, v] of [["STRIPE_WEBHOOK_SECRET", "whsec_e2e"], ["STRIPE_SECRET_KEY", SK]]) await db.prepare("INSERT INTO app_secrets (slug,name,blob) VALUES ('bidboard',?1,?2)").bind(n, enc("bidboard", n, v)).run();

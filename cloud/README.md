@@ -1,17 +1,29 @@
 # Spawn Cloud
 
-Serves published apps at `<slug>.spawnapp.org` from Cloudflare (Worker + R2 + D1). spawnapp.org itself stays on Render.
+Serves published apps at `<slug>.spawnapp.org` from Cloudflare Workers + D1 on the **free plan, no card on file**
+(no R2, no Cloudflare for SaaS). spawnapp.org itself stays on Render.
 
-## One-time setup (needs Cloudflare access)
-1. `wrangler r2 bucket create spawn-cloud-apps` · `wrangler d1 create spawn-cloud` → put the id in `wrangler.toml`.
-2. `wrangler d1 migrations apply spawn-cloud --remote`
+## Storage
+- `DB` (D1 `spawn-cloud`): apps, versions, secrets, app data, BidBoard, Stripe event log.
+- `FILES` (D1 `spawn-cloud-files`): every file — published bundles (`blob/<slug>/<sha256>`, shared across versions),
+  `/api/storage` uploads and BidBoard photos — as 512 KiB base64 chunks (tables `blobs`, `blob_chunks`).
+  If `FILES` isn't bound, files go to `DB`. Two databases = 2 × 500 MB free.
+- Edge Cache API in front of static files, so repeat hits don't read D1.
+
+Free limits (per day unless noted): Workers 100,000 requests, 10 ms CPU per request; D1 5 M rows read, 100,000 rows
+written, 500 MB per database, 5 GB per account. KV was rejected for files: 1,000 writes/day would cap publishing.
+
+## One-time setup (needs Cloudflare access; each step approved first)
+1. `wrangler d1 create spawn-cloud` and `wrangler d1 create spawn-cloud-files` → put both ids in `wrangler.toml`.
+2. `wrangler d1 migrations apply spawn-cloud --remote` and the same for `spawn-cloud-files`.
 3. `wrangler secret put SECRETS_KEY` (32 random bytes, base64). Same value goes to Render as `CLOUD_SECRETS_KEY`.
-4. `npm run build && wrangler deploy` (route `*.spawnapp.org/*`). DNS: proxied wildcard `*` record (owner adds it).
-5. Render env (merge, one key at a time): CF_ACCOUNT_ID, CF_API_TOKEN, CF_D1_DATABASE_ID, R2_ACCESS_KEY_ID,
-   R2_SECRET_ACCESS_KEY, CLOUD_SECRETS_KEY, then CLOUD_PUBLISH_ENABLED=1 last. Optional: R2_BUCKET, CF_ZONE_ID, CLOUD_FALLBACK_ORIGIN.
+4. `npm run build && wrangler deploy` (route `*.spawnapp.org/*`). DNS: proxied `AAAA * 100::`. Universal SSL already covers `*.spawnapp.org`.
+5. Render env (merge, one key at a time): CF_ACCOUNT_ID, CF_API_TOKEN, CF_D1_DATABASE_ID, CF_D1_FILES_DATABASE_ID,
+   CLOUD_SECRETS_KEY, then CLOUD_PUBLISH_ENABLED=1 last.
 
-API token: Workers Scripts Edit, Workers Routes Edit (zone), R2 Edit (+ an R2 S3 key pair), D1 Edit,
-SSL and Certificates Edit (custom hostnames, only for customer domains).
+Render API token: D1 Edit only. Deploy token (wrangler): Workers Scripts Edit, Workers Routes Edit (zone), D1 Edit.
+
+Custom domains: off. They need Cloudflare for SaaS (card) or the customer's zone inside this account; apps use `<slug>.spawnapp.org`.
 
 ## Moving the desktop apps
 1. Set `BIDBOARD_OWNER_EMAIL` on Render first (the spawnapp.org account that owns BidBoard; the `bidboard` name is reserved for it).

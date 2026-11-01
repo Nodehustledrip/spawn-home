@@ -7,17 +7,18 @@ workers_dev = false
 
 routes = [
   { pattern = "*.spawnapp.org/*", zone_name = "spawnapp.org" },
-  # Cloudflare for SaaS: custom hostnames arrive via the fallback origin; this catch-all route serves them.
-  # { pattern = "*/*", zone_name = "spawnapp.org" },
 ]
 
 [vars]
 APEX_DOMAIN = "spawnapp.org"
 ALLOW_HOST_OVERRIDE = "0"
 
-[[r2_buckets]]
-binding = "APPS"
-bucket_name = "spawn-cloud-apps"
+# No R2 (needs a card). Files live in D1 tables blobs/blob_chunks; FILES can be a second free D1 database.
+[[d1_databases]]
+binding = "FILES"
+database_name = "spawn-cloud-files"
+database_id = "00000000-0000-0000-0000-000000000001"
+migrations_dir = "migrations"
 
 [[d1_databases]]
 binding = "DB"

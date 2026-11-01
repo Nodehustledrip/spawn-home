@@ -1,7 +1,8 @@
-// BidBoard runtime: port of the desktop Express + JSON-file server to D1 + R2.
+// BidBoard runtime: port of the desktop Express + JSON-file server to D1 (files in D1 blobs).
 // Payments: on-site Stripe Checkout created server-side (like spawnapp.org billing).
 //   App secrets (encrypted): STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET. Price ids: app config or secrets STRIPE_PRICE_LEAD / STRIPE_PRICE_PRO.
 //   Optional STRIPE_PORTAL_CONFIG (bpc_…) picks a Customer Portal configuration.
+import { blobs } from "./blobs.js";
 import { json, readJson, HttpError, randomHex, now, clientIp, rateLimit, validEmail, clip, appSecrets, b64ToBytes, SECURITY_HEADERS } from "./util.js";
 import { verifyStripeSignature, stripeApi } from "./stripe.js";
 import { currentAppUser } from "./auth.js";
@@ -177,7 +178,7 @@ export async function handleBidboard(c) {
     if (!job || !job.photoKey) return json({ ok: false, error: "No photo" }, 404);
     const token = url.searchParams.get("token") || "";
     if (paymentsLive && !(await unlockValid(env, slug, job.id, token))) return json({ ok: false, error: "Unlock this lead to see the photo." }, 403);
-    const obj = await env.APPS.get(job.photoKey);
+    const obj = await blobs(env).get(job.photoKey);
     if (!obj) return json({ ok: false, error: "No photo" }, 404);
     const h = new Headers(SECURITY_HEADERS);
     h.set("Content-Type", (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg");
@@ -219,7 +220,7 @@ export async function handleBidboard(c) {
       const phoneOk = pn && String(job.phone || "").replace(/\D/g, "") === pn;
       if (!emailOk && !phoneOk) return json({ ok: false, error: "Email/phone does not match this post", honesty: "Only the contact used on the original post can delete it." }, 403);
       await env.DB.prepare("DELETE FROM bb_jobs WHERE slug=?1 AND id=?2").bind(slug, id).run();
-      if (job.photoKey) await env.APPS.delete(job.photoKey);
+      if (job.photoKey) await blobs(env).delete(job.photoKey);
       return json({ ok: true, deleted: job.id, title: job.title, message: "Deleted your job post.", honesty: "Matched via " + (emailOk ? "email" : "phone") + " on the original post." });
     }
   }
@@ -245,7 +246,7 @@ export async function handleBidboard(c) {
       const bytes = b64ToBytes(du[2]);
       if (bytes.length > 5 * 1024 * 1024) return json({ ok: false, error: "Photo must be under 5 MB." }, 413);
       photoKey = "data/" + slug + "/photos/" + id;
-      await env.APPS.put(photoKey, bytes, { httpMetadata: { contentType: du[1].toLowerCase() } });
+      await blobs(env).put(photoKey, bytes, { httpMetadata: { contentType: du[1].toLowerCase() } });
     }
     const job = { id, title: clip(b.title || sug.title, 140), description, trade, zip, city, state, urgency: clip(b.urgency || sug.urgency, 40),
       name, phone, email, photoName: photoKey ? clip(b.photoName || "photo", 120) : null, status: "open", createdAt: now() };

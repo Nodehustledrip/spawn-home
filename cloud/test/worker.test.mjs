@@ -1,4 +1,4 @@
-// Local end-to-end tests: Miniflare (workerd) with local D1 + R2. Run: npm test
+// Local end-to-end tests: Miniflare (workerd) with local D1 (DB + FILES). Run: npm test
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { Miniflare } from "miniflare";
@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { createHash, createHmac, createCipheriv, randomBytes } from "node:crypto";
 import { execSync } from "node:child_process";
 import { createStripeMock } from "./stripe-mock.mjs";
+import { putBlob } from "./blob-helper.mjs";
 
 const SK = "sk_test_mock_" + randomBytes(6).toString("hex");
 const stripe = createStripeMock({ key: SK, prices: { price_lead_test: { amount: 2500 }, price_pro_test: { amount: 9900, recurring: "month" } } });
@@ -13,7 +14,8 @@ const WHSEC = "whsec_test123";
 function signed(evt, secret = WHSEC) { const body = JSON.stringify(evt); const t = Math.floor(Date.now() / 1000); return { body, sig: `t=${t},v1=${createHmac("sha256", secret).update(t + "." + body).digest("hex")}` }; }
 
 const KEY = randomBytes(32);
-let mf, db, r2;
+let mf, db, fdb;
+const BIG = Buffer.from(Array.from({ length: 1300000 }, (_, i) => (i * 7 + (i >> 9)) & 255));
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 function enc(slug, name, value) { // identical to what the Render publish API writes
   const iv = randomBytes(12);
@@ -31,7 +33,7 @@ async function publish(slug, runtime, files, config = {}) {
   for (const [p, body] of Object.entries(files)) {
     const h = sha(body);
     manifest[p] = { h, s: Buffer.byteLength(body), t: p.endsWith(".html") ? "text/html" : "application/octet-stream" };
-    await r2.put(`apps/${slug}/v1/${p}`, body);
+    await putBlob(fdb, `blob/${slug}/${h}`, body);
   }
   await db.prepare("INSERT INTO apps (slug, owner, runtime, live_version, title, config) VALUES (?1,'u:1',?2,1,?3,?4)").bind(slug, runtime, slug, JSON.stringify(config)).run();
   await db.prepare("INSERT INTO versions (slug, version, manifest, file_count, total_bytes) VALUES (?1,1,?2,?3,0)").bind(slug, JSON.stringify({ files: manifest }), Object.keys(files).length).run();
@@ -41,21 +43,22 @@ before(async () => {
   execSync("npx wrangler deploy --dry-run --outdir dist", { stdio: "ignore" });
   mf = new Miniflare({
     modules: true, scriptPath: "dist/index.js", compatibilityDate: "2026-08-01", compatibilityFlags: ["nodejs_compat"],
-    d1Databases: { DB: "test-db" }, r2Buckets: { APPS: "test-r2" },
+    d1Databases: { DB: "test-db", FILES: "test-files" },
     bindings: { APEX_DOMAIN: "spawnapp.org", ALLOW_HOST_OVERRIDE: "0", SECRETS_KEY: KEY.toString("base64"), STRIPE_API_BASE: "https://stripe.mock" },
     outboundService: stripe.fetcher,
   });
   db = await mf.getD1Database("DB");
-  r2 = await mf.getR2Bucket("APPS");
-  for (const f of ["migrations/0001_init.sql", "migrations/0002_bidboard.sql"]) {
+  fdb = await mf.getD1Database("FILES");
+  for (const f of ["migrations/0001_init.sql", "migrations/0002_bidboard.sql", "migrations/0003_blobs.sql"]) for (const d of [db, fdb]) {
     const sql = readFileSync(f, "utf8").split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
-    for (const s of sql.split(";").map((x) => x.trim()).filter(Boolean)) await db.prepare(s).run();
+    for (const s of sql.split(";").map((x) => x.trim()).filter(Boolean)) await d.prepare(s).run();
   }
   await publish("demo", "static", { "index.html": "<h1>Demo</h1>", "about.html": "<p>About</p>", "app.js": "console.log(1)", "404.html": "<h1>Custom 404</h1>" });
   await publish("shop", "spawn-backend", { "index.html": "<h1>Shop</h1>" }, { monetization: "stripe", checkoutUrl: "https://buy.stripe.com/test_x" });
   await publish("bb", "bidboard", { "index.html": "<h1>BidBoard</h1>", "job.html": "<p>job</p>", "styles.css": "body{}" },
     { LEAD_FEE_CENTS: 2500, PRO_FEE_CENTS: 9900, STRIPE_PRICE_LEAD: "price_lead_test", STRIPE_PORTAL_CONFIG: "bpc_test_bidboard" });
   await publish("bbdemo", "bidboard", { "index.html": "<h1>BB demo</h1>" });
+  await publish("big", "static", { "index.html": "<h1>Big</h1>", "data.bin": BIG });
   for (const [n, v] of [["STRIPE_WEBHOOK_SECRET", WHSEC], ["STRIPE_SECRET_KEY", SK], ["STRIPE_PRICE_PRO", "price_pro_test"]]) // price id from secrets also works
     await db.prepare("INSERT INTO app_secrets (slug, name, blob) VALUES ('bb',?1,?2)").bind(n, enc("bb", n, v)).run();
   // keys present but no price id -> payments stay off (no half-configured checkout)
@@ -250,4 +253,10 @@ test("bidboard places + misc", async () => {
   x = await J(await F("bb.spawnapp.org", "/api/export/jobs.csv")); assert.equal(x.status, 403);
   x = await J(await post("bb.spawnapp.org", "/api/jobs/suggest", { description: "furnace out", trade: "hvac" })); assert.equal(x.body.suggestion.title, "HVAC service request");
   x = await J(await F("bb.spawnapp.org", "/api/stats")); assert.equal(x.body.ok, true);
+});
+
+test("multi-chunk file from D1 is served byte-identical", async () => {
+  const r = await F("big.spawnapp.org", "/data.bin"); assert.equal(r.status, 200);
+  const b = Buffer.from(await r.arrayBuffer()); assert.equal(b.length, BIG.length); assert.ok(b.equals(BIG));
+  const c = await fdb.prepare("SELECT chunks FROM blobs WHERE key LIKE 'blob/big/%' AND size=?1").bind(BIG.length).first(); assert.equal(c.chunks, 3);
 });

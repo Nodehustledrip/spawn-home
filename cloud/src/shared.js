@@ -1,4 +1,5 @@
 // Shared per-app backend. Every query is scoped by the app's slug.
+import { blobs } from "./blobs.js";
 import { json, readJson, HttpError, randomHex, sha256Hex, now, clientIp, rateLimit, validEmail, clip, appSecrets, b64ToBytes, mimeFor, SECURITY_HEADERS, timingSafeEqual } from "./util.js";
 import { aiChat, aiStatus } from "./ai.js";
 import { handleAuth } from "./auth.js";
@@ -84,7 +85,7 @@ export async function handleShared(c) {
     const base = String(b.name || "upload.bin").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80) || "upload.bin";
     const name = Date.now() + "-" + randomHex(4) + "-" + base;
     const delToken = randomHex(16);
-    await env.APPS.put("data/" + slug + "/uploads/" + name, bytes, { httpMetadata: { contentType: mimeFor(name) } });
+    await blobs(env).put("data/" + slug + "/uploads/" + name, bytes, { httpMetadata: { contentType: mimeFor(name) } });
     await env.DB.prepare("INSERT INTO files (slug, name, size, type, delete_key, created_at) VALUES (?1,?2,?3,?4,?5,?6)")
       .bind(slug, name, bytes.length, mimeFor(name), await sha256Hex(delToken), now())
       .run();
@@ -96,14 +97,14 @@ export async function handleShared(c) {
     const row = await env.DB.prepare("SELECT delete_key FROM files WHERE slug=?1 AND name=?2").bind(slug, name).first();
     if (!row) return json({ ok: false, error: "not found" }, 404);
     if (!key || !timingSafeEqual(await sha256Hex(key), row.delete_key)) throw new HttpError(403, "Only the uploader can delete this file.");
-    await env.APPS.delete("data/" + slug + "/uploads/" + name);
+    await blobs(env).delete("data/" + slug + "/uploads/" + name);
     await env.DB.prepare("DELETE FROM files WHERE slug=?1 AND name=?2").bind(slug, name).run();
     return json({ ok: true });
   }
   if ((r = /^\/storage\/([^/]+)$/.exec(path)) && (m === "GET" || m === "HEAD")) {
     const name = decodeURIComponent(r[1]);
     if (!/^[A-Za-z0-9._-]+$/.test(name)) return json({ ok: false }, 404);
-    const obj = await env.APPS.get("data/" + slug + "/uploads/" + name);
+    const obj = await blobs(env).get("data/" + slug + "/uploads/" + name);
     if (!obj) return new Response("Not found", { status: 404, headers: SECURITY_HEADERS });
     const type = mimeFor(name);
     const h = new Headers(SECURITY_HEADERS);

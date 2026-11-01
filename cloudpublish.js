@@ -1,8 +1,8 @@
 /*
  * Spawn Cloud publish API.
  * Dormant unless CLOUD_PUBLISH_ENABLED=1 AND a storage backend is configured:
- *   - Cloudflare: CF_ACCOUNT_ID, CF_API_TOKEN, CF_D1_DATABASE_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, CLOUD_SECRETS_KEY
- *     (optional R2_BUCKET [spawn-cloud-apps], CF_ZONE_ID for custom domains, CLOUD_APEX [spawnapp.org], CLOUD_ADMIN_EMAILS)
+ *   - Cloudflare: CF_ACCOUNT_ID, CF_API_TOKEN (D1 edit), CF_D1_DATABASE_ID, CLOUD_SECRETS_KEY
+ *     (optional CF_D1_FILES_DATABASE_ID [= CF_D1_DATABASE_ID], CLOUD_APEX [spawnapp.org], CLOUD_ADMIN_EMAILS). No R2.
  *   - Local (development/tests only): CLOUD_PUBLISH_LOCAL_DIR + CLOUD_SECRETS_KEY — files on disk, D1 emulated with node:sqlite.
  * While dormant every /api/cloud/* route and /cloud/connect answer 503 {enabled:false}.
  */
@@ -13,7 +13,7 @@ const path = require("path");
 const express = require("express");
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
-const RESERVED = new Set(["www", "api", "app", "apps", "admin", "mail", "smtp", "cdn", "static", "assets", "cloud", "status", "docs", "help", "support", "blog", "dev", "staging", "preview", "auth", "login", "dashboard", "billing", "spawn", "home", "ns1", "ns2", "mx", "ftp", "test"]);
+const RESERVED = new Set(["www", "api", "app", "apps", "admin", "mail", "smtp", "cdn", "static", "assets", "cloud", "status", "docs", "help", "support", "blog", "dev", "staging", "preview", "auth", "login", "dashboard", "billing", "spawn", "home", "ns1", "ns2", "mx", "ftp", "test", "pay", "send", "rsend", "_domainconnect"]);
 const LIMITS = { files: 2000, fileBytes: 10 * 1024 * 1024, totalBytes: 100 * 1024 * 1024, keepVersions: 10 };
 const ALLOWED_EXT = new Set(["html", "htm", "css", "js", "mjs", "json", "webmanifest", "map", "txt", "xml", "md", "csv", "png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "ico", "bmp", "woff", "woff2", "ttf", "otf", "eot", "mp3", "wav", "ogg", "m4a", "mp4", "webm", "pdf", "wasm", "glb", "gltf", "bin"]);
 const BLOCKED = [/(^|\/)\.env/i, /(^|\/)node_modules\//, /(^|\/)\.git\//, /(^|\/)data\//, /(^|\/)(server|db|ai|auth|storage|places)\.js$/, /(^|\/)package(-lock)?\.json$/, /\.(sqlite|db|pem|key)$/i, /(^|\/)_forge_[^/]*$/];
@@ -26,71 +26,61 @@ function env(name, def) { const v = process.env[name]; return v == null || v ===
 function mode() {
   if (env("CLOUD_PUBLISH_ENABLED") !== "1") return null;
   if (!env("CLOUD_SECRETS_KEY")) return null;
-  if (["CF_ACCOUNT_ID", "CF_API_TOKEN", "CF_D1_DATABASE_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"].every((k) => env(k))) return "cloudflare";
+  if (["CF_ACCOUNT_ID", "CF_API_TOKEN", "CF_D1_DATABASE_ID"].every((k) => env(k))) return "cloudflare";
   if (env("CLOUD_PUBLISH_LOCAL_DIR")) return "local";
   return null;
 }
 function enabled() { return !!mode(); }
 function apex() { return env("CLOUD_APEX", "spawnapp.org"); }
 
-/* ---------------- storage backends ---------------- */
+/* ---------------- storage backends ----------------
+ * Everything lives in D1 (no R2, no card): metadata in CF_D1_DATABASE_ID, files in CF_D1_FILES_DATABASE_ID
+ * (defaults to the same database). Files are content-addressed (blob/<slug>/<sha256>) and split into base64
+ * chunks of 512 KiB so each row stays far below D1's 2 MB row limit. Versions share unchanged files.
+ */
+const CHUNK = 512 * 1024;
+function blobOps(fq) {
+  return {
+    async head(key) { return (await fq("SELECT 1 AS x FROM blobs WHERE key=?1", [key])).length > 0; },
+    async put(key, buf, type) {
+      const n = Math.max(1, Math.ceil(buf.length / CHUNK));
+      await fq("DELETE FROM blobs WHERE key=?1", [key]);
+      await fq("DELETE FROM blob_chunks WHERE key=?1", [key]);
+      for (let i = 0; i < n; i++) await fq("INSERT INTO blob_chunks (key, idx, data) VALUES (?1,?2,?3)", [key, i, buf.subarray(i * CHUNK, (i + 1) * CHUNK).toString("base64")]);
+      // the blobs row goes last, so a half-written file is never visible
+      await fq("INSERT INTO blobs (key, type, size, chunks) VALUES (?1,?2,?3,?4)", [key, type || null, buf.length, n]);
+    },
+    async del(key) { await fq("DELETE FROM blobs WHERE key=?1", [key]); await fq("DELETE FROM blob_chunks WHERE key=?1", [key]); },
+    async list(prefix, olderThanIso) {
+      const rows = await fq("SELECT key FROM blobs WHERE substr(key,1,length(?1))=?1 AND created_at < ?2", [prefix, olderThanIso || "9999"]);
+      return rows.map((r) => r.key);
+    },
+  };
+}
+
 function cloudflareBackend() {
-  const { AwsClient } = require("aws4fetch");
-  const acct = env("CF_ACCOUNT_ID"), bucket = env("R2_BUCKET", "spawn-cloud-apps");
-  const aws = new AwsClient({ accessKeyId: env("R2_ACCESS_KEY_ID"), secretAccessKey: env("R2_SECRET_ACCESS_KEY"), service: "s3", region: "auto" });
-  const base = `https://${acct}.r2.cloudflarestorage.com/${bucket}/`;
-  const enc = (k) => k.split("/").map(encodeURIComponent).join("/");
-  async function d1(sql, params) {
-    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${acct}/d1/database/${env("CF_D1_DATABASE_ID")}/query`, {
+  const acct = env("CF_ACCOUNT_ID");
+  const mk = (dbId) => async function d1(sql, params) {
+    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${acct}/d1/database/${dbId}/query`, {
       method: "POST", headers: { Authorization: "Bearer " + env("CF_API_TOKEN"), "Content-Type": "application/json" }, body: JSON.stringify({ sql, params: params || [] }),
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.success) throw new Error("D1 query failed (" + r.status + ")");
     return (j.result && j.result[0] && j.result[0].results) || [];
-  }
-  return {
-    kind: "cloudflare",
-    query: d1,
-    async head(key) { const r = await aws.fetch(base + enc(key), { method: "HEAD" }); return r.ok; },
-    async put(key, buf, type) { const r = await aws.fetch(base + enc(key), { method: "PUT", body: buf, headers: { "Content-Type": type || "application/octet-stream" } }); if (!r.ok) throw new Error("R2 put failed " + r.status); },
-    async copy(from, to, type) {
-      const r = await aws.fetch(base + enc(to), { method: "PUT", headers: { "x-amz-copy-source": "/" + bucket + "/" + enc(from), "x-amz-metadata-directive": "REPLACE", "Content-Type": type || "application/octet-stream" } });
-      if (!r.ok) throw new Error("R2 copy failed " + r.status);
-    },
-    async del(key) { await aws.fetch(base + enc(key), { method: "DELETE" }); },
-    async list(prefix) {
-      const keys = []; let token = "";
-      for (let i = 0; i < 50; i++) {
-        const u = new URL(base.replace(/\/$/, "")); u.searchParams.set("list-type", "2"); u.searchParams.set("prefix", prefix); if (token) u.searchParams.set("continuation-token", token);
-        const t = await (await aws.fetch(u.toString())).text();
-        for (const m of t.matchAll(/<Key>([^<]+)<\/Key>/g)) keys.push(m[1].replace(/&amp;/g, "&"));
-        const n = /<NextContinuationToken>([^<]+)</.exec(t); if (!n) break; token = n[1];
-      }
-      return keys;
-    },
   };
+  const query = mk(env("CF_D1_DATABASE_ID"));
+  const fquery = mk(env("CF_D1_FILES_DATABASE_ID", env("CF_D1_DATABASE_ID")));
+  return Object.assign({ kind: "cloudflare", query }, blobOps(fquery));
 }
 
 function localBackend(dir) {
   const { DatabaseSync } = require("node:sqlite");
-  fs.mkdirSync(path.join(dir, "r2"), { recursive: true });
+  fs.mkdirSync(dir, { recursive: true });
   const db = new DatabaseSync(path.join(dir, "d1.sqlite"));
   const migDir = path.join(__dirname, "cloud", "migrations");
   for (const f of fs.readdirSync(migDir).sort()) db.exec(fs.readFileSync(path.join(migDir, f), "utf8"));
-  const file = (k) => { const p = path.join(dir, "r2", k); if (!p.startsWith(path.join(dir, "r2"))) throw new Error("bad key"); return p; };
-  return {
-    kind: "local", dir, db,
-    async query(sql, params) { const st = db.prepare(sql); return /^\s*(select|with)|returning/i.test(sql) ? st.all(...(params || [])) : (st.run(...(params || [])), []); },
-    async head(k) { return fs.existsSync(file(k)); },
-    async put(k, buf) { fs.mkdirSync(path.dirname(file(k)), { recursive: true }); fs.writeFileSync(file(k), buf); },
-    async copy(a, b) { fs.mkdirSync(path.dirname(file(b)), { recursive: true }); fs.copyFileSync(file(a), file(b)); },
-    async del(k) { try { fs.unlinkSync(file(k)); } catch (_) {} },
-    async list(prefix) {
-      const root = path.join(dir, "r2"); const out = [];
-      (function walk(d) { if (!fs.existsSync(d)) return; for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); e.isDirectory() ? walk(p) : out.push(path.relative(root, p).split(path.sep).join("/")); } })(root);
-      return out.filter((k) => k.startsWith(prefix));
-    },
-  };
+  async function query(sql, params) { const st = db.prepare(sql); return /^\s*(select|with)|returning/i.test(sql) ? st.all(...(params || [])) : (st.run(...(params || [])), []); }
+  return Object.assign({ kind: "local", dir, db, query }, blobOps(query));
 }
 
 /* ---------------- secrets (same format the Worker decrypts) ---------------- */
@@ -323,43 +313,31 @@ function mount(app, opts) {
     if (limited("pub:" + u.id, 30, 3600000)) throw fail(429, "Publishing limit reached. Try again in an hour.");
     const slug = req.params.slug; const a = await ownedApp(u, slug, true);
     const err = checkManifest(req.body && req.body.manifest); if (err) throw fail(400, err);
-    const prev = a && a.live_version ? await prevFiles(slug) : {};
     const need = [];
     for (const f of Object.values(req.body.manifest.files)) {
-      if (need.includes(f.h) || Object.values(prev).some((p) => p.h === f.h)) continue;
-      if (!(await be().head(`staging/${slug}/${f.h}`))) need.push(f.h);
+      if (need.includes(f.h)) continue;
+      if (!(await be().head(`blob/${slug}/${f.h}`))) need.push(f.h);
     }
     res.json({ ok: true, slug, need, url: "https://" + slug + "." + apex() + "/" });
   }));
-  async function prevFiles(slug) {
-    const rows = await be().query("SELECT v.manifest, v.version FROM versions v JOIN apps a ON a.slug=v.slug AND a.live_version=v.version WHERE a.slug=?1", [slug]);
-    if (!rows[0]) return {};
-    const files = JSON.parse(rows[0].manifest).files || {};
-    for (const k of Object.keys(files)) files[k].v = rows[0].version;
-    return files;
-  }
   r.put("/apps/:slug/blobs/:hash", express.raw({ type: "*/*", limit: LIMITS.fileBytes }), wrap(async (req, res) => {
     const u = await tokenUser(req); const slug = req.params.slug; await ownedApp(u, slug, true);
     const h = String(req.params.hash);
     if (!/^[a-f0-9]{64}$/.test(h)) throw fail(400, "bad hash");
     const buf = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     if (sha(buf) !== h) throw fail(400, "Upload was corrupted (hash mismatch). Try again.");
-    await be().put(`staging/${slug}/${h}`, buf);
+    await be().put(`blob/${slug}/${h}`, buf);
     res.json({ ok: true });
   }));
   r.post("/apps/:slug/publish/commit", wrap(async (req, res) => {
     const u = await tokenUser(req); const slug = req.params.slug; const a = await ownedApp(u, slug, true);
     const manifest = req.body && req.body.manifest; const err = checkManifest(manifest); if (err) throw fail(400, err);
-    const prev = a && a.live_version ? await prevFiles(slug) : {};
-    const prevByHash = {}; for (const [p, f] of Object.entries(prev)) prevByHash[f.h] = `apps/${slug}/v${f.v}/${p}`;
     const vr = await be().query("SELECT COALESCE(MAX(version),0) AS v FROM versions WHERE slug=?1", [slug]);
     const version = Number(vr[0].v) + 1;
-    const out = {}; let total = 0; const staged = new Set();
+    const out = {}; let total = 0;
     for (const [p, f] of Object.entries(manifest.files)) {
-      const type = mimeFor(p); const dest = `apps/${slug}/v${version}/${p}`;
-      if (await be().head(`staging/${slug}/${f.h}`)) { await be().copy(`staging/${slug}/${f.h}`, dest, type); staged.add(f.h); }
-      else if (prevByHash[f.h]) await be().copy(prevByHash[f.h], dest, type);
-      else throw fail(400, "Missing upload for " + p + ". Publish again.");
+      const type = mimeFor(p);
+      if (!(await be().head(`blob/${slug}/${f.h}`))) throw fail(400, "Missing upload for " + p + ". Publish again.");
       out[p] = { h: f.h, s: f.s, t: type }; total += f.s;
     }
     const title = String((req.body && req.body.title) || (a && a.title) || slug).slice(0, 80);
@@ -368,7 +346,6 @@ function mount(app, opts) {
       [slug, version, JSON.stringify({ files: out }), Object.keys(out).length, total, String((req.body && req.body.note) || "").slice(0, 200)]);
     if (a) await be().query("UPDATE apps SET live_version=?2, status='active', title=?3, updated_at=?4 WHERE slug=?1", [slug, version, title, nowIso()]);
     else await be().query("INSERT INTO apps (slug, owner, runtime, status, live_version, title) VALUES (?1,?2,?3,'active',?4,?5)", [slug, "u:" + u.id, backendWanted ? "spawn-backend" : "static", version, title]);
-    for (const h of staged) await be().del(`staging/${slug}/${h}`);
     await prune(slug, version);
     if (APP_PRESETS[slug]) { try { await syncPresets(be(), slug); } catch (e) { console.warn("[cloud] preset sync failed for " + slug + ": " + e.message); } }
     res.json({ ok: true, slug, version, url: "https://" + slug + "." + apex() + "/", files: Object.keys(out).length, bytes: total });
@@ -377,9 +354,13 @@ function mount(app, opts) {
     const v = await be().query("SELECT version FROM versions WHERE slug=?1 ORDER BY version DESC", [slug]);
     for (const row of v.slice(LIMITS.keepVersions)) {
       if (Number(row.version) === Number(live)) continue;
-      for (const k of await be().list(`apps/${slug}/v${row.version}/`)) await be().del(k);
       await be().query("DELETE FROM versions WHERE slug=?1 AND version=?2", [slug, row.version]);
     }
+    // Drop files no kept version uses. A day's grace keeps uploads of a publish that is still in flight.
+    const keep = new Set();
+    for (const row of await be().query("SELECT manifest FROM versions WHERE slug=?1", [slug])) for (const f of Object.values(JSON.parse(row.manifest).files || {})) keep.add(f.h);
+    const cutoff = new Date(Date.now() - 86400000).toISOString();
+    for (const k of await be().list(`blob/${slug}/`, cutoff)) if (!keep.has(k.slice(k.lastIndexOf("/") + 1))) await be().del(k);
   }
   r.post("/apps/:slug/rollback", wrap(async (req, res) => {
     const u = await tokenUser(req); const a = await ownedApp(u, req.params.slug, false);
@@ -415,20 +396,10 @@ function mount(app, opts) {
     res.json({ ok: true });
   }));
 
-  // Custom domains (Cloudflare for SaaS). Off until CF_ZONE_ID is set.
+  // Custom domains need Cloudflare for SaaS (card on file), so they're off. Apps live at <slug>.spawnapp.org.
   r.post("/apps/:slug/domains", wrap(async (req, res) => {
-    const u = await tokenUser(req); const a = await ownedApp(u, req.params.slug, false);
-    const host = String((req.body && req.body.hostname) || "").toLowerCase().trim();
-    if (!/^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(host) || host.endsWith("." + apex()) || host === apex()) throw fail(400, "Enter a domain you own, like shop.example.com.");
-    if (!env("CF_ZONE_ID") || be().kind !== "cloudflare") return res.status(501).json({ ok: false, error: "Custom domains aren't switched on for Spawn Cloud yet." });
-    const cr = await fetch(`https://api.cloudflare.com/client/v4/zones/${env("CF_ZONE_ID")}/custom_hostnames`, {
-      method: "POST", headers: { Authorization: "Bearer " + env("CF_API_TOKEN"), "Content-Type": "application/json" },
-      body: JSON.stringify({ hostname: host, ssl: { method: "http", type: "dv" } }),
-    });
-    const j = await cr.json().catch(() => ({}));
-    if (!cr.ok || !j.success) throw fail(400, "Couldn't add that domain. It may already be connected elsewhere.");
-    await be().query("INSERT INTO domains (hostname, slug, status, cf_id) VALUES (?1,?2,'pending',?3) ON CONFLICT(hostname) DO NOTHING", [host, a.slug, j.result.id]);
-    res.json({ ok: true, hostname: host, status: "pending", dns: { type: "CNAME", name: host, target: env("CLOUD_FALLBACK_ORIGIN", "apps." + apex()) } });
+    const u = await tokenUser(req); await ownedApp(u, req.params.slug, false);
+    res.status(501).json({ ok: false, error: "Custom domains aren't available on Spawn Cloud. Your app is live at " + req.params.slug + "." + apex() + "." });
   }));
 
   app.use("/api/cloud", r);

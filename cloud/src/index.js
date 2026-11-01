@@ -1,5 +1,6 @@
-// Spawn Cloud — serves published Spawn apps from R2 at <slug>.spawnapp.org and custom domains,
+// Spawn Cloud — serves published Spawn apps from D1 at <slug>.spawnapp.org and custom domains,
 // plus the shared per-app backend (/api/*) and app-specific runtimes (BidBoard).
+import { blobs } from "./blobs.js";
 import { json, withSecurity, HttpError, mimeFor, SECURITY_HEADERS } from "./util.js";
 import { handleShared } from "./shared.js";
 import { handleBidboard } from "./bidboard.js";
@@ -134,7 +135,7 @@ async function serveStatic({ env, ctx, app, slug, path, request }) {
   headers.set("X-Spawn-Version", String(app.live_version));
   if (status === 200 && request.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers });
 
-  const key = "apps/" + slug + "/v" + app.live_version + "/" + file;
+  const key = "blob/" + slug + "/" + meta.h; // content-addressed: versions share unchanged files
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const cacheKey = new Request("https://spawn-cloud.cache/" + key);
   if (cache && status === 200) {
@@ -144,7 +145,7 @@ async function serveStatic({ env, ctx, app, slug, path, request }) {
       return r;
     }
   }
-  const obj = await env.APPS.get(key);
+  const obj = await blobs(env).get(key);
   if (!obj) return notFoundPage(404, "That page doesn't exist.");
   if (request.method === "HEAD") return new Response(null, { status, headers });
   if (cache && status === 200 && meta.s <= 5 * 1024 * 1024) {

@@ -107,29 +107,27 @@ test("local mode: device sign-in, publish, dedupe, versions, rollback, unpublish
   await call("DELETE", "/api/cloud/tokens/" + list[0].id, { user: "b" });
   x = await call("GET", "/api/cloud/apps", { token: tokB }); assert.equal(x.status, 401);
 
-  // ---- hand the local R2/D1 to the Worker (Miniflare) and fetch the site ----
+  // ---- hand the local D1 (incl. file blobs) to the Worker (Miniflare) and fetch the site ----
   const { Miniflare } = require(path.join(__dirname, "../cloud/node_modules/miniflare"));
   require("node:child_process").execSync("npx wrangler deploy --dry-run --outdir dist", { cwd: path.join(__dirname, "../cloud"), stdio: "ignore" });
   mf = new Miniflare({ modules: true, scriptPath: path.join(__dirname, "../cloud/dist/index.js"), compatibilityDate: "2026-08-01", compatibilityFlags: ["nodejs_compat"],
-    d1Databases: { DB: "e2e" }, r2Buckets: { APPS: "e2e" }, bindings: { APEX_DOMAIN: "spawnapp.org", SECRETS_KEY: process.env.CLOUD_SECRETS_KEY } });
-  const db = await mf.getD1Database("DB"), r2 = await mf.getR2Bucket("APPS");
+    d1Databases: { DB: "e2e" }, bindings: { APEX_DOMAIN: "spawnapp.org", SECRETS_KEY: process.env.CLOUD_SECRETS_KEY } });
+  const db = await mf.getD1Database("DB");
   for (const f of fs.readdirSync(path.join(__dirname, "../cloud/migrations")).sort()) {
     const sql = fs.readFileSync(path.join(__dirname, "../cloud/migrations", f), "utf8").split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
     for (const s of sql.split(";").map((v) => v.trim()).filter(Boolean)) await db.prepare(s).run();
   }
   const { DatabaseSync } = require("node:sqlite"); const local = new DatabaseSync(path.join(dir, "d1.sqlite"));
-  for (const t of ["apps", "versions", "app_secrets"]) for (const row of local.prepare("SELECT * FROM " + t).all()) {
+  for (const t of ["apps", "versions", "app_secrets", "blobs", "blob_chunks"]) for (const row of local.prepare("SELECT * FROM " + t).all()) {
     const cols = Object.keys(row); await db.prepare(`INSERT INTO ${t} (${cols}) VALUES (${cols.map((_, i) => "?" + (i + 1))})`).bind(...cols.map((c) => row[c])).run();
   }
-  (function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else r2Keys.push(p); } })(path.join(dir, "r2"));
-  for (const p of r2Keys) await r2.put(path.relative(path.join(dir, "r2"), p).split(path.sep).join("/"), fs.readFileSync(p));
+  assert.ok(local.prepare("SELECT COUNT(*) AS n FROM blobs WHERE key LIKE 'blob/acme/%'").get().n >= 2, "files stored as D1 blobs");
   let r = await mf.dispatchFetch("https://acme.spawnapp.org/"); assert.match(await r.text(), /Hello v1/, "rolled-back version is live");
   r = await mf.dispatchFetch("https://acme.spawnapp.org/img/logo.svg"); assert.equal(r.headers.get("content-type"), "image/svg+xml"); await r.text();
   r = await mf.dispatchFetch("https://acme.spawnapp.org/api/ai/status"); assert.equal((await r.json()).configured, true, "Render-encrypted secret decrypts in the Worker");
   x = await call("POST", "/api/cloud/apps/acme/unpublish", { token: tokA }); assert.equal(x.body.status, "unpublished");
   assert.equal(local.prepare("SELECT status FROM apps WHERE slug='acme'").get().status, "unpublished");
 });
-const r2Keys = [];
 
 test("BidBoard keys flow from Render env into encrypted app secrets (owner-only slug, names only, never returned)", async () => {
   const fakeKey = "sk_test_" + crypto.randomBytes(12).toString("hex"), fakeWh = "whsec_" + crypto.randomBytes(12).toString("hex");
