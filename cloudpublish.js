@@ -65,7 +65,7 @@ function cloudflareBackend() {
       method: "POST", headers: { Authorization: "Bearer " + env("CF_API_TOKEN"), "Content-Type": "application/json" }, body: JSON.stringify({ sql, params: params || [] }),
     });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok || !j.success) throw new Error("D1 query failed (" + r.status + ")");
+    if (!r.ok || !j.success) throw new Error("D1 query failed (" + r.status + "): " + String(((j.errors || [])[0] || {}).message || "").slice(0, 160) + " | " + sql.slice(0, 60));
     return (j.result && j.result[0] && j.result[0].results) || [];
   };
   const query = mk(env("CF_D1_DATABASE_ID"));
