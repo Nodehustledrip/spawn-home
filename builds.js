@@ -20,6 +20,7 @@ const history = require("./buildhistory");
 const store = require("./buildstore");
 const buildzip = require("./buildzip");
 const auth = require("./auth");
+const badge = require("./badge");
 
 const BUILDS_DIR = process.env.BUILDS_DIR || path.join(__dirname, "data", "builds");
 const COOKIE = "spawn_build_sid";
@@ -205,6 +206,18 @@ async function loadOwned(req, res) {
     return null;
   }
   return { id: id, root: root, owner: owner, source: source, user: who.user };
+}
+
+/* Previews carry the "Made with Spawn" badge unless the build belongs to a Pro (or owner) account. */
+async function previewBadgeExempt(id, root) {
+  try {
+    const owner = await store.ownerOf(id, root);
+    const m = /^u:(.+)$/.exec(String(owner || ""));
+    if (!m) return false;
+    return badge.exempt(await auth.userById(m[1]));
+  } catch (_) {
+    return false;
+  }
 }
 
 function wrap(fn) {
@@ -620,6 +633,17 @@ function mount(app) {
         res.setHeader("X-Robots-Tag", "noindex, nofollow");
         res.setHeader("Cache-Control", "private, max-age=0, must-revalidate");
         res.setHeader("X-Build-Source", source === "postgres" ? "postgres" : store.mode() + "-cache");
+        const isHtml = req.path === "/" || req.path === "" || /\.html?$/i.test(req.path);
+        if (isHtml && (req.method === "GET" || req.method === "HEAD")) {
+          const rel = req.path === "/" || req.path === "" ? "index.html" : decodeURIComponent(req.path).replace(/^\/+/, "");
+          const file = path.join(pub, rel);
+          if (file.startsWith(pub + path.sep) && fs.existsSync(file) && fs.statSync(file).isFile()) {
+            return previewBadgeExempt(id, root).then(function (skip) {
+              const html = fs.readFileSync(file, "utf8");
+              res.type("html").send(skip ? html : badge.inject(html));
+            });
+          }
+        }
         express.static(pub, {
           index: ["index.html"],
           fallthrough: true,

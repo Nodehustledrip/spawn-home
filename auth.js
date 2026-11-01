@@ -115,6 +115,18 @@ async function currentUser(req) {
   return req._spawnUser;
 }
 
+/** Account row by id (null when accounts are off or the id is unknown). */
+async function userById(id) {
+  if (!enabled() || id == null) return null;
+  try {
+    const r = await store.getPool().query("SELECT * FROM users WHERE id::text=$1", [String(id)]);
+    return r.rows[0] || null;
+  } catch (err) {
+    console.error("[auth] user lookup failed", err && err.message);
+    return null;
+  }
+}
+
 function ownerFor(user) {
   return "u:" + user.id;
 }
@@ -370,4 +382,4 @@ function mount(app, hooks) {
   });
 }
 
-module.exports = { safeNext, mount, enabled, configured, currentUser, ownerFor, limitsFor, isPro, editAllowed, setPlan, emailHtml };
+module.exports = { safeNext, mount, enabled, configured, currentUser, userById, ownerFor, limitsFor, isPro, editAllowed, setPlan, emailHtml };

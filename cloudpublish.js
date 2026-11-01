@@ -11,6 +11,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
+const badge = require("./badge");
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
 const RESERVED = new Set(["www", "api", "app", "apps", "admin", "mail", "smtp", "cdn", "static", "assets", "cloud", "status", "docs", "help", "support", "blog", "dev", "staging", "preview", "auth", "login", "dashboard", "billing", "spawn", "home", "ns1", "ns2", "mx", "ftp", "test", "pay", "send", "rsend", "_domainconnect"]);
@@ -49,6 +50,10 @@ function blobOps(fq) {
       for (let i = 0; i < n; i++) await fq("INSERT INTO blob_chunks (key, idx, data) VALUES (?1,?2,?3)", [key, i, buf.subarray(i * CHUNK, (i + 1) * CHUNK).toString("base64")]);
       // the blobs row goes last, so a half-written file is never visible
       await fq("INSERT INTO blobs (key, type, size, chunks) VALUES (?1,?2,?3,?4)", [key, type || null, buf.length, n]);
+    },
+    async get(key) {
+      const rows = await fq("SELECT data FROM blob_chunks WHERE key=?1 ORDER BY idx", [key]);
+      return rows.length ? Buffer.concat(rows.map((r) => Buffer.from(r.data, "base64"))) : null;
     },
     async del(key) { await fq("DELETE FROM blobs WHERE key=?1", [key]); await fq("DELETE FROM blob_chunks WHERE key=?1", [key]); },
     async list(prefix, olderThanIso) {
@@ -332,24 +337,41 @@ function mount(app, opts) {
   r.post("/apps/:slug/publish/commit", wrap(async (req, res) => {
     const u = await tokenUser(req); const slug = req.params.slug; const a = await ownedApp(u, slug, true);
     const manifest = req.body && req.body.manifest; const err = checkManifest(manifest); if (err) throw fail(400, err);
+    const out = await finishPublish(u, slug, a, manifest, req.body || {});
+    res.json(out);
+  }));
+  /* Shared by desktop (token) and web (session) publishing. Free-plan apps get the "Made with Spawn" badge in their
+   * HTML at publish time; Pro and owner-exempt accounts don't. Existing versions are never rewritten. */
+  async function finishPublish(u, slug, a, manifest, body) {
+    const account = (auth.userById ? await auth.userById(u.id) : null) || u;
+    const withBadge = !badge.exempt(account);
     const vr = await be().query("SELECT COALESCE(MAX(version),0) AS v FROM versions WHERE slug=?1", [slug]);
     const version = Number(vr[0].v) + 1;
     const out = {}; let total = 0;
     for (const [p, f] of Object.entries(manifest.files)) {
       const type = mimeFor(p);
       if (!(await be().head(`blob/${slug}/${f.h}`))) throw fail(400, "Missing upload for " + p + ". Publish again.");
-      out[p] = { h: f.h, s: f.s, t: type }; total += f.s;
+      let h = f.h, size = f.s;
+      if (withBadge && /\.html?$/i.test(p) && be().get) {
+        const buf = await be().get(`blob/${slug}/${f.h}`);
+        if (buf && !badge.has(buf.toString("utf8"))) {
+          const next = Buffer.from(badge.inject(buf.toString("utf8")), "utf8");
+          h = sha(next); size = next.length;
+          if (!(await be().head(`blob/${slug}/${h}`))) await be().put(`blob/${slug}/${h}`, next, type);
+        }
+      }
+      out[p] = { h, s: size, t: type }; total += size;
     }
-    const title = String((req.body && req.body.title) || (a && a.title) || slug).slice(0, 80);
-    const backendWanted = !!(req.body && req.body.backend);
+    const title = String(body.title || (a && a.title) || slug).slice(0, 80);
+    const backendWanted = !!body.backend;
     await be().query("INSERT INTO versions (slug, version, manifest, file_count, total_bytes, note) VALUES (?1,?2,?3,?4,?5,?6)",
-      [slug, version, JSON.stringify({ files: out }), Object.keys(out).length, total, String((req.body && req.body.note) || "").slice(0, 200)]);
+      [slug, version, JSON.stringify({ files: out }), Object.keys(out).length, total, String(body.note || "").slice(0, 200)]);
     if (a) await be().query("UPDATE apps SET live_version=?2, status='active', title=?3, updated_at=?4 WHERE slug=?1", [slug, version, title, nowIso()]);
     else await be().query("INSERT INTO apps (slug, owner, runtime, status, live_version, title) VALUES (?1,?2,?3,'active',?4,?5)", [slug, "u:" + u.id, backendWanted ? "spawn-backend" : "static", version, title]);
     await prune(slug, version);
     if (APP_PRESETS[slug]) { try { await syncPresets(be(), slug); } catch (e) { console.warn("[cloud] preset sync failed for " + slug + ": " + e.message); } }
-    res.json({ ok: true, slug, version, url: "https://" + slug + "." + apex() + "/", files: Object.keys(out).length, bytes: total });
-  }));
+    return { ok: true, slug, version, url: "https://" + slug + "." + apex() + "/", files: Object.keys(out).length, bytes: total, badge: withBadge };
+  }
   async function prune(slug, live) {
     const v = await be().query("SELECT version FROM versions WHERE slug=?1 ORDER BY version DESC", [slug]);
     for (const row of v.slice(LIMITS.keepVersions)) {
@@ -411,6 +433,10 @@ function mount(app, opts) {
   r.post("/apps/:slug/domains", wrap(async (req, res) => {
     const u = await anyUser(req); const a = await ownedApp(u, req.params.slug, false);
     if (!domainsOn()) throw fail(503, "Custom domains are paused. Try again soon.");
+    if (env("CLOUD_DOMAINS_PRO_ONLY", "1") === "1" && mode() !== "local" && !badge.exempt((auth.userById ? await auth.userById(u.id) : null) || u)) {
+      const e = fail(402, "Custom domains are part of Spawn Pro. Upgrade at spawnapp.org/pricing, then connect your domain.");
+      e.upgrade = "/pricing"; throw e;
+    }
     if (limited("dom:" + u.id, 20, 3600000)) throw fail(429, "Too many domain changes. Try again in an hour.");
     const d = await dom.attach("u:" + u.id, a.slug, String((req.body && (req.body.hostname || req.body.domain)) || ""));
     res.status(201).json({ ok: true, domain: d });
