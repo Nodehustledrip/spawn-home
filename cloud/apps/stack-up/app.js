@@ -9,7 +9,7 @@
   function resize() {
     DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
     cv.width = W * DPR; cv.height = H * DPR; cx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    S = Math.min(W * 0.34, H * 0.2, 170);
+    S = Math.min(W * 0.3, H * 0.24, 210);
   }
   addEventListener("resize", resize); resize();
 
@@ -81,7 +81,7 @@
       shake = reduce ? 0 : 4;
     }
     stack.push({ x: cur.x, z: cur.z, w: cur.w, d: cur.d, y: cur.y, hue: cur.hue });
-    score++; setScore(score); camT = Math.max(0, score - 3) * BH;
+    score++; setScore(score); camT = Math.max(0, top().y + BH - 0.26 * H / S);
     if (navigator.vibrate && soundOn) navigator.vibrate(combo ? 18 : 8);
     spawn();
   }
