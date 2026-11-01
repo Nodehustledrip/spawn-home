@@ -150,7 +150,7 @@ app.use(function (_req, res, next) {
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 /* Clean marketing URLs: /how → how.html; /how.html → 301 /how */
-const CLEAN_PAGES = ["how", "product", "access", "privacy", "pricing", "terms", "refund", "faq", "changelog", "tour", "showcase", "why", "build", "signin", "404"];
+const CLEAN_PAGES = ["how", "product", "access", "privacy", "pricing", "terms", "refund", "faq", "changelog", "tour", "showcase", "why", "build", "signin", "contact", "404"];
 const CLEAN_SET = new Set(CLEAN_PAGES);
 
 /* Trailing slash → canonical (must run before page routes; Express non-strict
@@ -158,7 +158,7 @@ const CLEAN_SET = new Set(CLEAN_PAGES);
 app.use(function (req, res, next) {
   if (req.method !== "GET" && req.method !== "HEAD") return next();
   const pathOnly = (req.path || "").split("?")[0];
-  const m = pathOnly.match(/^\/(how|product|access|privacy|pricing|terms|refund|faq|changelog|tour|showcase|why|build|signin|404)\/$/);
+  const m = pathOnly.match(/^\/(how|product|access|privacy|pricing|terms|refund|faq|changelog|tour|showcase|why|build|signin|contact|404)\/$/);
   if (m && CLEAN_SET.has(m[1])) {
     return res.redirect(301, "/" + m[1]);
   }
@@ -210,6 +210,47 @@ billing.mount(app);
 app.get("/api/health", (_req, res) =>
   res.json({ ok: true, app: "Spawn Home", waitlist: true, builds: true, buildStorage: builds.store.mode() })
 );
+
+/* Contact form → email to the site owner via Resend (address never shown on the site).
+ * Recipient: CONTACT_TO, else the owner account email (BIDBOARD_OWNER_EMAIL). Reply-To is the visitor. */
+const contactHits = new Map();
+app.post("/api/contact", function (req, res) {
+  const ip = (req.headers["x-forwarded-for"] && String(req.headers["x-forwarded-for"]).split(",")[0].trim()) || req.ip || "unknown";
+  const now = Date.now();
+  const h = (contactHits.get(ip) || []).filter(function (t) { return now - t < 3600000; });
+  if (h.length >= 5) return res.status(429).json({ ok: false, error: "Too many messages — try again in an hour." });
+  h.push(now); contactHits.set(ip, h);
+  const body = req.body || {};
+  if (body.company || body.website) return res.json({ ok: true });
+  const email = String(body.email || "").trim().slice(0, 254);
+  const message = String(body.message || "").trim().slice(0, 4000);
+  const topic = ["general", "billing", "cloud", "bug"].indexOf(body.topic) !== -1 ? body.topic : "general";
+  if (!/^[^\s@<>()",;:]{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z]{2,24}$/.test(email)) return res.status(400).json({ ok: false, error: "Enter a valid email so we can reply." });
+  if (message.length < 5) return res.status(400).json({ ok: false, error: "Add a short message." });
+  const to = String(process.env.CONTACT_TO || process.env.BIDBOARD_OWNER_EMAIL || "").trim();
+  if (!to || !process.env.RESEND_API_KEY) return res.status(503).json({ ok: false, error: "Messages can't be sent right now — try again later." });
+  const base = (process.env.RESEND_API_BASE || "https://api.resend.com").replace(/\/$/, "");
+  fetch(base + "/emails", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + process.env.RESEND_API_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: process.env.EMAIL_FROM || "Spawn <signin@spawnapp.org>",
+      to: [to],
+      reply_to: email,
+      subject: "Spawn contact (" + topic + ") from " + email,
+      text: "From: " + email + "\nTopic: " + topic + "\n\n" + message + "\n\n— sent from spawnapp.org/contact",
+    }),
+    signal: AbortSignal.timeout(10000),
+  })
+    .then(function (r) {
+      if (!r.ok) throw new Error("resend " + r.status);
+      res.json({ ok: true });
+    })
+    .catch(function (err) {
+      console.error("[contact] send failed", err && err.message);
+      res.status(502).json({ ok: false, error: "Couldn't send — try again in a minute." });
+    });
+});
 
 app.get("/api/waitlist", function (req, res) {
   if (!checkWaitlistAdmin(req)) {
