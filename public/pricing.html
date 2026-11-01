@@ -211,7 +211,7 @@
     function setBusy(b) { btns.forEach(function (x) { x.disabled = b; }); }
     function checkout(interval) {
       setBusy(true); say("Opening secure checkout…");
-      cap("pro_subscribe_click", { plan: "pro_" + interval });
+      cap("pro_subscribe_click", { plan: "pro_" + interval }); cap("checkout_started", { plan: "pro_" + interval });
       return post("/api/billing/checkout", { interval: interval }).then(function (d) {
         if (d.ok && d.url) { location.assign(d.url); return; }
         if (d._status === 401) { location.assign("/signin?next=" + encodeURIComponent("/pricing?subscribe=" + interval)); return; }

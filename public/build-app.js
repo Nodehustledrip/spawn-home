@@ -322,6 +322,11 @@
     setTimeout(function () { try { input.focus(); } catch (_) {} }, 350);
   }
 
+  /* Product analytics (PostHog via analytics.js). No PII — no emails, names or prompt text. */
+  function track(ev, props) {
+    try { if (typeof window.spawnTrack === "function") window.spawnTrack(ev, props || {}); } catch (_) {}
+  }
+
   function upgradeLink(node, data) {
     promptSignin(data);
     if (!node || !data || !data.upgrade) return;
@@ -444,6 +449,7 @@
           upgradeLink($("[data-create-note]"), res.data);
           return;
         }
+        track("build_created", { template: res.data.build.template || state.selectedTemplate || null, signed_in: !!state.signedIn });
         setNote("Created — preview on the right. Download the zip to keep it.");
         state.builds = [res.data.build].concat(
           state.builds.filter(function (b) {
@@ -490,6 +496,7 @@
           appendChat("build", (res.data && res.data.error) || "Edit failed.", res.data);
           return;
         }
+        track("build_edited", { mode: res.data.mode || null, changes: (res.data.changes || []).length, signed_in: !!state.signedIn });
         appendChat("build", (res.data.mode === "ai" || res.data.mode === "free-cloud" ? "✦ " : "") + (res.data.reply || "Done."));
         var path = res.data.previewPath || "/preview/" + state.activeId + "/";
         showPreview(path);
@@ -586,6 +593,8 @@
     if (!box) return;
     box.hidden = false;
     var signedIn = !!(me && me.signedIn);
+    state.signedIn = signedIn;
+    state.plan = signedIn ? me.plan : null;
     $("[data-account-out]").hidden = signedIn;
     var teaser = $("[data-account-teaser]");
     if (teaser) teaser.hidden = signedIn;
@@ -643,6 +652,7 @@
           setAccountNote((data && data.error) || "Could not send a link — try again.", true);
           return;
         }
+        track("signin_requested", { from: "build" });
         setAccountNote("");
         $("[data-account-out]").hidden = true;
         $("[data-account-sent-to]").textContent = email;

@@ -213,7 +213,7 @@
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (!d || !d.ok) return note((d && d.error) || "Could not send a link — try again.", true);
-          note(""); $("[data-si-sent-to]").textContent = email; show("sent");
+          try { if (window.spawnTrack) window.spawnTrack("signin_requested", { from: "signin" }); } catch (e) {} note(""); $("[data-si-sent-to]").textContent = email; show("sent");
         })
         .catch(function () { note("Network error — try again.", true); })
         .finally(function () { btn.disabled = false; });
