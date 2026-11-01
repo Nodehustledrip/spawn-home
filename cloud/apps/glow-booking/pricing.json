@@ -1,0 +1,12 @@
+{
+  "currency": "usd",
+  "deposit": 2000,
+  "items": {
+    "cut": { "name": "Cut & finish", "amount": 6800 },
+    "color": { "name": "Gloss colour", "amount": 14500 },
+    "gloss": { "name": "Shine gloss", "amount": 5500 },
+    "facial": { "name": "Calm facial", "amount": 9500 },
+    "brows": { "name": "Brow shape & tint", "amount": 3500 },
+    "consult": { "name": "Free consultation", "amount": 0 }
+  }
+}

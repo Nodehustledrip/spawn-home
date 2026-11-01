@@ -34,6 +34,13 @@
 
   var live = fetch("/api/health", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : {}; }).then(function (d) { return d && d.hosting === "spawn-cloud"; }).catch(function () { return false; });
 
+  /* Card payments: once the owner connects Stripe on spawnapp.org, the whole cart is paid in one Stripe Checkout,
+   * priced on the server from pricing.json, and the order is marked paid only when Stripe confirms it. */
+  var stripe = live.then(function (isLive) {
+    if (!isLive) return false;
+    return fetch("/api/pay/config", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (c) { return !!(c && c.connected && c.catalog); });
+  }).catch(function () { return false; });
+
   /* ---------- cart (persists in localStorage) ---------- */
   var KEY = "ff-cart";
   function load() { try { var c = JSON.parse(localStorage.getItem(KEY) || "[]"); return Array.isArray(c) ? c.filter(function (l) { return byId(l.id) && l.qty > 0; }) : []; } catch (_) { return []; } }
@@ -83,9 +90,19 @@
     var r = ref(), s = subtotal(), items = cart.map(function (l) { var p = byId(l.id); return { id: l.id, name: p.name, variant: l.v, qty: l.qty, price: priceOf(p, l.v), link: linkOf(l.id, l.v) }; });
     var order = { title: "Order " + r, ref: r, name: name, email: email, items: items.map(function (i) { return i.qty + " × " + i.name + " (" + i.variant + ")"; }).join("; "), subtotal: money(s), shipping: shipping(s) ? money(shipping(s)) : "Free", total: money(s + shipping(s)), payment: anyLink ? "Stripe Payment Links" : "Demo (not connected)" };
     var btn = f.querySelector("button[type=submit]"); btn.disabled = true; btn.textContent = "Saving…";
-    live.then(function (isLive) {
+    Promise.all([live, stripe]).then(function (lv) {
+      var isLive = lv[0], card = lv[1];
+      if (card) order.payment = "Card (Stripe Checkout)";
       return (isLive ? fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(order) }).then(function (x) { return x.json(); }) : Promise.resolve({ ok: true })).then(function (d) {
         if (!d.ok) throw new Error(d.error || "Couldn’t save your order.");
+        if (card) {
+          return fetch("/api/pay/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "cart", ref: r, email: email, name: name, returnPath: location.pathname,
+            items: cart.map(function (l) { return { id: l.id, variant: l.v, qty: l.qty }; }) }) }).then(function (x) { return x.json(); }).then(function (x) {
+            if (!x.ok || !x.url) throw new Error(x.error || "Couldn’t start the payment.");
+            try { sessionStorage.setItem("ff-pending", r); } catch (_) {}
+            location.href = x.url;
+          });
+        }
         handoff(r, items, email, isLive, s);
         cart = []; save();
       });
@@ -101,7 +118,7 @@
     }).join("");
     h.innerHTML = '<div class="ho-card"><p class="eyebrow">Order ' + esc(r) + '</p><h2>' + (paid.length ? "Almost done: pay securely with Stripe" : "Order received") + '</h2>' +
       (paid.length ? '<p>Each item has its own Stripe checkout. Pay for each one below. Your order reference is passed along so the shop can match your payments.' + (paid.length < items.length ? " Items without a link will be invoiced by the shop." : "") + '</p>'
-        : '<p class="demo-note"><strong>Demo — payments not connected.</strong> Nothing was charged. The shop owner connects their own Stripe Payment Links in config.js.</p>') +
+        : '<p class="demo-note"><strong>Demo — payments not connected.</strong> Nothing was charged. The shop owner connects their own Stripe account to take payments.</p>') +
       '<ul class="ho-list">' + rows + '</ul><p class="muted">Subtotal ' + money(s) + ' · shipping ' + (shipping(s) ? money(shipping(s)) : "free") + '. ' + (isLive ? "Your order request was sent to the shop." : "Preview mode: this order stays in your browser.") + '</p><a class="btn ghost" href="./">Back to the shop</a></div>';
     h.hidden = false; h.scrollIntoView({ behavior: "smooth", block: "start" }); h.focus();
   }
@@ -154,8 +171,21 @@
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && $("[data-drawer]") && !$("[data-drawer]").hidden) openCart(false); });
   var co = $("[data-checkout]"); if (co) co.addEventListener("submit", checkout);
-  if (!anyLink) $$("[data-demo-banner]").forEach(function (b) { b.hidden = false; });
-  if (new URLSearchParams(location.search).get("paid") === "1") { var t = $("[data-paid]"); if (t) t.hidden = false; }
+  if (!anyLink) stripe.then(function (on) { if (!on) $$("[data-demo-banner]").forEach(function (b) { b.hidden = false; }); });
+  var qs = new URLSearchParams(location.search);
+  if (qs.get("paid") === "1") {
+    var t = $("[data-paid]");
+    if (t && qs.get("session_id") && qs.get("ref")) {
+      var tries = 0, poll = function () {
+        fetch("/api/pay/status?ref=" + encodeURIComponent(qs.get("ref")) + "&session_id=" + encodeURIComponent(qs.get("session_id")), { cache: "no-store" }).then(function (x) { return x.json(); }).then(function (x) {
+          var p = x && x.payment; t.hidden = false;
+          if (p && p.unlocked) { t.textContent = "Payment confirmed for order " + p.ref + " (" + money(p.paid / 100) + "). The shop will email you when it ships."; cart = []; save(); return; }
+          t.textContent = "Thanks! We’re waiting for Stripe to confirm the payment for order " + qs.get("ref") + "…"; if (++tries < 10) setTimeout(poll, 3000);
+        }).catch(function () {});
+      }; poll();
+    } else if (t) t.hidden = false;
+  }
+  if (qs.get("canceled") === "1") { var cb = $("[data-paid]"); if (cb) { cb.hidden = false; cb.textContent = "Payment cancelled. Your cart is still here when you're ready."; } }
   var tt = $("[data-theme-toggle]"); if (tt) tt.addEventListener("click", function () {
     var cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"), nx = cur === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = nx; try { localStorage.setItem("ff-theme", nx); } catch (_) {}

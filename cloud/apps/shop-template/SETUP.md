@@ -18,7 +18,28 @@ Shipping text and the free-shipping threshold are in `config.js`.
 
 ## 2. Connect payments (your Stripe account)
 
-The store uses **Stripe Payment Links**. Each one is a ready-made checkout page for a single product, hosted by Stripe. Card details never touch this site.
+With Stripe connected, the whole cart is paid in **one Stripe Checkout** (shipping included, US addresses collected), and the order is marked **Paid** with its line items as soon as Stripe confirms it. Refunds mark it **Refunded** or **Part refunded**. Without a connection the store falls back to Payment Links below, and with neither it's a safe demo.
+
+### Recommended: connect Stripe (payments confirm themselves)
+
+1. Publish the site, then open **spawnapp.org/cloud/payments** while signed in (from the desktop app: your app → Payments).
+2. In Stripe, go to **Developers → API keys → Create restricted key**. Start in **Test mode**. Give it these permissions and leave the rest as None:
+   - **Checkout Sessions: Write**
+   - **Webhook Endpoints: Write**
+   - **Products and Prices: Write** (prices are sent with each checkout)
+   - Optional: **Read** on Events, Customers, Subscriptions and Charges
+3. Paste the key (`rk_test_…`) next to this app and click **Connect Stripe**. Spawn checks the key and adds one webhook to your Stripe account. The key is stored encrypted and never shown again, only its last 4 characters.
+4. Try it with Stripe's test card `4242 4242 4242 4242` (any future date, any CVC). When it works, connect a live key (`rk_live_…`) the same way.
+
+Prices come from **`pricing.json`** (amounts in cents). The server only charges what's in that file, so nobody can change a price in their browser. When you change a price, change it in `pricing.json` too, or ask Build chat to do both.
+
+Disconnect any time on the same page; that also removes the webhook from Stripe.
+
+Shipping lives in `pricing.json` too: `"shipping": { "flat": 800, "freeOver": 7500, "countries": ["US"] }`.
+
+### Or: Payment Links (no connection)
+
+The store can also use **Stripe Payment Links**. Each one is a ready-made checkout page for a single product, hosted by Stripe. Card details never touch this site.
 
 1. In your Stripe dashboard, go to **Payment Links** and click **New**. Create one link per product, at the product's price.
    - Turn on "Let customers adjust quantity" so shoppers can pay for more than one.
@@ -37,11 +58,11 @@ Until you add links, the store is a safe demo: checkout saves the order request 
 ## 3. See orders (owner view)
 
 1. In Spawn, open your app, go to **Secrets**, and add `OWNER_KEY` with a long password of 12 characters or more.
-2. Open `https://YOUR-SITE/owner.html` and enter it. You'll see each order: reference, name, email, items, totals. Delete orders once they're handled.
+2. Open `https://YOUR-SITE/owner.html` and enter it. You'll see each order: reference, name, email, items, totals. With Stripe connected, the **Payments** tab shows which orders are paid, refunded or still waiting. Delete orders once they're handled.
 
 ## Good to know
 
 - Stock levels, tax and shipping rates aren't calculated automatically. Set tax and shipping on each Payment Link in Stripe if you need them.
-- Payment Links don't report back to this site. Your Stripe dashboard is where you see what's been paid. Match it to the order reference.
+- Payment Links don't report back to this site; connect Stripe if you want orders marked paid automatically. Tax isn't calculated either way.
 - If you outgrow this setup (hundreds of products, inventory, discount codes), a dedicated e-commerce platform is the better fit.
 - The footer says the business is fictional. Remove that line when the store sells real products.

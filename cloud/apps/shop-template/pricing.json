@@ -1,0 +1,12 @@
+{
+  "currency": "usd",
+  "shipping": { "name": "Shipping", "flat": 800, "freeOver": 7500, "countries": ["US"] },
+  "items": {
+    "mug": { "name": "Everyday mug", "amount": 2800, "variants": { "Oat": 2800, "Moss": 2800, "Charcoal": 2800 } },
+    "bowl": { "name": "Low serving bowl", "amount": 2400, "variants": { "Small · 16 cm": 2400, "Large · 24 cm": 3600 } },
+    "plates": { "name": "Speckled dinner plates", "amount": 4800, "variants": { "Set of 2": 4800, "Set of 4": 9000 } },
+    "vase": { "name": "Bud vase", "amount": 6400, "variants": { "Oat": 6400, "Ink": 6400 } },
+    "candle": { "name": "Ceramic candle", "amount": 3200, "variants": { "Fig leaf": 3200, "Cedar": 3200, "Woodsmoke": 3200 } },
+    "linen": { "name": "Linen napkins", "amount": 3800, "variants": { "Natural": 3800, "Rust": 3800 } }
+  }
+}

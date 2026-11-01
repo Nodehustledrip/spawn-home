@@ -326,7 +326,7 @@ function renderCards(entries) {
           <span class="gl-live-pill"><span aria-hidden="true"></span>Live</span>
         </a>
         <div class="gl-body">
-          <div class="gl-tags">${e.premium ? '<span class="gl-tag gl-tag-premium" title="Remix it with a Spawn Pro account — no extra charge">Premium · Included with Pro</span>' : ""}${e.starter && !e.premium ? '<span class="gl-tag gl-tag-starter" title="Made by Spawn as a starting point — remix it into your own app">Spawn starter</span>' : ""}<span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable && !e.premium ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
+          <div class="gl-tags">${e.premium ? '<span class="gl-tag gl-tag-premium" title="Remix it with a Spawn Pro account — no extra charge">Premium · Included with Pro</span><span class="gl-tag gl-tag-ghost" title="Connect your own Stripe account and paid bookings, orders and memberships confirm themselves">Payments unlock automatically</span>' : ""}${e.starter && !e.premium ? '<span class="gl-tag gl-tag-starter" title="Made by Spawn as a starting point — remix it into your own app">Spawn starter</span>' : ""}<span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable && !e.premium ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
           <h2 class="gl-title">${x(e.title)}</h2>
           ${e.description ? `<p class="gl-desc">${x(e.description)}</p>` : ""}
           <p class="gl-host mono">${x(e.host)}</p>

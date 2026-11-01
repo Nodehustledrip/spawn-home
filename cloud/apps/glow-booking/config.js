@@ -1,3 +1,5 @@
+/* Best option: connect your Stripe account at spawnapp.org/cloud/payments. Checkout then runs on the server,
+ * prices come from pricing.json, and payments confirm themselves. The links below are only the fallback. */
 /* Glow Studio — your settings. Edit this file (or ask Build chat to) — no code knowledge needed.
  * Payments: paste your own Stripe Payment Link URLs below (https://buy.stripe.com/...).
  * Leave a link empty ("") and that option runs in demo mode: the booking is saved, nothing is charged. */

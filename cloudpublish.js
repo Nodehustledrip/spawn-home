@@ -101,6 +101,13 @@ function encryptSecret(slug, name, value) {
   const ct = Buffer.concat([c.update(String(value), "utf8"), c.final()]);
   return Buffer.concat([iv, ct, c.getAuthTag()]).toString("base64");
 }
+function decryptSecret(slug, name, blob) {
+  const key = Buffer.from(env("CLOUD_SECRETS_KEY"), "base64");
+  const b = Buffer.from(String(blob), "base64");
+  const d = crypto.createDecipheriv("aes-256-gcm", key, b.subarray(0, 12));
+  d.setAAD(Buffer.from(slug + ":" + name)); d.setAuthTag(b.subarray(b.length - 16));
+  return Buffer.concat([d.update(b.subarray(12, b.length - 16)), d.final()]).toString("utf8");
+}
 
 /* ---------------- app presets: runtime, config and keys that come from Render env ----------------
  * Keys are set once on Render (never pasted anywhere else) and copied, encrypted, into the app's secrets
@@ -559,6 +566,8 @@ function mount(app, opts) {
     res.json(out);
   }));
 
+  require("./cloudstripe").mountStripe(r, { wrap, fail, anyUser, ownedApp, be, encryptSecret, decryptSecret, apex, env, fetch: opts.stripeFetch });
+
   r.get("/my-apps", wrap(async (req, res) => {
     const u = await sessionUser(req);
     const apps = await be().query("SELECT slug, status, live_version, title FROM apps WHERE owner=?1 ORDER BY updated_at DESC", ["u:" + u.id]);
@@ -574,6 +583,13 @@ function mount(app, opts) {
     res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Robots-Tag", "noindex");
     if (!enabled()) return res.status(503).type("html").send(page("Custom domains", "<h1>Custom domains</h1><p>Spawn Cloud isn't available right now.</p>"));
     res.type("html").send(page("Custom domains", DOMAINS_HTML, true));
+  });
+
+  // Connect Stripe per app (signed-in session): take real card payments that unlock things automatically.
+  app.get("/cloud/payments", (req, res) => {
+    res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Robots-Tag", "noindex");
+    if (!enabled()) return res.status(503).type("html").send(page("Payments", "<h1>Payments</h1><p>Spawn Cloud isn't available right now.</p>"));
+    res.type("html").send(page("Connect Stripe", PAYMENTS_HTML, true));
   });
 
   // Approval page for desktop sign-in.
@@ -599,7 +615,7 @@ function dom(slug,d){var h='<div class="d"><strong>'+e(d.hostnames.join(' + '))+
 if(d.status==='active')h+='<p><a href="'+e(d.url)+'" target="_blank" rel="noopener">'+e(d.url)+'</a></p>';
 else{h+='<ol>'+d.dns.steps.map(function(s){return'<li>'+e(s)+'</li>'}).join('')+'</ol><p>Nameservers: '+d.nameservers.map(function(n){return'<span class="ns">'+e(n)+'</span>'}).join(' ')+'</p>'+(d.dns.notes||[]).map(function(n){return'<small>'+e(n)+'</small><br>'}).join('')}
 if(d.error)h+='<p>'+e(d.error)+'</p>';
-return h+'<div class="row"><button class="ghost" onclick="chk(\''+slug+'\')">Check now</button><button class="ghost" onclick="rm(\''+slug+'\',\''+e(d.hostname)+'\')">Remove</button></div></div>'}
+return h+'<div class="row"><button class="ghost" onclick="chk(\\''+slug+'\\')">Check now</button><button class="ghost" onclick="rm(\\''+slug+'\\',\\''+e(d.hostname)+'\\')">Remove</button></div></div>'}
 function draw(slug,ds){document.getElementById('l-'+slug).innerHTML=ds.map(function(d){return dom(slug,d)}).join('')||'<small>No custom domain yet.</small>'}
 function load(slug){j('GET','/api/cloud/apps/'+slug+'/domains').then(function(x){draw(slug,x.domains||[])})}
 function chk(slug){j('POST','/api/cloud/apps/'+slug+'/domains/check').then(function(x){draw(slug,x.domains||[])})}
@@ -607,7 +623,30 @@ function rm(slug,h){if(!confirm('Disconnect '+h+'?'))return;j('DELETE','/api/clo
 function add(slug){var i=document.getElementById('i-'+slug),m=document.getElementById('m-'+slug);m.textContent='Connecting…';j('POST','/api/cloud/apps/'+slug+'/domains',{hostname:i.value}).then(function(x){m.textContent=x.ok?'':x.error;if(x.ok){i.value='';load(slug)}})}
 function find(slug){var q=document.getElementById('i-'+slug).value||slug;j('GET','/api/cloud/domain-search?q='+encodeURIComponent(q)).then(function(x){document.getElementById('m-'+slug).innerHTML='Find a domain: '+x.links.map(function(l){return'<a href="'+e(l.url)+'" target="_blank" rel="noopener">'+e(l.name)+'</a>'}).join(' · ')+' <small>(you buy it directly from the registrar)</small>'})}
 j('GET','/api/cloud/my-apps').then(function(x){var el=document.getElementById('apps');if(!x.apps||!x.apps.length){el.innerHTML='<p>Publish an app from Spawn first — then connect a domain here.</p>';return}
-el.innerHTML=x.apps.map(function(a){var s=e(a.slug);return'<div class="app"><h2>'+e(a.title||a.slug)+'</h2><small>'+s+'.'+e(x.apex)+'</small><div id="l-'+s+'"></div><div class="row"><input id="i-'+s+'" placeholder="example.com or shop.example.com"><button onclick="add(\''+s+'\')">Connect domain</button><button class="ghost" onclick="find(\''+s+'\')">Find a domain</button></div><p id="m-'+s+'"></p></div>'}).join('');x.apps.forEach(function(a){load(a.slug)})})['catch'](function(){});
+el.innerHTML=x.apps.map(function(a){var s=e(a.slug);return'<div class="app"><h2>'+e(a.title||a.slug)+'</h2><small>'+s+'.'+e(x.apex)+'</small><div id="l-'+s+'"></div><div class="row"><input id="i-'+s+'" placeholder="example.com or shop.example.com"><button onclick="add(\\''+s+'\\')">Connect domain</button><button class="ghost" onclick="find(\\''+s+'\\')">Find a domain</button></div><p id="m-'+s+'"></p></div>'}).join('');x.apps.forEach(function(a){load(a.slug)})})['catch'](function(){});
+</script>`;
+const PAYMENTS_HTML = `<style>.ns{font-family:ui-monospace,monospace;color:#fff;background:#1b1b24;padding:2px 6px;border-radius:6px}.app{border-top:1px solid #26262e;padding:18px 0}.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}input{flex:1;min-width:220px;background:#0b0b0f;border:1px solid #33333d;border-radius:10px;color:#fff;padding:11px 12px;font:inherit}.ghost{background:transparent;color:#ececf1;border:1px solid #33333d}.pill{font-size:12px;border-radius:99px;padding:2px 9px;margin-left:6px}.active{background:#123d2a;color:#7ff0b5}.test{background:#3a3014;color:#f5d27a}ol,ul{color:#c9c9d6;padding-left:20px}small{color:#8b8b98}h2{font-size:17px;margin:0}details{background:#0e0e14;border:1px solid #26262e;border-radius:12px;padding:12px 14px;margin:14px 0}summary{cursor:pointer;font-weight:600}table{border-collapse:collapse;width:100%;font-size:14px}td{border-top:1px solid #26262e;padding:6px 4px;vertical-align:top;color:#c9c9d6}</style>
+<h1>Connect Stripe</h1><p>Take card payments in a published app with your own Stripe account. Once connected, Checkout runs on Stripe's secure page and your app unlocks things by itself when Stripe confirms the payment: members get access, bookings show the deposit, orders show paid. Money goes straight to your Stripe account; Spawn takes no cut.</p>
+<details><summary>How to make the key (about 2 minutes)</summary><ol>
+<li>In Stripe, open <strong>Developers → API keys</strong>. Turn on <strong>Test mode</strong> first to try it safely.</li>
+<li>Click <strong>Create restricted key</strong>, pick “Building your own integration”, and name it after your app.</li>
+<li>Set these permissions (leave everything else as None):<table id="perms"></table></li>
+<li>Create the key, copy it (it starts with <span class="ns">rk_test_</span>), and paste it below.</li>
+<li>Try a checkout with Stripe's test card <span class="ns">4242 4242 4242 4242</span>, any future date and any CVC. When it works, do the same with a live key.</li></ol>
+<small>We check the key with Stripe, then add one webhook to your account so your app hears about payments, refunds and cancellations. Your key is stored encrypted and never shown again — only its last 4 characters. Disconnecting removes the webhook. A full secret key (sk_…) also works, but a restricted key is safer.</small></details>
+<div id="apps"><p>Loading…</p></div>
+<script>
+function e(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function j(m,u,b){return fetch(u,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined}).then(function(r){if(r.status===401){location.href='/signin?next=/cloud/payments';throw 0}return r.json()})}
+j('GET','/api/cloud/stripe/permissions').then(function(x){document.getElementById('perms').innerHTML=x.permissions.map(function(p){return'<tr><td><strong>'+e(p.resource)+'</strong></td><td>'+e(p.access)+'</td><td>'+e(p.why)+'</td></tr>'}).join('')})['catch'](function(){});
+function draw(slug,st){var el=document.getElementById('s-'+slug);
+if(st.connected){el.innerHTML='<p>Connected <span class="pill '+(st.mode==='live'?'active':'test')+'">'+(st.mode==='live'?'Live':'Test mode')+'</span> <small>key ending '+e(st.last4)+'</small></p><div class="row"><input id="k-'+slug+'" type="password" autocomplete="off" placeholder="Paste a new key to switch (e.g. live)"><button onclick="con(\\''+slug+'\\')">Replace key</button><button class="ghost" onclick="dis(\\''+slug+'\\')">Disconnect</button></div>';}
+else el.innerHTML='<div class="row"><input id="k-'+slug+'" type="password" autocomplete="off" placeholder="rk_test_… restricted key"><button onclick="con(\\''+slug+'\\')">Connect Stripe</button></div><small>Not connected: the app uses Payment Links from its config if you added any, otherwise demo mode (nothing is charged).</small>'}
+function load(slug){j('GET','/api/cloud/apps/'+slug+'/stripe').then(function(x){if(x.ok)draw(slug,x.stripe);else document.getElementById('s-'+slug).textContent=x.error})}
+function con(slug){var i=document.getElementById('k-'+slug),m=document.getElementById('m-'+slug);m.textContent='Checking the key with Stripe…';j('POST','/api/cloud/apps/'+slug+'/stripe',{key:i.value}).then(function(x){i.value='';m.textContent=x.ok?x.note:x.error;if(x.ok)draw(slug,x.stripe)})}
+function dis(slug){if(!confirm('Disconnect Stripe from '+slug+'? Checkouts stop until you connect again.'))return;j('DELETE','/api/cloud/apps/'+slug+'/stripe').then(function(x){document.getElementById('m-'+slug).textContent=x.note||x.error;load(slug)})}
+j('GET','/api/cloud/my-apps').then(function(x){var el=document.getElementById('apps');if(!x.apps||!x.apps.length){el.innerHTML='<p>Publish an app from Spawn first — then connect Stripe here.</p>';return}
+el.innerHTML=x.apps.map(function(a){var s=e(a.slug);return'<div class="app"><h2>'+e(a.title||a.slug)+'</h2><small>'+s+'.'+e(x.apex)+'</small><div id="s-'+s+'"><small>Loading…</small></div><p id="m-'+s+'"></p></div>'}).join('');x.apps.forEach(function(a){load(a.slug)})})['catch'](function(){});
 </script>`;
 const CONNECT_HTML = `<h1>Connect Spawn on this computer</h1><p>Confirm the code matches the one shown in Spawn. This lets Spawn publish apps to your account.</p>
 <p><code id="c"></code></p><p id="m"></p><button id="b">Approve</button>

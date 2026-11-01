@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-kinds="lead:Orders">
+<html lang="en" data-kinds="lead:Orders,payments:Payments">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,8 +50,18 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;
       if (!d.members.length) { out.innerHTML = '<p class="muted">No member accounts yet.</p>'; return; }
       out.innerHTML = (d.open ? '<p class="muted">MEMBER_EMAILS is "*": every signed-in account can open the members area (demo setting).</p>' : "") +
         "<table><thead><tr><th>Email</th><th>Name</th><th>Joined</th><th>Access</th><th></th></tr></thead><tbody>" + d.members.map(function (m) {
-          return "<tr><td>" + esc(m.email) + "</td><td>" + esc(m.name) + "</td><td>" + esc(String(m.joinedAt).slice(0, 10)) + '</td><td><span class="pill ' + (m.approved ? "ok" : "") + '">' + (m.approved ? "Active" : "Pending") + '</span></td><td><button type="button" class="ghost" data-approve="' + esc(m.email) + '" data-to="' + (!m.approved) + '">' + (m.approved ? "Remove access" : "Approve") + "</button></td></tr>";
+          return "<tr><td>" + esc(m.email) + "</td><td>" + esc(m.name) + "</td><td>" + esc(String(m.joinedAt).slice(0, 10)) + '</td><td><span class="pill ' + (m.approved ? "ok" : "") + '">' + (m.approved ? "Active" : "Pending") + '</span>' + (m.payment ? ' <span class="muted">' + esc({ active: "paid", paid: "paid", canceled: "subscription ended", past_due: "payment past due", unpaid: "unpaid", refunded: "refunded", pending: "checkout started" }[m.payment.status] || m.payment.status) + "</span>" : "") + '</td><td><button type="button" class="ghost" data-approve="' + esc(m.email) + '" data-to="' + (!m.approved) + '">' + (m.approved ? "Remove access" : "Approve") + "</button></td></tr>";
         }).join("") + "</tbody></table>";
+    }).catch(fail);
+    if (cur === "payments") return api("/api/owner/payments").then(function (d) {
+      if (!d.payments.length) { out.innerHTML = '<p class="muted">No card payments yet. Connect Stripe for this app at spawnapp.org/cloud/payments; payments then show here once Stripe confirms them.</p>'; return; }
+      var LBL = { pending: "Checkout started", processing: "Processing", paid: "Paid", active: "Active", failed: "Failed", refunded: "Refunded", partially_refunded: "Part refunded", canceled: "Cancelled", past_due: "Past due", unpaid: "Unpaid", incomplete_expired: "Expired", amount_mismatch: "Check in Stripe" };
+      var m = function (c, cur2) { return (c / 100).toLocaleString(undefined, { style: "currency", currency: (cur2 || "usd").toUpperCase() }); };
+      out.innerHTML = "<table><thead><tr><th>Date</th><th>Ref</th><th>Type</th><th>Customer</th><th>What</th><th>Amount</th><th>Status</th></tr></thead><tbody>" + d.payments.map(function (p) {
+        var what = p.kind === "cart" ? p.lines.map(function (l) { return l.qty + " × " + l.name; }).join("; ") : p.kind === "booking" ? (p.lines[0] ? p.lines[0].name : p.item) + (p.details && p.details.date ? " · " + p.details.date + " " + (p.details.time || "") : "") : (p.lines[0] ? p.lines[0].name : p.item);
+        var ok = p.status === "paid" || p.status === "active";
+        return "<tr><td>" + esc(String(p.createdAt).replace("T", " ").slice(0, 16)) + "</td><td>" + esc(p.ref) + "</td><td>" + esc({ cart: "Order", booking: p.option === "deposit" ? "Deposit" : "Booking", membership: "Membership" }[p.kind] || p.kind) + "</td><td>" + esc(p.email || "") + (p.name ? "<br><span class=muted>" + esc(p.name) + "</span>" : "") + "</td><td>" + esc(what) + "</td><td>" + m(p.paid || p.amount, p.currency) + (p.refunded ? "<br><span class=muted>refunded " + m(p.refunded, p.currency) + "</span>" : "") + '</td><td><span class="pill ' + (ok ? "ok" : "") + '">' + esc(LBL[p.status] || p.status) + "</span></td></tr>";
+      }).join("") + "</tbody></table>";
     }).catch(fail);
     return api("/api/owner/records?kind=" + encodeURIComponent(cur)).then(function (d) {
       if (!d.records.length) { out.innerHTML = '<p class="muted">Nothing here yet.</p>'; return; }

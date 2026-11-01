@@ -12,12 +12,19 @@ export function createStripeMock({ key, prices }) {
     if (auth !== "Bearer " + key) return Response.json({ error: { type: "authentication_error" } }, { status: 401 });
     if (req.method === "POST" && url.pathname === "/v1/checkout/sessions") {
       const f = parse(await req.text());
-      const price = prices[f["line_items[0][price]"]];
-      if (!price) return Response.json({ error: { type: "invalid_request_error" } }, { status: 400 });
+      let total = 0;
+      for (let i = 0; f["line_items[" + i + "][quantity]"] !== undefined || f["line_items[" + i + "][price]"] !== undefined; i++) {
+        const q = Number(f["line_items[" + i + "][quantity]"] || 1), pid = f["line_items[" + i + "][price]"];
+        const ua = f["line_items[" + i + "][price_data][unit_amount]"];
+        if (pid) { if (!prices[pid]) return Response.json({ error: { type: "invalid_request_error" } }, { status: 400 }); total += prices[pid].amount * q; }
+        else if (ua !== undefined && /^\d+$/.test(ua)) total += Number(ua) * q;
+        else return Response.json({ error: { type: "invalid_request_error" } }, { status: 400 });
+      }
+      const price = { amount: total };
       const id = "cs_test_mock" + String(++n).padStart(6, "0");
       const s = { id, object: "checkout.session", mode: f.mode, url: "https://checkout.stripe.com/c/pay/" + id, status: "open", payment_status: "unpaid",
         amount_total: price.amount, currency: "usd", client_reference_id: f.client_reference_id, customer: f.customer || null, customer_email: f.customer_email || null,
-        metadata: meta(f, "metadata"), subscription: null, success_url: f.success_url, cancel_url: f.cancel_url, _form: f };
+        metadata: meta(f, "metadata"), subscription: null, payment_intent: f.mode === "payment" ? "pi_mock" + String(n).padStart(6, "0") : null, success_url: f.success_url, cancel_url: f.cancel_url, _form: f };
       sessions.set(id, s);
       return Response.json(s);
     }

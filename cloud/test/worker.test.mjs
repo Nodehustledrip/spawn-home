@@ -49,7 +49,7 @@ before(async () => {
   });
   db = await mf.getD1Database("DB");
   fdb = await mf.getD1Database("FILES");
-  for (const f of ["migrations/0001_init.sql", "migrations/0002_bidboard.sql", "migrations/0003_blobs.sql", "migrations/0005_gallery.sql"]) for (const d of [db, fdb]) {
+  for (const f of ["migrations/0001_init.sql", "migrations/0002_bidboard.sql", "migrations/0003_blobs.sql", "migrations/0005_gallery.sql", "migrations/0008_app_payments.sql"]) for (const d of [db, fdb]) {
     const sql = readFileSync(f, "utf8").split("\n").filter((l) => !l.trim().startsWith("--")).join("\n");
     for (const s of sql.split(";").map((x) => x.trim()).filter(Boolean)) await d.prepare(s).run();
   }

@@ -15,10 +15,12 @@ This guide is for the club owner. You don't need to code. You can ask Build chat
 Read this before you launch:
 
 - **Gating happens on Spawn's servers.** Every file in the `members/` folder is sent only to a signed-in account that has members access. Everyone else is redirected to sign in, so they can't get the pages by guessing the link. That includes the lesson text in `members/lessons.js`.
-- **An account gets members access in one of two ways:**
-  1. You approve it in the owner view.
-  2. Its email is listed in the `MEMBER_EMAILS` secret.
-- **Payment doesn't switch access on automatically.** Stripe Payment Links don't notify the site when someone pays. After a payment arrives, you approve that email yourself. The payment email from Stripe shows the customer's email, and it's prefilled to match their account.
+- **An account gets members access in one of three ways:**
+  1. It paid through Stripe Checkout (when Stripe is connected).
+  2. You approve it in the owner view.
+  3. Its email is listed in the `MEMBER_EMAILS` secret.
+- **With Stripe connected, access follows payment.** A new account stays **Pending** until Stripe confirms the first payment, then becomes **Active** automatically. It turns off again if the subscription is cancelled, goes past due or unpaid, or the payment is refunded.
+- **With Payment Links only** (no connection), Stripe doesn't notify the site. You approve each email yourself after the payment arrives.
 - **The live demo has `MEMBER_EMAILS` set to `*`**, so every new account gets instant access for trying it out. **Remove that before you launch.**
 - **In a Build preview, gating is simulated in your browser.** It is only for trying the flow. Real gating starts once you publish.
 - **Not protected:** files outside `members/`, such as the landing page and the images in `img/`, are public. Put anything that's for members only inside `members/`.
@@ -34,6 +36,25 @@ The lessons are in `members/lessons.js`. The tiers and prices are in `config.js`
 
 ## 2. Take payments (your Stripe account)
 
+### Recommended: connect Stripe (payments confirm themselves)
+
+1. Publish the site, then open **spawnapp.org/cloud/payments** while signed in (from the desktop app: your app → Payments).
+2. In Stripe, go to **Developers → API keys → Create restricted key**. Start in **Test mode**. Give it these permissions and leave the rest as None:
+   - **Checkout Sessions: Write**
+   - **Webhook Endpoints: Write**
+   - **Products and Prices: Write** (prices are sent with each checkout)
+   - Optional: **Read** on Events, Customers, Subscriptions and Charges
+3. Paste the key (`rk_test_…`) next to this app and click **Connect Stripe**. Spawn checks the key and adds one webhook to your Stripe account. The key is stored encrypted and never shown again, only its last 4 characters.
+4. Try it with Stripe's test card `4242 4242 4242 4242` (any future date, any CVC). When it works, connect a live key (`rk_live_…`) the same way.
+
+Prices come from **`pricing.json`** (amounts in cents). The server only charges what's in that file, so nobody can change a price in their browser. When you change a price, change it in `pricing.json` too, or ask Build chat to do both.
+
+Disconnect any time on the same page; that also removes the webhook from Stripe.
+
+Members always pay with the email of the account they're signed in with, so the payment matches the right account.
+
+### Or: Payment Links (no connection)
+
 1. In your Stripe dashboard, create a **Product** (for example "Crumb Club membership") with a **recurring price** for each tier, for example $9/month and $90/year.
 2. Go to **Payment Links**, then **New**, and make one link per price. Under **After payment**, redirect to `https://YOUR-SITE/?paid=1`.
 3. Paste each link into `config.js` in the matching tier's `link` field. Then publish again.
@@ -47,7 +68,7 @@ When a member is signed in and pending, the account page shows **Pay with Stripe
    - `MEMBER_EMAILS` (optional): emails that always have access, separated by commas.
 2. Delete `MEMBER_EMAILS="*"` if it's set.
 3. Open `https://YOUR-SITE/owner.html` and enter the key.
-4. On the **Members** tab, you'll see every account, marked Active or Pending. Click **Approve** after the payment shows up in Stripe. Click **Remove access** if they cancel.
+4. On the **Members** tab, you'll see every account, marked Active or Pending. With Stripe connected, paid accounts turn Active by themselves and show their payment status. With Payment Links only, click **Approve** after the payment shows up in Stripe. Click **Remove access** if they cancel.
 
 ## Good to know
 

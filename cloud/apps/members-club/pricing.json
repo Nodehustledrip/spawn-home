@@ -1,0 +1,7 @@
+{
+  "currency": "usd",
+  "items": {
+    "monthly": { "name": "The Crumb Club — Monthly", "amount": 900, "interval": "month" },
+    "yearly": { "name": "The Crumb Club — Yearly", "amount": 9000, "interval": "year" }
+  }
+}

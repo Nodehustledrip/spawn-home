@@ -5,6 +5,7 @@
 //    approved (or every signed-in account when the secret MEMBER_EMAILS is "*", used for demos).
 import { json, readJson, HttpError, clientIp, rateLimit, validEmail, clip, appSecrets, timingSafeEqual, now } from "./util.js";
 import { currentAppUser } from "./auth.js";
+import { paidMember, memberPayments, ownerPayments } from "./payments.js";
 
 export const MEMBERS_PREFIX = "members/";
 
@@ -20,7 +21,7 @@ export async function memberStatus(c) {
     member = open || list.includes(String(user.email).toLowerCase());
     if (!member) {
       const r = await c.env.DB.prepare("SELECT 1 FROM records WHERE slug=?1 AND kind='member_ok' AND email=?2 LIMIT 1").bind(c.slug, String(user.email).toLowerCase()).first();
-      member = !!r;
+      member = !!r || (await paidMember(c.env, c.slug, user.email));
     }
   }
   return { user, member, configured: open || list.length > 0 || !!s.OWNER_KEY, demo: open };
@@ -63,7 +64,12 @@ export async function handleMembers(c) {
     const { results: ok } = await env.DB.prepare("SELECT email FROM records WHERE slug=?1 AND kind='member_ok'").bind(slug).all();
     const s = await appSecrets(env, slug); const list = emailsFrom(s.MEMBER_EMAILS);
     const approved = new Set((ok || []).map((r) => r.email).concat(list));
-    return json({ ok: true, open: list.includes("*"), members: (users || []).map((u) => ({ email: u.email, name: u.name, joinedAt: u.created_at, approved: approved.has("*") || approved.has(u.email) })) }, 200, H);
+    const pay = await memberPayments(env, slug);
+    return json({ ok: true, open: list.includes("*"), members: (users || []).map((u) => { const p = pay.get(u.email); const paid = !!p && (p.status === "active" || p.status === "paid");
+      return { email: u.email, name: u.name, joinedAt: u.created_at, approved: approved.has("*") || approved.has(u.email) || paid, payment: p ? { status: p.status, plan: p.item, updatedAt: p.updated_at } : null }; }) }, 200, H);
+  }
+  if (path === "/api/owner/payments" && m === "GET") {
+    return json({ ok: true, payments: await ownerPayments(env, slug, clip(c.url.searchParams.get("kind") || "", 20)) }, 200, H);
   }
   if (path === "/api/owner/members" && m === "POST") {
     const b = await readJson(request, 2048);

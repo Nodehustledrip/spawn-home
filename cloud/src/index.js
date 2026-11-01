@@ -5,6 +5,7 @@ import { json, withSecurity, HttpError, mimeFor, SECURITY_HEADERS } from "./util
 import { handleShared } from "./shared.js";
 import { handleBidboard } from "./bidboard.js";
 import { handleMembers, gateMembersPage, MEMBERS_PREFIX } from "./members.js";
+import { handlePayments } from "./payments.js";
 
 const RUNTIMES = { bidboard: handleBidboard };
 const RESERVED = new Set(["www", "api", "app", "apps", "admin", "cloud", "static", "assets", "cdn", "mail", "status"]);
@@ -61,6 +62,7 @@ async function route(request, env, ctx) {
       const r = await rt(ctxApp);
       if (r) return r;
     }
+    if (path.startsWith("/api/pay/") || path === "/api/stripe/webhook") { const pp = await handlePayments(ctxApp); if (pp) return pp; }
     if (path.startsWith("/api/owner/") || path === "/api/members/me") { const mm = await handleMembers(ctxApp); if (mm) return mm; }
     const s = await handleShared(ctxApp);
     if (s) return s;

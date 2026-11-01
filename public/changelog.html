@@ -155,6 +155,20 @@
         </h2>
         <ol class="changelog-entries">
           <li class="changelog-entry">
+            <h3>Connect Stripe: payments unlock automatically</h3>
+            <p>
+              Connect your own Stripe account to a published app at
+              <a href="/cloud/payments">spawnapp.org/cloud/payments</a> &mdash; paste a
+              restricted key and Spawn adds the webhook for you. The premium templates then
+              take payment through Stripe Checkout, priced on the server from the app&rsquo;s
+              <span class="mono">pricing.json</span>, and unlock only when Stripe confirms the
+              payment: members get access, bookings show the deposit or full payment, and
+              orders show as paid with their items. Refunds, failed bank payments and ended
+              subscriptions switch things back off. Your key is stored encrypted and never
+              shown again. Payment Links and demo mode work as before.
+            </p>
+          </li>
+          <li class="changelog-entry">
             <h3>Premium templates, included with Pro</h3>
             <p>
               The <a href="/gallery#premium">gallery</a> has a new Premium shelf with three

@@ -34,6 +34,25 @@
     live = fetch("/api/health", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : {}; }).then(function (d) { return d && d.hosting === "spawn-cloud"; }).catch(function () { return false; });
     return live;
   }
+  /* Card payments: when the owner connects Stripe on spawnapp.org, checkout runs on the server and the booking
+   * is marked paid only when Stripe confirms it. Prices then come from pricing.json (the server uses the same file). */
+  var STRIPE = false, stripeReady = null;
+  function stripeCheck() {
+    if (stripeReady) return stripeReady;
+    stripeReady = backend().then(function (isLive) {
+      if (!isLive) return false;
+      return fetch("/api/pay/config", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (c) {
+        if (!c || !c.connected || !c.catalog) return false;
+        return fetch("pricing.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (pj) {
+          SERVICES.forEach(function (sv) { var it = pj.items && pj.items[sv.id]; if (it && typeof it.amount === "number") sv.price = it.amount / 100; });
+          if (typeof pj.deposit === "number") C.depositAmount = pj.deposit / 100;
+          STRIPE = true; return true;
+        });
+      });
+    }).catch(function () { return false; });
+    return stripeReady;
+  }
+  var payable = function (link) { return STRIPE || isLink(link); };
 
   /* ---------- 1. services ---------- */
   function renderServices() {
@@ -115,7 +134,7 @@
     }
     if (!opts.some(function (o) { return o.id === st.pay; })) st.pay = opts[0].id;
     box.innerHTML = opts.map(function (o) {
-      var demo = (o.id === "deposit" || o.id === "full") && !isLink(o.link);
+      var demo = (o.id === "deposit" || o.id === "full") && !payable(o.link);
       return '<label class="pay-opt"><input type="radio" name="pay" value="' + o.id + '"' + (st.pay === o.id ? " checked" : "") + '><span><strong>' + esc(o.t) + '</strong><small>' + esc(o.d) + (demo ? ' <em class="demo-chip">Demo — payments not connected</em>' : "") + "</small></span></label>";
     }).join("");
   }
@@ -136,7 +155,7 @@
     $("[data-due]").textContent = s ? (due ? "$" + due + " today" : "$0 today") : "—";
     var ready = !!(s && st.time);
     $("[data-submit]").disabled = !ready;
-    $("[data-submit]").textContent = !ready ? "Pick a service and time" : due && isLink(st.pay === "deposit" ? PAY.deposit : FULL[s.id]) ? "Continue to secure payment" : "Request booking";
+    $("[data-submit]").textContent = !ready ? "Pick a service and time" : due && payable(st.pay === "deposit" ? PAY.deposit : FULL[s.id]) ? "Continue to secure payment" : "Request booking";
     var m = $("[data-mobile-bar]"); if (m) { m.hidden = !s; $("[data-mobile-sum]").textContent = s ? s.name + (st.time ? " · " + fmtT(st.time.m) : "") : ""; }
   }
 
@@ -158,6 +177,7 @@
     if (!f.reportValidity()) return;
     var p = staffBy(st.time.by), q = st.day.split("-"), when = new Date(+q[0], +q[1] - 1, +q[2]);
     var link = st.pay === "deposit" ? PAY.deposit : st.pay === "full" ? FULL[s.id] : null, payNow = !!link && isLink(link);
+    var cardNow = STRIPE && s.price > 0 && (st.pay === "deposit" || st.pay === "full");
     var booking = {
       ref: ref(), service: s.name, serviceId: s.id, minutes: s.mins, price: s.price, staff: p.name, date: st.day, time: fmtT(st.time.m),
       payment: st.pay, name: f.name.value.trim(), email: f.email.value.trim(), phone: f.phone.value.trim(), message: f.notes.value.trim(),
@@ -169,6 +189,12 @@
       return save.then(function (d) {
         if (!d.ok) throw new Error(d.error || "Couldn’t save the booking.");
         try { sessionStorage.setItem("gs-last", JSON.stringify(booking)); } catch (_) {}
+        if (cardNow) {
+          return fetch("/api/pay/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+            kind: "booking", item: s.id, option: st.pay, ref: booking.ref, email: booking.email, name: booking.name, returnPath: location.pathname,
+            details: { date: booking.date, time: booking.time, staff: booking.staff, phone: booking.phone } }) })
+            .then(function (r) { return r.json(); }).then(function (x) { if (!x.ok || !x.url) throw new Error(x.error || "Couldn’t start the payment."); showHandoff(booking, x.url); });
+        }
         if (payNow) {
           var u = new URL(link); u.searchParams.set("client_reference_id", booking.ref); if (booking.email) u.searchParams.set("prefilled_email", booking.email);
           showHandoff(booking, u.toString()); return;
@@ -188,8 +214,10 @@
     $("[data-flow]").hidden = true; var v = $("[data-confirm]"); v.hidden = false;
     var ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Glow Studio//EN\r\nBEGIN:VEVENT\r\nUID:" + b.ref + "@glow\r\nDTSTART:" + b.date.replace(/-/g, "") + "T" + toHM(b.time) + "00\r\nDURATION:PT" + b.minutes + "M\r\nSUMMARY:" + b.service + " at " + (C.business || "Glow Studio") + "\r\nEND:VEVENT\r\nEND:VCALENDAR";
     v.innerHTML = '<div class="done-card">' +
-      (o.paid ? '<p class="banner ok">Stripe sent you back here after checkout — your receipt comes from Stripe by email.</p>' : "") +
-      (o.demoPay ? '<p class="banner demo" role="note"><strong>Demo — payments not connected.</strong> Nothing was charged. The owner adds their own Stripe link in config.js to take payments.</p>' : "") +
+      (o.confirmed ? '<p class="banner ok" data-pay-status>Payment received: $' + esc((o.confirmed.paid / 100).toFixed(2).replace(/\.00$/, "")) + (o.confirmed.option === "deposit" ? " deposit" : "") + '. Stripe emails your receipt.</p>' : "") +
+      (o.waiting ? '<p class="banner demo" data-pay-status>We’re waiting for Stripe to confirm your payment. This page updates on its own.</p>' : "") +
+      (o.paid && !o.confirmed && !o.waiting ? '<p class="banner ok">Stripe sent you back here after checkout — your receipt comes from Stripe by email.</p>' : "") +
+      (o.demoPay ? '<p class="banner demo" role="note"><strong>Demo — payments not connected.</strong> Nothing was charged. The owner connects their own Stripe account to take payments.</p>' : "") +
       (!o.live && !o.paid ? '<p class="banner demo" role="note">Preview mode: this booking stays in your browser. Once published on Spawn, requests are saved for the owner.</p>' : "") +
       '<span class="done-icon" aria-hidden="true">✓</span><h2>Request sent, ' + esc((b.name || "").split(" ")[0] || "friend") + '.</h2>' +
       '<p>The studio will confirm your time by email, usually within a few hours.</p>' +
@@ -217,9 +245,22 @@
     });
     /* Back from Stripe: configure your Payment Link's confirmation page to redirect to https://<your-site>/?paid=1 */
     var qs = new URLSearchParams(location.search);
-    if (qs.get("paid")) { var last = null; try { last = JSON.parse(sessionStorage.getItem("gs-last") || "null"); } catch (_) {} if (last) confirmView(last, { live: true, paid: true }); }
+    if (qs.get("paid")) {
+      var last = null; try { last = JSON.parse(sessionStorage.getItem("gs-last") || "null"); } catch (_) {}
+      if (qs.get("session_id") && qs.get("ref")) {
+        var tries = 0, poll = function () {
+          fetch("/api/pay/status?ref=" + encodeURIComponent(qs.get("ref")) + "&session_id=" + encodeURIComponent(qs.get("session_id")), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (x) {
+            var p = x && x.payment; var b = last && last.ref === qs.get("ref") ? last : { ref: qs.get("ref"), service: "Your booking", staff: "—", date: "", time: "", minutes: 60, payment: p && p.option || "deposit", name: "" };
+            if (p && p.unlocked) return confirmView(b, { live: true, paid: true, confirmed: p });
+            confirmView(b, { live: true, paid: true, waiting: true }); if (++tries < 10) setTimeout(poll, 3000);
+          }).catch(function () {});
+        }; poll();
+      } else if (last) confirmView(last, { live: true, paid: true });
+    }
+    if (qs.get("canceled")) toast("Payment cancelled — your booking request is saved, and you can pay at the studio.");
+    stripeCheck().then(function (on) { if (on) { renderServices(); renderPay(); update(); var b = $("[data-demo-banner]"); if (b) b.hidden = true; } });
     backend().then(function (isLive) { var d = $("[data-mode]"); if (d && !isLive) d.hidden = false; });
-    if (!isLink(PAY.deposit) && !Object.keys(FULL).some(function (k) { return isLink(FULL[k]); })) { var b = $("[data-demo-banner]"); if (b) b.hidden = false; }
+    if (!isLink(PAY.deposit) && !Object.keys(FULL).some(function (k) { return isLink(FULL[k]); })) stripeCheck().then(function (on) { var b = $("[data-demo-banner]"); if (b) b.hidden = on; });
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (es) { es.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add("in"); io.unobserve(x.target); } }); }, { rootMargin: "0px 0px -8% 0px" });
       $$(".reveal").forEach(function (el) { io.observe(el); });
