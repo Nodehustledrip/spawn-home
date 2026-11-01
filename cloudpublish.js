@@ -450,6 +450,56 @@ function mount(app, opts) {
     res.json(await dom.remove("u:" + u.id, a.slug, String(req.params.host)));
   }));
   r.get("/domain-search", (req, res) => res.json({ ok: true, links: require("./clouddomains").registrarLinks(req.query.q) }));
+  // Web publishing: a signed-in spawnapp.org user publishes an on-site /build app (its public/ folder, static).
+  // Same storage, limits, badge rules and name ownership as the desktop flow.
+  const buildsApi = () => opts.builds || require("./builds");
+  async function webBuildFiles(user, buildId) {
+    const b = buildsApi();
+    const root = b.projectRoot(String(buildId || ""));
+    if (!root) throw fail(404, "Build not found.");
+    await b.store.init();
+    if (!(await b.store.hydrate(String(buildId), root))) throw fail(404, "Build not found.");
+    const owner = await b.store.ownerOf(String(buildId), root);
+    if (owner !== "u:" + user.id) throw fail(403, "Sign in with the account that owns this build to publish it.");
+    const pub = path.join(root, "public");
+    if (!fs.existsSync(pub)) throw fail(400, "This build has no files to publish.");
+    const files = {};
+    (function walk(dir, rel) {
+      for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+        const r = rel ? rel + "/" + ent.name : ent.name;
+        if (ent.isDirectory()) walk(path.join(dir, ent.name), r);
+        else if (ent.isFile() && validPath(r)) files[r] = fs.readFileSync(path.join(dir, ent.name));
+      }
+    })(pub, "");
+    if (!files["index.html"]) throw fail(400, "This build has no index.html to publish.");
+    return files;
+  }
+  r.get("/web/name/:slug", wrap(async (req, res) => {
+    const u = await sessionUser(req); const slug = String(req.params.slug || "").toLowerCase();
+    if (!SLUG_RE.test(slug) || RESERVED.has(slug)) return res.json({ ok: true, available: false, reason: "Use 2–40 letters, numbers and dashes." });
+    const rows = await be().query("SELECT owner FROM apps WHERE slug=?1", [slug]);
+    const mine = rows[0] && rows[0].owner === "u:" + u.id;
+    const free = !rows[0] && presetOwnerOk(slug, u);
+    res.json({ ok: true, available: !!(mine || free), yours: !!mine, url: "https://" + slug + "." + apex() + "/" });
+  }));
+  r.post("/web/publish", wrap(async (req, res) => {
+    const u = await sessionUser(req);
+    if (limited("pub:" + u.id, 30, 3600000)) throw fail(429, "Publishing limit reached. Try again in an hour.");
+    const slug = String((req.body && req.body.slug) || "").toLowerCase().trim();
+    const a = await ownedApp(u, slug, true);
+    const files = await webBuildFiles(u, req.body && req.body.buildId);
+    const manifest = { files: {} };
+    for (const [p, buf] of Object.entries(files)) manifest.files[p] = { h: sha(buf), s: buf.length };
+    const err = checkManifest(manifest); if (err) throw fail(400, err);
+    for (const [p, buf] of Object.entries(files)) {
+      const key = `blob/${slug}/${manifest.files[p].h}`;
+      if (!(await be().head(key))) await be().put(key, buf, mimeFor(p));
+    }
+    const title = String((req.body && req.body.title) || (a && a.title) || slug).slice(0, 80);
+    const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build" });
+    res.json(out);
+  }));
+
   r.get("/my-apps", wrap(async (req, res) => {
     const u = await sessionUser(req);
     const apps = await be().query("SELECT slug, status, live_version, title FROM apps WHERE owner=?1 ORDER BY updated_at DESC", ["u:" + u.id]);

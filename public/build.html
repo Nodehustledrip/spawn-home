@@ -68,7 +68,15 @@
     .build-account-plan { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-dim); border-radius: 999px; padding: 0.15rem 0.5rem; margin-left: 0.4rem; }
     .build-account-link { background: none; border: 0; padding: 0; font: inherit; font-size: 0.82rem; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
     .build-account-link:hover { color: var(--text); }
-  </style>
+      .build-publish { margin: 0 0 .75rem; padding: .9rem 1rem; border: 1px solid rgba(212,165,116,.35); border-radius: 12px; background: rgba(212,165,116,.06); }
+    .build-publish[hidden] { display: none; }
+    .build-publish-form { display: grid; gap: .45rem; }
+    .build-publish-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+    .build-publish-row input { flex: 1 1 180px; min-width: 0; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 8px; color: var(--text); padding: .55rem .7rem; font: inherit; font-size: .9rem; }
+    .build-publish-apex { color: var(--muted); font-size: .85rem; }
+    .build-publish-fine { font-size: .8rem; }
+    .build-publish-live a { color: var(--accent); font-weight: 600; }
+</style>
   <link rel="preload" href="/styles.css?v=20261006" as="style" />
   <link rel="stylesheet" href="/styles.css?v=20261006" />
   <script type="application/ld+json">
@@ -128,8 +136,7 @@
 
       <div class="build-limits" role="note">
         <strong>Honest limits</strong>
-        <p>This page is create, edit, preview, and download. Builds last for your session and are listed under This session — download the zip to keep one. To go live, publish from the Spawn desktop app to Spawn Cloud for a real <span class="mono">&lt;name&gt;.spawnapp.org</span> URL that stays up 24/7 with your PC off.</p>
-        <p>Going live from your own PC comes with the desktop app in <a href="/pricing">Pro</a>.</p>
+        <p>Create, edit, preview and download here. Without an account, builds live in this browser — download the zip anytime. Sign in (free, email link) to save builds to your account and <strong>Publish</strong> to a real <span class="mono">yourname.spawnapp.org</span> link that stays up 24/7. Free apps show a small “Made with Spawn” badge; <a href="/pricing">Pro</a> removes it and adds custom domains.</p>
       </div>
 
       <section class="build-panel build-account" data-account hidden aria-label="Account">
@@ -208,9 +215,29 @@
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5v7.25M4.75 6.75 8 10l3.25-3.25M3 12.75h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span data-download-label>Download zip</span>
           </button>
+          <button type="button" class="build-dl-btn build-pub-btn" data-publish title="Publish this app to a live yourname.spawnapp.org link" hidden>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 13V3.5M4.75 6.75 8 3.5l3.25 3.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Publish</span>
+          </button>
           <button type="button" class="build-icon-btn" data-refresh title="Refresh preview" aria-label="Refresh preview">↻</button>
           <a class="build-icon-btn" data-open-tab href="#" target="_blank" rel="noopener" title="Open preview" aria-label="Open preview" hidden>↗</a>
         </div>
+      </div>
+
+      <div class="build-publish" data-publish-panel hidden>
+        <form class="build-publish-form" data-publish-form novalidate>
+          <p class="build-account-title">Publish to Spawn Cloud</p>
+          <p class="build-account-copy">Pick a name. Your app goes live at <span class="mono" data-publish-url>yourname.spawnapp.org</span> and stays up 24/7.</p>
+          <div class="build-publish-row">
+            <label class="sr-only" for="publish-slug">App address</label>
+            <input id="publish-slug" type="text" maxlength="40" autocomplete="off" spellcheck="false" placeholder="your-app" data-publish-slug />
+            <span class="build-publish-apex mono">.spawnapp.org</span>
+            <button type="submit" class="btn-solid" data-publish-submit>Publish</button>
+            <button type="button" class="build-account-link" data-publish-close>Cancel</button>
+          </div>
+          <p class="build-account-note" data-publish-note role="status" aria-live="polite"></p>
+          <p class="build-account-copy build-publish-fine" data-publish-fine></p>
+        </form>
       </div>
 
       <div class="build-preview-wrap" data-preview-wrap>

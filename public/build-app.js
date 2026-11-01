@@ -308,6 +308,101 @@
     if (dot) dot.classList.add("is-live");
     var dl = $("[data-download]");
     if (dl) dl.hidden = false;
+    var pubBtn = $("[data-publish]");
+    if (pubBtn) pubBtn.hidden = !state.cloudOn;
+  }
+
+  /* ---- Publish to Spawn Cloud (signed-in accounts) ---- */
+  function slugify(v) {
+    return String(v || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+  }
+  function setPubNote(msg, kind) {
+    var n = $("[data-publish-note]");
+    if (!n) return;
+    n.textContent = "";
+    n.classList.toggle("is-error", kind === "error");
+    if (msg && msg.nodeType) n.appendChild(msg); else n.textContent = msg || "";
+  }
+  function openPublish() {
+    if (!state.activeId) return;
+    track("publish_started", { signed_in: !!state.signedIn });
+    if (!state.signedIn) {
+      appendChat("build", "Publishing is free with an account — enter your email above and we’ll send a sign-in link. Your builds come with you.");
+      promptSignin({ signin: true });
+      return;
+    }
+    var panel = $("[data-publish-panel]");
+    var input = $("[data-publish-slug]");
+    var b = state.builds.filter(function (x) { return x.id === state.activeId; })[0] || {};
+    var saved = recall("spawn_pub_" + state.activeId);
+    if (input && !input.value) input.value = saved || slugify(b.name) || "";
+    var fine = $("[data-publish-fine]");
+    if (fine) fine.textContent = state.plan === "pro"
+      ? "Pro: no badge. Connect your own domain anytime from spawnapp.org/cloud/domains."
+      : "Free plan: your app shows a small “Made with Spawn” badge. Pro removes it and adds custom domains.";
+    setPubNote("");
+    panel.hidden = false;
+    updatePubUrl();
+    try { input.focus(); input.select(); } catch (_) {}
+  }
+  function updatePubUrl() {
+    var input = $("[data-publish-slug]");
+    var u = $("[data-publish-url]");
+    if (u && input) u.textContent = (slugify(input.value) || "yourname") + ".spawnapp.org";
+  }
+  function onPublish(e) {
+    e.preventDefault();
+    var input = $("[data-publish-slug]");
+    var btn = $("[data-publish-submit]");
+    var slug = slugify(input && input.value);
+    if (!slug || slug.length < 2) { setPubNote("Use 2–40 letters, numbers and dashes.", "error"); return; }
+    if (input) input.value = slug;
+    btn.disabled = true;
+    setPubNote("Publishing…");
+    api("/api/cloud/web/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ buildId: state.activeId, slug: slug, title: (state.builds.filter(function (x) { return x.id === state.activeId; })[0] || {}).name }),
+    })
+      .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+      .then(function (res) {
+        var d = res.data || {};
+        if (!d.ok) {
+          if (res.status === 401) { promptSignin({ signin: true }); }
+          setPubNote(d.error || "Couldn’t publish — try again.", "error");
+          return;
+        }
+        store("spawn_pub_" + state.activeId, slug);
+        track("publish_completed", { version: d.version || null, badge: !!d.badge });
+        var wrap = el("span", "build-publish-live");
+        wrap.appendChild(document.createTextNode("Live — "));
+        var a = el("a", null, d.url.replace(/^https:\/\//, "").replace(/\/$/, ""));
+        a.href = d.url; a.target = "_blank"; a.rel = "noopener";
+        wrap.appendChild(a);
+        wrap.appendChild(document.createTextNode(" (version " + d.version + "). Publish again anytime to update it."));
+        setPubNote(wrap);
+        appendChat("build", "Published to " + d.url + " — share the link.");
+      })
+      .catch(function () { setPubNote("Network error — try again.", "error"); })
+      .finally(function () { btn.disabled = false; });
+  }
+  function bindPublish() {
+    var b = $("[data-publish]");
+    if (b) b.addEventListener("click", openPublish);
+    var f = $("[data-publish-form]");
+    if (f) f.addEventListener("submit", onPublish);
+    var c = $("[data-publish-close]");
+    if (c) c.addEventListener("click", function () { $("[data-publish-panel]").hidden = true; });
+    var i = $("[data-publish-slug]");
+    if (i) i.addEventListener("input", updatePubUrl);
+    fetch("/api/cloud/status", { credentials: "same-origin", cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        state.cloudOn = !!(d && d.enabled);
+        var pb = $("[data-publish]");
+        if (pb && state.activeId) pb.hidden = !state.cloudOn;
+      })
+      .catch(function () {});
   }
 
   /* Moment-of-value sign-in: the server asks for an email only when a limit is hit. */
@@ -352,6 +447,10 @@
     state.activeId = id;
     store(LAST_KEY, id);
     renderList();
+    var pp = $("[data-publish-panel]");
+    if (pp) pp.hidden = true;
+    var ps = $("[data-publish-slug]");
+    if (ps) ps.value = "";
     var path = "/preview/" + id + "/";
     showPreview(path);
     var log = $("[data-chat-log]");
@@ -527,6 +626,7 @@
   }
 
   function bind() {
+    bindPublish();
     var form = $("[data-create-form]");
     if (form) form.addEventListener("submit", onCreate);
     var chat = $("[data-chat-form]");

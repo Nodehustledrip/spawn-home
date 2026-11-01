@@ -262,7 +262,7 @@ function summarizeBuild(id, meta) {
 }
 
 const LIMITS_NOTE =
-  "On-site Build creates, edits, previews, and exports a zip. To go live, publish from the Spawn desktop app to Spawn Cloud for a <name>.spawnapp.org URL that stays up 24/7.";
+  "On-site Build creates, edits, previews, and exports a zip. Sign in (free) to publish to Spawn Cloud at <name>.spawnapp.org — live 24/7.";
 
 
 /* Builds made before 2026-10-06 shipped `.grid.2{…}` — an invalid selector browsers drop, so every
