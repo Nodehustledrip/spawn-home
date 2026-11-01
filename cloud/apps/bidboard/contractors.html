@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pro profile · BidBoard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">
+      <a href="./" style="display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none">
+        <span class="mark">B</span>
+        <span>Bid<span class="accent">Board</span></span>
+      </a>
+    </div>
+    <div class="nav-links">
+      <a class="btn ghost sm" href="jobs.html">Find job</a>
+      <a class="btn sm" href="post.html">Post a job</a>
+    </div>
+  </nav>
+  <main class="wrap">
+    <span class="badge teal">For anyone who does paid work</span>
+    <h1 style="margin:10px 0 6px;letter-spacing:-0.02em">Create your Pro profile</h1>
+    <p class="muted" style="margin:0;max-width:36rem">I do paid work — babysitting, mechanic / auto, cleaning, tech, trades, tutoring, creative, and more. Pick jobs that match your skills and city.</p>
+
+    <section class="grid 2" style="margin-top:22px">
+      <div class="card">
+        <h2 style="margin:0 0 8px;font-size:1.1rem">Per-lead unlock</h2>
+        <p class="price" id="fee" style="font-size:1.9rem;margin:0">$25.00</p>
+        <p class="muted" style="font-size:13px">Flat fee per job unlock. Email-gated mock checkout records interest until Stripe is connected.</p>
+        <a class="btn" href="jobs.html">Find job</a>
+      </div>
+      <div class="card" id="pro">
+        <h2 style="margin:0 0 8px;font-size:1.1rem">Pro plan</h2>
+        <p class="price" id="proFee" style="font-size:1.9rem;margin:0">$99.00/mo</p>
+        <p class="muted" style="font-size:13px">Priority placement & higher unlock volume. Placeholder subscription.</p>
+        <div class="field" style="margin-top:12px">
+          <label>Email for Pro interest</label>
+          <input id="proEmail" type="email" placeholder="you@shop.com" />
+        </div>
+        <button class="btn ghost" type="button" id="proBtn">Record Pro interest</button>
+        <div id="proMsg" class="toast"></div>
+      </div>
+    </section>
+
+    <section class="card" id="signup" style="margin-top:20px">
+      <h2 style="margin:0 0 6px;font-size:1.15rem">Your location & profile</h2>
+      <p class="muted" style="margin:0 0 16px;font-size:13px">Create a free profile so unlocks are tied to your shop. Pick your city and state — the jobs board will default to local work near you. No password for MVP — email is your key.</p>
+      <form id="signupForm">
+        <div class="grid 2">
+          <div class="field"><label>Your name</label><input name="name" id="sname" required /></div>
+          <div class="field"><label>Company</label><input name="company" id="scompany" placeholder="Optional" /></div>
+        </div>
+        <div class="grid 2">
+          <div class="field"><label>Email</label><input name="email" id="semail" type="email" required /></div>
+          <div class="field"><label>Phone</label><input name="phone" id="sphone" placeholder="555-…" /></div>
+        </div>
+        <div class="grid 2">
+          <div class="field">
+            <label>Primary category</label>
+            <select name="trade" id="strade">
+            <option value="plumbing">Plumbing</option>
+            <option value="hvac">HVAC</option>
+            <option value="electrical">Electrical</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="landscaping">Landscaping</option>
+            <option value="moving">Moving</option>
+            <option value="painting">Painting</option>
+            <option value="handyman">Handyman</option>
+            <option value="auto">Mechanic / auto</option>
+            <option value="childcare">Babysitting / childcare</option>
+            <option value="tech">Tech / IT</option>
+            <option value="creative">Creative / design</option>
+            <option value="tutoring">Tutoring</option>
+            <option value="delivery">Delivery</option>
+            <option value="events">Events</option>
+            <option value="pet">Pet care</option>
+            <option value="beauty">Beauty / personal</option>
+            <option value="business">Business / admin</option>
+            <option value="general">General / other</option>
+            </select>
+          </div>
+          <div class="field"><label>Zip (preferred)</label><input name="zip" id="szip" pattern="[0-9]{5}" placeholder="Any US zip" /></div>
+        </div>
+        <div class="grid 2">
+          <div class="field">
+            <label>State</label>
+            <select name="state" id="sstate" required></select>
+          </div>
+          <div class="field place-wrap">
+            <label>City</label>
+            <input name="city" id="scity" required placeholder="Search Austin, Phoenix…" autocomplete="off" />
+            <div class="place-list" id="scityList"></div>
+          </div>
+        </div>
+        <div class="field"><label>License # (optional)</label><input name="license" id="slicense" /></div>
+        <button class="btn" type="submit">Save Pro profile</button>
+        <div id="smsg" class="toast"></div>
+        <p class="muted" id="profileLoc" style="font-size:12px;margin-top:12px"></p>
+      </form>
+    </section>
+
+    <div class="note" style="margin-top:20px" id="crossSell">Need marketing that fills your calendar? ServiceForge packs help local businesses get found — optional cross-promo with BidBoard.</div>
+    <footer>
+      <span>© 2026 BidBoard</span>
+      <a href="jobs.html">Find job</a>
+    </footer>
+  </main>
+  <script src="places-ui.js"></script>
+  <script src="contractors.js"></script>
+</body>
+</html>

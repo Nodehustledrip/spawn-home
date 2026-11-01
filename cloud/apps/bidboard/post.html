@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Post a job · BidBoard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">
+      <a href="./" style="display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none">
+        <span class="mark">B</span>
+        <span>Bid<span class="accent">Board</span></span>
+      </a>
+    </div>
+    <div class="nav-links">
+      <a class="btn ghost sm" href="jobs.html">Find job</a>
+      <a class="btn sm" href="post.html">Post a job</a>
+    </div>
+  </nav>
+  <main class="wrap">
+    <span class="badge ok">Free to post</span>
+    <h1 style="margin:10px 0 6px;letter-spacing:-0.02em">Post a job</h1>
+    <p class="muted" style="margin:0">No charge to post. Pros unlock your contact when they want the job.</p>
+
+    <form id="jobForm" class="card" style="margin-top:18px">
+      <div class="grid 2">
+        <div class="field">
+          <label>Category</label>
+          <select name="trade" id="trade">
+            <option value="plumbing">Plumbing</option>
+            <option value="hvac">HVAC</option>
+            <option value="electrical">Electrical</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="landscaping">Landscaping</option>
+            <option value="moving">Moving</option>
+            <option value="painting">Painting</option>
+            <option value="handyman">Handyman</option>
+            <option value="auto">Mechanic / auto</option>
+            <option value="childcare">Babysitting / childcare</option>
+            <option value="tech">Tech / IT</option>
+            <option value="creative">Creative / design</option>
+            <option value="tutoring">Tutoring</option>
+            <option value="delivery">Delivery</option>
+            <option value="events">Events</option>
+            <option value="pet">Pet care</option>
+            <option value="beauty">Beauty / personal</option>
+            <option value="business">Business / admin</option>
+            <option value="general">General / other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Zip code (optional)</label>
+          <input name="zip" id="zip" pattern="[0-9]{5}" placeholder="Any US zip" />
+        </div>
+      </div>
+      <div class="grid 2">
+        <div class="field">
+          <label>State</label>
+          <select name="state" id="state" required></select>
+        </div>
+        <div class="field place-wrap">
+          <label>City</label>
+          <input name="city" id="city" required placeholder="Search any US city…" autocomplete="off" />
+          <div class="place-list" id="cityList"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Describe the job</label>
+        <textarea name="description" id="description" rows="5" required placeholder="e.g. Need a babysitter Friday evening, or brake pad replacement"></textarea>
+      </div>
+      <p class="row">
+        <button class="btn ghost" type="button" id="suggestBtn">Improve listing text</button>
+        <span class="muted" id="helper" style="font-size:12px"></span>
+      </p>
+      <div class="field">
+        <label>Listing title</label>
+        <input name="title" id="title" placeholder="Auto-filled from your description" />
+      </div>
+      <div class="field">
+        <label>Urgency</label>
+        <select name="urgency" id="urgency">
+          <option>Flexible</option>
+          <option>This week</option>
+          <option>Urgent</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Photo (optional)</label>
+        <input type="file" id="photo" accept="image/*" />
+      </div>
+      <div class="grid 2">
+        <div class="field"><label>Your name</label><input name="name" required placeholder="First name or household" /></div>
+        <div class="field"><label>Phone</label><input name="phone" required placeholder="555-0100" /></div>
+      </div>
+      <div class="field"><label>Email (optional)</label><input name="email" type="email" /></div>
+      <button class="btn" type="submit">Publish job</button>
+      <div id="msg" class="toast"></div>
+    </form>
+
+    <section class="card" id="managePost" style="margin-top:18px" data-forge="delete-own-job">
+      <h2 style="margin:0 0 8px;font-size:1.1rem">Delete your post</h2>
+      <p class="muted" style="margin:0 0 12px;font-size:13px">Use the same email or phone you posted with. Job ID is on the confirmation toast or job URL (<code>?id=…</code>). Wrong contact returns 403 — we never delete someone else's post.</p>
+      <div class="grid 2">
+        <div class="field"><label>Job ID</label><input id="delJobId" placeholder="abc123…" /></div>
+        <div class="field"><label>Email used on post</label><input id="delEmail" type="email" placeholder="you@example.com" /></div>
+      </div>
+      <div class="field"><label>Or phone used on post</label><input id="delPhone" placeholder="555-0100" /></div>
+      <button class="btn" type="button" id="delJobBtn" style="background:#7f1d1d;border-color:#991b1b;color:#fecaca" title="Requires confirm dialog">Confirm &amp; delete my job</button>
+      <p id="delMsg" class="muted" style="margin-top:10px;font-size:13px"></p>
+    </section>
+  </main>
+  <script src="places-ui.js"></script>
+  <script src="post.js"></script>
+</body>
+</html>

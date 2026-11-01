@@ -1,0 +1,14 @@
+{
+  "en": {
+    "hero": "Welcome",
+    "cta": "Get started"
+  },
+  "es": {
+    "hero": "Bienvenido",
+    "cta": "Empezar"
+  },
+  "fr": {
+    "hero": "Bienvenue",
+    "cta": "Commencer"
+  }
+}

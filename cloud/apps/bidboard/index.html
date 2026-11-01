@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- af-plugin:og -->
+  <meta property="og:title" content="BidBoard" />
+  <meta property="og:description" content="Hire for anything. Post free; pros unlock contact when they want the job." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- af-plugin:seo -->
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="./" />
+  <meta name="description" content="Spawn project bidboard" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="BidBoard — paid jobs nationwide. Post free. Pros unlock contact when they want the job." />
+  <title>BidBoard — Hire for anything</title>
+  <link rel="stylesheet" href="styles.css" />
+<!-- af-pwa -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0b0f14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){});});}</script>
+<!-- /af-pwa -->
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">
+      <a href="./" style="display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none">
+        <span class="mark">B</span>
+        <span>
+          Bid<span class="accent">Board</span>
+          <span class="sub">Paid jobs near you</span>
+        </span>
+      </a>
+    </div>
+    <div class="nav-links">
+      <a class="btn ghost sm" href="jobs.html">Find job</a>
+      <a class="btn ghost sm" href="contractors.html">For pros</a>
+      <a class="btn sm" href="post.html">Post a job</a>
+    </div>
+  <a class="btn ghost" href="login.html">Sign in</a><a class="btn ghost" href="account.html">Account</a><a class="btn ghost" href="uploads.html">Uploads</a><a class="btn ghost" href="items.html">Items</a><a class="btn ghost" href="blog.html">Blog</a><!-- af-plugin:i18n --><select id="afLang" style="margin-left:8px"><option value="en">EN</option><option value="es">ES</option><option value="fr">FR</option></select><a class="btn ghost" href="admin.html">Admin</a></nav>
+
+  <main class="wrap">
+    <section class="hero">
+      <span class="badge teal">Hire for anything · Any US city</span>
+      <h1>Paid jobs near you.<br/>Hire for anything.</h1>
+      <p>Post any paid help you need — babysitting, mechanic work, cleaning, tech, trades, tutoring, and more. Pros unlock contact when they want the job.</p>
+      <p class="row" style="margin-top:22px">
+        <a class="btn" href="post.html">Post a job free</a>
+        <a class="btn ghost" href="jobs.html">Find job</a>
+        <a class="btn ghost" href="contractors.html#signup">Pro signup</a>
+      </p>
+    </section>
+
+    <div class="stat-row" id="stats">
+      <div class="stat"><div class="n" id="statJobs">—</div><div class="l">Open leads</div></div>
+      <div class="stat"><div class="n" id="fee">$25</div><div class="l">Per-lead unlock</div></div>
+      <div class="stat"><div class="n">US</div><div class="l">Any city &amp; state</div></div>
+      <div class="stat"><div class="n" id="pro">$99</div><div class="l">Pro / month</div></div>
+    </div>
+
+    <section class="grid 3" style="margin-top:8px">
+      <div class="card feature"><h3>1. Post free</h3><p>Describe the issue, add zip & optional photo. We help polish the listing title and urgency.</p></div>
+      <div class="card feature"><h3>2. Pros browse</h3><p>Filter by category, city, and state. Preview is blurred — no spam to posters.</p></div>
+      <div class="card feature"><h3>3. Unlock lead</h3><p>Email-gated flat fee (<span id="fee2">$25</span>) reveals name, phone, and full details. Mock checkout records interest until Stripe is live.</p></div>
+    </section>
+
+    <section style="margin-top:28px">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h2 style="margin:0;font-size:1.15rem;letter-spacing:-0.02em">Fresh on the board</h2>
+        <a class="btn ghost sm" href="jobs.html">Find job</a>
+      </div>
+      <div class="card" id="preview"><p class="muted">Loading leads...</p></div>
+    </section>
+
+    <section class="card" style="margin-top:20px">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h2 style="margin:0 0 6px;font-size:1.1rem">Pro plan</h2>
+          <p class="muted" style="margin:0">Unlock every lead with no per-lead fee while you’re signed in — <strong id="pro2">$99/mo</strong>, cancel anytime.</p>
+        </div>
+        <a class="btn ghost" href="contractors.html#pro">See Pro</a>
+      </div>
+    </section>
+
+    <div class="note" id="crossSell">
+      Need marketing that fills your calendar? ServiceForge packs help local businesses get found — optional cross-promo with BidBoard.
+    </div>
+
+    <footer>
+      <span>© 2026 BidBoard — Hire for anything — Posts are free</span>
+      <span>Brian's BidBoard product</span>
+            <section id="checkout" class="card" style="margin-top:24px" data-forge="checkout">
+      <span class="badge">Whop</span>
+      <h2 style="margin:10px 0 8px">Get access</h2>
+      <p class="muted">Checkout opens your Whop URL from server config.</p>
+      <p style="margin-top:16px"><a class="btn" id="payBtn" href="#" rel="noopener" target="_blank">Open checkout</a></p>
+    </section>
+    <script>(function(){fetch('api/config').then(function(r){return r.json()}).then(function(c){if(c.checkoutUrl)document.getElementById('payBtn').href=c.checkoutUrl;}).catch(function(){});})();</script>
+<p><a href="/privacy.html">Privacy</a></p></footer>
+      <section id="contact" class="card" style="margin-top:24px" data-forge="contact"><!-- af-plugin:contact -->
+      <h2>Contact</h2>
+      <form id="afContactForm"><div class="field"><label>Email</label><input name="email" type="email" required/></div>
+      <div class="field"><label>Message</label><textarea name="message" rows="3"></textarea></div>
+      <button class="btn" type="submit">Send</button></form>
+      <p id="afContactMsg" class="muted"></p></section>
+      <script>(function(){var f=document.getElementById('afContactForm');if(!f)return;f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f);fetch('api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:fd.get('email'),message:fd.get('message')})}).then(function(){document.getElementById('afContactMsg').textContent='Thanks!';f.reset();});});})();</script>
+    <section class="card" style="margin-top:24px" id="subscribe"><!-- af-plugin:newsletter -->
+      <h2>Stay in the loop</h2>
+      <form id="afNewsForm" style="display:flex;gap:8px;flex-wrap:wrap"><input name="email" type="email" required placeholder="you@example.com" style="flex:1"/><button class="btn" type="submit">Subscribe</button></form>
+      <p id="afNewsMsg" class="muted"></p></section>
+      <script>(function(){var f=document.getElementById('afNewsForm');if(!f)return;f.addEventListener('submit',function(e){e.preventDefault();fetch('api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:new FormData(f).get('email')})}).then(function(){document.getElementById('afNewsMsg').textContent='You are on the list.';f.reset();});});})();</script>
+    <section class="card" style="margin-top:24px" id="map"><!-- af-plugin:maps -->
+      <h2>Find us</h2>
+      <iframe title="Map" width="100%" height="280" style="border:0;border-radius:12px" loading="lazy" src="https://maps.google.com/maps?q=37.7749,-122.4194&z=14&output=embed"></iframe>
+    </section>
+</main>
+
+  <script>
+    function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+    fetch("api/config").then(function(r){return r.json()}).then(function(c){
+      if(c.leadFeeLabel){document.getElementById("fee").textContent=c.leadFeeLabel;document.getElementById("fee2").textContent=c.leadFeeLabel;}
+      if(c.proFeeLabel){document.getElementById("pro").textContent=c.proFeeLabel.replace("/mo","");document.getElementById("pro2").textContent=c.proFeeLabel;}
+      if(c.openJobs!=null) document.getElementById("statJobs").textContent=c.openJobs;
+      if(c.crossSell) document.getElementById("crossSell").textContent=c.crossSell;
+    }).catch(function(){});
+    fetch("api/jobs").then(function(r){return r.json()}).then(function(d){
+      var el=document.getElementById("preview");
+      if(!d.jobs||!d.jobs.length){el.innerHTML='<p class="muted">No open jobs yet. <a href="post.html">Post the first one</a>.</p>';return;}
+      el.innerHTML=d.jobs.slice(0,5).map(function(j){
+        var urg=j.urgency==="Urgent"?' <span class="badge urgent">Urgent</span>':"";
+        return '<div class="job"><div><span class="badge">'+esc(j.trade)+" — "+esc(j.city)+(j.state?", "+esc(j.state):"")+(j.zip?" "+esc(j.zip):"")+"</span>"+urg+
+          '<h3><a href="job.html?id='+esc(j.id)+'">'+esc(j.title)+"</a></h3>"+
+          '<p class="muted" style="margin:0;font-size:13px">'+esc(j.preview)+"</p></div>"+
+          '<div style="text-align:right"><div class="price">'+esc(d.leadFeeLabel)+'</div>'+
+          '<a class="btn sm" style="margin-top:8px" href="job.html?id='+esc(j.id)+'">View</a></div></div>';
+      }).join("");
+    }).catch(function(){document.getElementById("preview").innerHTML='<p class="muted">Could not load jobs.</p>';});
+  </script>
+<!-- af-plugin:analytics -->
+<script>window.afAnalytics=window.afAnalytics||{track:function(n,p){console.log("[analytics]",n,p||{});}};</script>
+<script defer src="analytics.js"></script>
+<!-- af-plugin:cookies -->
+<div id="afCookie" style="position:fixed;bottom:16px;left:16px;right:16px;max-width:480px;background:#121821;border:1px solid #2a3646;border-radius:12px;padding:14px;z-index:99;color:#e8eef7;font:14px system-ui">We use essential cookies to run this app. <button id="afCookieOk" class="btn" style="margin-left:8px">Got it</button></div>
+<script>(function(){if(localStorage.getItem("af_cookie_ok")){var el=document.getElementById("afCookie");if(el)el.remove();return;}var b=document.getElementById("afCookieOk");if(b)b.onclick=function(){localStorage.setItem("af_cookie_ok","1");var el=document.getElementById("afCookie");if(el)el.remove();};})();</script>
+<script src="ai-widget.js"></script>
+<script src="i18n.js"></script><script>document.addEventListener("DOMContentLoaded",function(){var s=document.getElementById("afLang");if(s){s.value=localStorage.getItem("af_lang")||"en";s.onchange=function(){window.afI18n.set(s.value);};}});</script>
+</body>
+</html>
+

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Pass P Checkout" />
+  <title>Pass P Checkout</title>
+  <link rel="stylesheet" href="/styles.css" />
+<!-- af-pwa -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0b0f14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){});});}</script>
+<!-- /af-pwa -->
+</head>
+<body>
+  
+  <nav class="nav">
+    <div class="brand">Pass P Checkout</div>
+    <div class="nav-links">
+      <a class="btn ghost sm" href="#features">Features</a><a class="btn sm" href="#pricing">Pricing</a>
+      <button type="button" class="theme-toggle" data-theme-toggle>Light</button>
+    </div>
+  <a class="btn ghost" href="/notes.html">Notes</a><a class="btn ghost" href="/waitlist.html">Waitlist</a><a class="btn ghost" href="/invoice.html">Invoice</a><a class="btn ghost" href="/blog.html">Blog</a></nav>
+  <main class="wrap">
+    <section class="hero">
+      <span class="badge">Ready to launch</span>
+      <h1 style="margin-top:16px">Pass P Checkout</h1>
+      <p>Ship a polished product page with clear pricing and a conversion-ready call to action.</p>
+      <div class="cta">
+        <a class="btn" href="#get-started">Get started</a>
+        <a class="btn ghost" href="#features">See what's included</a>
+      </div>
+      <div class="logo-row"><span>Acme Co</span><span>Northwind</span><span>Globex</span><span>Initech</span></div>
+    </section>
+
+    <section id="features" style="margin-top:12px">
+      <h2 class="section-title">Built to convert</h2>
+      <p class="section-sub">Everything visitors need to understand value and take action — without looking like a stub.</p>
+      <div class="grid 2">
+        <div class="card"><div class="feature-icon">1</div><h3>Fast setup</h3><p class="muted">Runnable Express app with a static UI you can edit immediately.</p></div>
+        <div class="card"><div class="feature-icon">2</div><h3>Clear CTA</h3><p class="muted">Pricing and checkout hooks that route buyers where you want them.</p></div>
+        <div class="card"><div class="feature-icon">3</div><h3>Responsive</h3><p class="muted">Typography, spacing, and cards that hold up on phones and desktops.</p></div>
+        <div class="card"><div class="feature-icon">4</div><h3>Dark &amp; light</h3><p class="muted">Theme toggle with system preference and local persistence.</p></div>
+      </div>
+    </section>
+
+    <section id="pricing" style="margin-top:40px">
+      <h2 class="section-title">Simple pricing</h2>
+      <p class="section-sub">Sample tiers — replace with your real plans.</p>
+      <div class="grid 3">
+        <div class="card price-card">
+          <div class="kpi-label">Starter</div>
+          <div class="price">$0 <small>/ mo</small></div>
+          <p class="muted">Explore the product and ship a first version.</p>
+          <ul class="price-list"><li>Core pages</li><li>Email capture</li><li>Community support</li></ul>
+          <p style="margin-top:18px"><a class="btn ghost" href="#get-started">Start free</a></p>
+        </div>
+        <div class="card price-card featured">
+          <span class="badge">Popular</span>
+          <div class="kpi-label" style="margin-top:10px">Pro</div>
+          <div class="price">$29 <small>/ mo</small></div>
+          <p class="muted">For teams ready to grow and monetize.</p>
+          <ul class="price-list"><li>Everything in Starter</li><li>Checkout integration</li><li>Priority support</li></ul>
+          <p style="margin-top:18px"><a class="btn" href="#get-started">Choose Pro</a></p>
+        </div>
+        <div class="card price-card">
+          <div class="kpi-label">Business</div>
+          <div class="price">$99 <small>/ mo</small></div>
+          <p class="muted">Custom workflows and higher limits.</p>
+          <ul class="price-list"><li>Everything in Pro</li><li>SSO-ready layout</li><li>Dedicated onboarding</li></ul>
+          <p style="margin-top:18px"><a class="btn ghost" href="#get-started">Talk to us</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid 2" style="margin-top:28px">
+      <div class="card">
+        <div class="row" style="margin-bottom:12px"><span class="avatar">JR</span><strong>Jordan R.</strong></div>
+        <p class="quote">We replaced a gray placeholder with this layout and started collecting leads the same afternoon.</p>
+      </div>
+      <div class="card">
+        <div class="row" style="margin-bottom:12px"><span class="avatar">AL</span><strong>Alex L.</strong></div>
+        <p class="quote">Dark/light toggle and real pricing cards made it feel like a finished product on day one.</p>
+      </div>
+    </section>
+
+    <div id="get-started">
+    <section class="card" style="margin-top:28px">
+      <h2 class="section-title">Get started</h2>
+      <p class="muted">Tell us where to send access details.</p>
+      <form id="leadForm" style="margin-top:16px">
+        <div class="grid 2">
+          <div class="field"><label>Name</label><input name="name" placeholder="Your name" /></div>
+          <div class="field"><label>Email</label><input name="email" type="email" required placeholder="you@example.com" /></div>
+        </div>
+        <button class="btn" type="submit">Request access</button>
+      </form>
+      <p id="leadMsg" class="muted" style="margin-top:12px"></p>
+    </section></div>
+        <section id="checkout" class="card" style="margin-top:24px" data-forge="checkout">
+      <span class="badge">Checkout</span>
+      <h2 style="margin:10px 0 8px">Unlock full access</h2>
+      <p class="muted">Uses STRIPE_PAYMENT_LINK from your environment.</p>
+      <p style="margin-top:16px"><a class="btn" id="payBtn" href="#" rel="noopener">Continue to checkout</a></p>
+    </section>
+    <script>(function(){var el=document.getElementById('payBtn');fetch('/api/config').then(function(r){return r.json()}).then(function(c){if(c.checkoutUrl)el.href=c.checkoutUrl;else el.addEventListener('click',function(e){e.preventDefault();alert('Set STRIPE_PAYMENT_LINK then restart.');});}).catch(function(){});})();</script>
+<footer><span>&copy; 2026 Pass P Checkout</span><span>Built with Spawn</span><p><a href="/privacy.html">Privacy</a></p></footer>
+      <section class="card" style="margin-top:24px" id="subscribe"><!-- af-plugin:newsletter -->
+      <h2>Stay in the loop</h2>
+      <form id="afNewsForm" style="display:flex;gap:8px;flex-wrap:wrap"><input name="email" type="email" required placeholder="you@example.com" style="flex:1"/><button class="btn" type="submit">Subscribe</button></form>
+      <p id="afNewsMsg" class="muted"></p></section>
+      <script>(function(){var f=document.getElementById('afNewsForm');if(!f)return;f.addEventListener('submit',function(e){e.preventDefault();fetch('/api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:new FormData(f).get('email')})}).then(function(){document.getElementById('afNewsMsg').textContent='You are on the list.';f.reset();});});})();</script>
+</main>
+  <script>
+(function(){
+  var root=document.documentElement;
+  var saved=localStorage.getItem('af-theme');
+  if(saved==='light'||saved==='dark') root.setAttribute('data-theme',saved);
+  else if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches) root.setAttribute('data-theme','light');
+  function sync(){
+    var t=root.getAttribute('data-theme')==='light'?'light':'dark';
+    document.querySelectorAll('[data-theme-toggle]').forEach(function(btn){
+      btn.textContent=t==='light'?'Dark':'Light';
+      btn.setAttribute('aria-label','Switch to '+(t==='light'?'dark':'light')+' theme');
+    });
+  }
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-theme-toggle]');
+    if(!btn) return;
+    var next=root.getAttribute('data-theme')==='light'?'dark':'light';
+    root.setAttribute('data-theme',next);
+    localStorage.setItem('af-theme',next);
+    sync();
+  });
+  sync();
+})();
+</script>
+  <script>
+    var form = document.getElementById('leadForm');
+    if (form) form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var fd = new FormData(form);
+      fetch('/api/lead', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email: fd.get('email'), name: fd.get('name') }) })
+        .then(function(r){return r.json()}).then(function(){
+          document.getElementById('leadMsg').textContent = 'Thanks — we got your request.';
+          form.reset();
+        });
+    });
+  </script>
+</body>
+</html>

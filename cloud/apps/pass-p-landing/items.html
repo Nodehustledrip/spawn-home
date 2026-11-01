@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>items · Pass P Landing</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand"><a href="/">Pass P Landing</a></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <a href="/">Home</a>
+      <a href="/items.html">items</a>
+    </div>
+  </nav>
+  <main class="wrap">
+    <section class="hero" style="padding:28px 0 8px">
+      <span class="badge">JSON DB</span>
+      <h1 style="margin-top:12px">items</h1>
+      <p class="muted">Create, edit, and delete rows via <code>/api/db/items</code>.</p>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <h2 style="margin-top:0">Add row</h2>
+      <form id="createForm">
+        <div class="field"><label>Title</label><input name="title" required placeholder="Title" /></div>
+        <div class="field"><label>Body</label><textarea name="body" rows="2" placeholder="Notes…"></textarea></div>
+        <button class="btn" type="submit">Create</button>
+      </form>
+      <p id="msg" class="muted"></p>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <h2 style="margin-top:0">Rows</h2>
+      <div id="rows"><p class="muted">Loading…</p></div>
+    </section>
+  </main>
+  <script>
+    var TABLE = "items";
+    function load() {
+      fetch("/api/db/" + TABLE).then(function(r){ return r.json(); }).then(function(d){
+        var el = document.getElementById("rows");
+        var rows = d.rows || [];
+        if (!rows.length) { el.innerHTML = "<p class=\"muted\">No rows yet — add one above.</p>"; return; }
+        el.innerHTML = rows.map(function(row){
+          return "<article class=\"feed-item\" data-id=\"" + row.id + "\"><strong>" +
+            (row.title || row.name || row.id) + "</strong>" +
+            (row.body ? "<p class=\"muted\">" + String(row.body).slice(0,200) + "</p>" : "") +
+            "<p class=\"muted\">" + (row.updatedAt || row.createdAt || "") + "</p>" +
+            "<button type=\"button\" class=\"btn ghost\" data-del=\"" + row.id + "\">Delete</button></article>";
+        }).join("");
+        el.querySelectorAll("[data-del]").forEach(function(b){
+          b.onclick = function(){
+            fetch("/api/db/" + TABLE + "/" + b.getAttribute("data-del"), { method: "DELETE" })
+              .then(function(){ load(); });
+          };
+        });
+      }).catch(function(e){
+        document.getElementById("rows").innerHTML = "<p class=\"muted\">Could not load: " + e.message + "</p>";
+      });
+    }
+    document.getElementById("createForm").onsubmit = function(e){
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      fetch("/api/db/" + TABLE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: fd.get("title"), body: fd.get("body") })
+      }).then(function(r){ return r.json(); }).then(function(d){
+        document.getElementById("msg").textContent = d.ok ? "Created." : (d.error || "Failed");
+        e.target.reset();
+        load();
+      });
+    };
+    load();
+  </script>
+</body>
+</html>

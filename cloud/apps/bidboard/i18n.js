@@ -1,0 +1,2 @@
+window.afI18n=window.afI18n||{lang:localStorage.getItem('af_lang')||'en',dict:{},async load(){this.dict=await fetch('/i18n.json').then(function(r){return r.json()});this.apply();},apply(){var d=this.dict[this.lang]||{};document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');if(d[k])el.textContent=d[k];});},set(l){this.lang=l;localStorage.setItem('af_lang',l);this.apply();}};
+document.addEventListener('DOMContentLoaded',function(){window.afI18n.load();});

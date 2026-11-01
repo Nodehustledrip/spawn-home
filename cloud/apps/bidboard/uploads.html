@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Uploads · BidBoard</title><link rel="stylesheet" href="styles.css"/></head>
+<body>
+<nav class="nav"><div class="brand"><a href="./">BidBoard</a></div><a href="./">Home</a></nav>
+<main class="wrap">
+  <section class="hero" style="padding:28px 0 8px"><span class="badge">Storage</span>
+    <h1 style="margin-top:12px">Uploads</h1>
+    <p class="muted">Files you upload here can be shared by link. Only this browser can delete them.</p>
+  </section>
+  <section class="card" style="margin-top:16px">
+    <h2 style="margin-top:0">Upload a file</h2>
+    <form id="upForm">
+      <div class="field"><label>Name</label><input name="name" value="note.txt"/></div>
+      <div class="field"><label>File</label><input name="file" type="file" required/></div>
+      <button class="btn" type="submit">Upload</button>
+    </form>
+    <p id="msg" class="muted"></p>
+  </section>
+  <section class="card" style="margin-top:16px">
+    <h2 style="margin-top:0">Files</h2>
+    <div id="list"><p class="muted">Loading…</p></div>
+  </section>
+</main>
+<script>
+function load(){
+  fetch("api/storage").then(function(r){return r.json()}).then(function(d){
+    var el=document.getElementById("list");
+    var files=d.files||[];
+    if(!files.length){ el.innerHTML="<p class=\"muted\">No uploads yet.</p>"; return; }
+    el.innerHTML=files.map(function(f){
+      return "<div class=\"feed-item\"><a href=\""+f.url+"\" target=\"_blank\" rel=\"noopener\">"+f.name+"</a> · "+f.size+" bytes "+
+        "<button type=\"button\" class=\"btn ghost\" data-del=\""+f.name+"\">Delete</button></div>";
+    }).join("");
+    el.querySelectorAll("[data-del]").forEach(function(b){
+      b.onclick=function(){ fetch("api/storage/"+encodeURIComponent(b.getAttribute("data-del")),{method:"DELETE",headers:{"x-delete-key":(JSON.parse(localStorage.getItem("up_keys")||"{}"))[b.getAttribute("data-del")]||""}}).then(function(){load();}); };
+    });
+  });
+}
+document.getElementById("upForm").onsubmit=function(e){
+  e.preventDefault();
+  var fd=new FormData(e.target);
+  var file=fd.get("file");
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    var b64=String(reader.result).split(",")[1]||"";
+    fetch("api/storage/upload",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:fd.get("name")||file.name, contentBase64:b64})})
+      .then(function(r){return r.json()}).then(function(d){
+        if(d.ok&&d.file&&d.file.deleteKey){var k=JSON.parse(localStorage.getItem("up_keys")||"{}");k[d.file.name]=d.file.deleteKey;localStorage.setItem("up_keys",JSON.stringify(k));}document.getElementById("msg").textContent=d.ok?"Uploaded "+d.file.name:(d.error||"Failed");
+        e.target.reset(); load();
+      });
+  };
+  reader.readAsDataURL(file);
+};
+load();
+</script>
+</body></html>

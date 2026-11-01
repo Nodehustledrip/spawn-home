@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Account · BidBoard</title><link rel="stylesheet" href="styles.css"/></head><body><main class="wrap" style="max-width:560px;padding-top:48px"><div class="card"><h1 style="margin-top:0">Your account</h1><p id="who" class="muted">Loading…</p><p style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn ghost" href="./">Home</a><a class="btn ghost" href="post.html">Post a job</a><button class="btn" type="button" id="logoutBtn">Log out</button></p><p id="msg" class="muted"></p></div>
+<section class="card" id="managePost" style="margin-top:18px" data-forge="delete-own-job">
+  <h2 style="margin:0 0 8px;font-size:1.1rem">Delete your post</h2>
+  <p class="muted" style="margin:0 0 12px;font-size:13px">Confirm with the same email or phone you posted with. Job ID is on the confirmation toast or job URL (<code>?id=…</code>). Wrong contact returns 403 — we never delete someone else's post. This cannot be undone.</p>
+  <div class="grid 2">
+    <div class="field"><label>Job ID</label><input id="delJobId" placeholder="abc123…" /></div>
+    <div class="field"><label>Email used on post</label><input id="delEmail" type="email" placeholder="you@example.com" /></div>
+  </div>
+  <div class="field"><label>Or phone used on post</label><input id="delPhone" placeholder="555-0100" /></div>
+  <button class="btn" type="button" id="delJobBtn" style="background:#7f1d1d;border-color:#991b1b;color:#fecaca" title="Requires confirm dialog">Confirm &amp; delete my job</button>
+  <p id="delMsg" class="muted" style="margin-top:10px;font-size:13px"></p>
+</section>
+</main>
+<script>
+fetch('api/auth/me').then(function(r){return r.json()}).then(function(d){
+  var el=document.getElementById('who');
+  if(d.user){el.textContent='Signed in as '+d.user.email+(d.user.name?' ('+d.user.name+')':'');}
+  else{el.textContent='Not signed in — you can still delete a job you posted with email/phone below.';}
+}).catch(function(){ var el=document.getElementById('who'); if(el) el.textContent='Account status unavailable — delete-by-email/phone still works below.'; });
+document.getElementById('logoutBtn').onclick=function(){
+  fetch('api/auth/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(function(){location.href='/login.html';});
+};
+(function bindDeleteOwn(){
+  var btn=document.getElementById('delJobBtn');
+  if(!btn) return;
+  try{
+    var last=JSON.parse(localStorage.getItem('bb_last_post')||'null');
+    if(last){
+      if(last.id && document.getElementById('delJobId')) document.getElementById('delJobId').value=last.id;
+      if(last.email && document.getElementById('delEmail')) document.getElementById('delEmail').value=last.email;
+      if(last.phone && document.getElementById('delPhone')) document.getElementById('delPhone').value=last.phone;
+    }
+  }catch(_){}
+  try{
+    var qid=new URLSearchParams(location.search).get('id')||new URLSearchParams(location.search).get('job');
+    if(qid && document.getElementById('delJobId') && !document.getElementById('delJobId').value) document.getElementById('delJobId').value=qid;
+  }catch(_){}
+  btn.addEventListener('click', function(){
+    var id=String((document.getElementById('delJobId')||{}).value||'').trim();
+    var email=String((document.getElementById('delEmail')||{}).value||'').trim();
+    var phone=String((document.getElementById('delPhone')||{}).value||'').trim();
+    var msg=document.getElementById('delMsg');
+    if(!id){ if(msg){ msg.style.color='#fca5a5'; msg.textContent='Enter the job ID from your post confirmation or job URL (?id=…).'; } return; }
+    if(!email && !phone){ if(msg){ msg.style.color='#fca5a5'; msg.textContent='Enter the email or phone used when posting.'; } return; }
+    if(!confirm('Permanently delete job '+id+'?\n\nThis cannot be undone. Only works with the email/phone from the original post.')) return;
+    btn.disabled=true;
+    if(msg){ msg.style.color=''; msg.textContent='Deleting…'; }
+    fetch('api/jobs/'+encodeURIComponent(id),{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,phone:phone})})
+      .then(function(r){ return r.json().then(function(d){ return {status:r.status,d:d}; }); })
+      .then(function(x){
+        var d=x.d||{};
+        btn.disabled=false;
+        if(x.status===429){ if(msg){ msg.style.color='#fca5a5'; msg.textContent=(d.error||'Too many requests')+(d.honesty?' — '+d.honesty:' — Rate limit: wait a minute and retry.'); } return; }
+        if(!d.ok){ if(msg){ msg.style.color='#fca5a5'; msg.textContent=(d.error||'Delete failed')+(d.honesty?' — '+d.honesty:''); } return; }
+        if(msg){ msg.style.color='#6ee7b7'; msg.textContent=(d.message||'Deleted.')+' Job '+id+' is gone.'; }
+        try{ localStorage.removeItem('bb_last_post'); }catch(_){}
+        var idEl=document.getElementById('delJobId'); if(idEl) idEl.value='';
+      })
+      .catch(function(err){ btn.disabled=false; if(msg){ msg.style.color='#fca5a5'; msg.textContent='Network error: '+((err&&err.message)||'failed'); } });
+  });
+})();
+</script></body></html>
