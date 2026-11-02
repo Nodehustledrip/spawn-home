@@ -610,6 +610,56 @@
       });
   }
 
+  /* Generation progress: create waits ~25s on the AI write, so the preview
+   * pane shows honest stages + an elapsed clock instead of a dead button. */
+  var gen = { timer: null, t0: 0 };
+  function startGen(name, ai) {
+    var el = $("[data-gen]");
+    if (!el) return;
+    stopGen();
+    var t = $("[data-gen-title]");
+    if (t) t.textContent = name || "Your app";
+    var k = $("[data-gen-kicker]");
+    if (k) k.textContent = ai ? "Writing your site" : "Creating from template";
+    var eta = $("[data-gen-eta]");
+    if (eta) eta.textContent = ai ? "usually about 25 seconds" : "a few seconds";
+    var empty = $("[data-preview-empty]");
+    if (empty) empty.hidden = true;
+    el.hidden = false;
+    el.classList.remove("is-done");
+    gen.t0 = Date.now();
+    var marks = ai ? [0, 3500, 10000, 19000] : [0, 400, 800, 1200];
+    function tick() {
+      var ms = Date.now() - gen.t0;
+      var s = Math.floor(ms / 1000);
+      var e = $("[data-gen-elapsed]");
+      if (e) e.textContent = Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
+      var cur = 0;
+      for (var i = 0; i < marks.length; i++) if (ms >= marks[i]) cur = i;
+      $$("[data-gen-steps] li").forEach(function (li, i) {
+        li.classList.toggle("is-done", i < cur);
+        li.classList.toggle("is-on", i === cur);
+      });
+      if (eta && ai && s >= 40) eta.textContent = "taking longer than usual — still working";
+    }
+    tick();
+    gen.timer = setInterval(tick, 250);
+    var stage = document.querySelector(".build-stage");
+    if (stage && window.matchMedia && window.matchMedia("(max-width: 960px)").matches) {
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+  }
+  function stopGen() {
+    if (gen.timer) clearInterval(gen.timer);
+    gen.timer = null;
+    var el = $("[data-gen]");
+    if (el) el.hidden = true;
+    var iframe = $("[data-preview]");
+    var empty = $("[data-preview-empty]");
+    if (empty && iframe && iframe.hidden) empty.hidden = false;
+  }
+
   function onCreate(e) {
     e.preventDefault();
     var form = e.target;
@@ -624,8 +674,10 @@
       return;
     }
     if (submit) submit.disabled = true;
-    if (label) label.textContent = state.aiReady && state.buildMode !== "offline" ? "Writing your site…" : "Creating…";
+    var aiOn = !!(state.aiReady && state.buildMode !== "offline");
+    if (label) label.textContent = aiOn ? "Writing your site…" : "Creating…";
     setNote("");
+    startGen(name, aiOn);
 
     api("/api/builds", {
       method: "POST",
@@ -670,6 +722,7 @@
         setNote("Network error — try again.", true);
       })
       .finally(function () {
+        stopGen();
         if (submit) submit.disabled = false;
         if (label) label.textContent = "Create & preview";
       });

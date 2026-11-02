@@ -90,8 +90,8 @@
     @media (prefers-reduced-motion: reduce) { .build-publish-done { animation: none; } }
     .build-publish-live a { color: var(--accent); font-weight: 600; }
 </style>
-  <link rel="preload" href="/styles.css?v=20261006" as="style" />
-  <link rel="stylesheet" href="/styles.css?v=20261006" />
+  <link rel="preload" href="/styles.css?v=20261102" as="style" />
+  <link rel="stylesheet" href="/styles.css?v=20261102" />
   <script type="application/ld+json">
 {
  "@context": "https://schema.org",
@@ -329,6 +329,25 @@
           <p class="build-muted">Templates scaffold real HTML/CSS you can edit in chat.</p>
         </div>
         <iframe class="build-preview" data-preview title="App preview" hidden></iframe>
+        <div class="build-gen" data-gen role="status" aria-live="polite" hidden>
+          <div class="build-gen-card">
+            <p class="build-gen-kicker mono"><span class="build-gen-pulse" aria-hidden="true"></span><span data-gen-kicker>Writing your site</span></p>
+            <p class="build-gen-title" data-gen-title>Your app</p>
+            <ol class="build-gen-steps" data-gen-steps>
+              <li data-step="0">Reading your description</li>
+              <li data-step="1">Laying out pages and sections</li>
+              <li data-step="2">Writing copy and styles</li>
+              <li data-step="3">Saving and loading the preview</li>
+            </ol>
+            <p class="build-gen-time mono"><span data-gen-elapsed>0:00</span> <span class="build-gen-sep">·</span> <span data-gen-eta>usually about 25 seconds</span></p>
+          </div>
+          <div class="build-gen-sketch" aria-hidden="true">
+            <span class="g-nav"></span>
+            <span class="g-h1"></span><span class="g-h1 g-short"></span>
+            <span class="g-p"></span><span class="g-btn"></span>
+            <span class="g-cards"><i></i><i></i><i></i></span>
+          </div>
+        </div>
       </div>
 
       <div class="build-chat" data-chat hidden>
@@ -362,6 +381,6 @@
 
   <script src="/analytics.js" defer></script>
   <script src="/app.js" defer></script>
-  <script src="/build-app.js?v=20261101a" defer></script>
+  <script src="/build-app.js?v=20261102" defer></script>
 </body>
 </html>

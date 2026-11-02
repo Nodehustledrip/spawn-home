@@ -6591,3 +6591,80 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .plan-welcome h2 { margin: 0.2rem 0 0.5rem; }
 .plan-welcome[hidden] { display: none; }
 .hero-domain { color: var(--accent, #d4a574); white-space: nowrap; font-size: .74em; letter-spacing: -.02em; }
+
+/* Build: generation progress (create waits on the AI write) */
+.build-gen {
+  position: absolute; inset: 0; z-index: 2;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center; gap: 2.5rem; padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem);
+  background: #07080a;
+  animation: build-gen-in 220ms cubic-bezier(.2,.7,.2,1) both;
+}
+.build-gen[hidden] { display: none; }
+.build-gen-card { max-width: 340px; }
+.build-gen-kicker {
+  margin: 0 0 0.6rem; display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.build-gen-pulse {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  animation: build-gen-pulse 1.4s ease-in-out infinite;
+}
+.build-gen-title {
+  margin: 0 0 1.4rem; font-size: 1.5rem; font-weight: 650; letter-spacing: -0.025em;
+  color: var(--text); overflow-wrap: anywhere;
+}
+.build-gen-steps { list-style: none; margin: 0 0 1.4rem; padding: 0; display: grid; gap: 0.7rem; }
+.build-gen-steps li {
+  position: relative; padding-left: 1.6rem; font-size: 0.9rem; line-height: 1.35;
+  color: var(--dim, #6b675f); transition: color 240ms ease;
+}
+.build-gen-steps li::before {
+  content: ""; position: absolute; left: 0; top: 0.18em; width: 0.95rem; height: 0.95rem;
+  border-radius: 50%; border: 1.5px solid var(--line-strong); box-sizing: border-box;
+  transition: border-color 240ms ease, background-color 240ms ease;
+}
+.build-gen-steps li.is-on { color: var(--text); }
+.build-gen-steps li.is-on::before {
+  border-color: var(--accent); border-right-color: transparent;
+  animation: build-gen-spin 0.9s linear infinite;
+}
+.build-gen-steps li.is-done { color: var(--muted); }
+.build-gen-steps li.is-done::before {
+  border-color: var(--accent); background: var(--accent)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2 7 10.6l4.6-5' fill='none' stroke='%231a1208' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 80% no-repeat;
+}
+.build-gen-time { margin: 0; font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.build-gen-sep { opacity: 0.5; margin: 0 0.25rem; }
+.build-gen-sketch {
+  display: grid; gap: 0.65rem; padding: 1.1rem; align-content: start;
+  border: 1px solid var(--line); border-radius: 12px; background: #0b0d10;
+  aspect-ratio: 4 / 3; max-width: 420px; width: 100%; justify-self: center; overflow: hidden;
+}
+.build-gen-sketch > span, .build-gen-sketch i {
+  display: block; border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 100%) 0 0 / 200% 100%;
+  animation: build-gen-shimmer 1.8s ease-in-out infinite;
+}
+.build-gen-sketch .g-nav { height: 10px; width: 100%; margin-bottom: 0.6rem; opacity: 0.7; }
+.build-gen-sketch .g-h1 { height: 18px; width: 78%; }
+.build-gen-sketch .g-h1.g-short { width: 52%; }
+.build-gen-sketch .g-p { height: 9px; width: 64%; margin-top: 0.2rem; opacity: 0.8; }
+.build-gen-sketch .g-btn { height: 24px; width: 96px; margin: 0.3rem 0 0.6rem; border-radius: 999px; background: var(--accent-dim); animation: none; }
+.build-gen-sketch .g-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.55rem; background: none; animation: none; }
+.build-gen-sketch .g-cards i { height: 64px; border-radius: 8px; }
+.build-gen-sketch .g-cards i:nth-child(2) { animation-delay: 0.15s; }
+.build-gen-sketch .g-cards i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes build-gen-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes build-gen-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.8); } }
+@keyframes build-gen-spin { to { transform: rotate(360deg); } }
+@keyframes build-gen-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+@media (max-width: 720px) {
+  .build-gen { grid-template-columns: 1fr; align-content: center; gap: 1.5rem; padding: 1.75rem 1.25rem; }
+  .build-gen-sketch { display: none; }
+  .build-gen-card { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .build-gen, .build-gen-pulse, .build-gen-sketch > span, .build-gen-sketch i { animation: none; }
+  .build-gen-steps li.is-on::before { animation: none; border-right-color: var(--accent); }
+}
