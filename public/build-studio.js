@@ -53,7 +53,23 @@
     var head = '<base href="' + base + '"><style>' + String(css || "").replace(/<\/style/gi, "<\\/style") + "</style><style>" + CALM + "html,body{overflow:hidden}</style>";
     if (/<head[^>]*>/i.test(out)) out = out.replace(/<head[^>]*>/i, function (m) { return m + head; });
     else out = head + out;
+    var theme = resolvedTheme();
+    if (theme) {
+      if (/<html\b[^>]*\sdata-theme=/i.test(out)) out = out.replace(/(<html\b[^>]*\sdata-theme=)(["'])[^"']*\2/i, "$1$2" + theme + "$2");
+      else if (/<html\b/i.test(out)) out = out.replace(/<html\b/i, '<html data-theme="' + theme + '"');
+    }
     return out;
+  }
+  /* Scripts are stripped from thumbnails, so carry over the theme the live preview resolved
+     (its runtime picks saved choice, then the device's light/dark preference). */
+  function resolvedTheme() {
+    try {
+      var f = document.querySelector("[data-preview]");
+      var t = f && f.contentDocument && f.contentDocument.documentElement.getAttribute("data-theme");
+      if (t === "light" || t === "dark") return t;
+    } catch (_) {}
+    try { var saved = localStorage.getItem("af-theme"); if (saved === "light" || saved === "dark") return saved; } catch (_) {}
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "";
   }
 
   /* ================= 1. Live build preview ================= */
@@ -460,7 +476,7 @@
   }
   var vcache = {};
   function versionDoc(n) {
-    var key = S.id + ":" + n;
+    var key = S.id + ":" + n + ":" + resolvedTheme();
     if (vcache[key]) return vcache[key];
     vcache[key] = get("/api/builds/" + encodeURIComponent(S.id) + "/versions/" + n).then(function (r) {
       if (!r.data.ok) { delete vcache[key]; throw new Error(r.data.error || "missing"); }
