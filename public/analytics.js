@@ -55,6 +55,20 @@
       (e.__SV = 1));
   })(document, window.posthog || []);
 
+  /* Never send email addresses to analytics: drop email-ish keys, redact email-shaped values. */
+  var EMAIL_RE = /[^\s@"'<>]+@[^\s@"'<>]+\.[a-z]{2,}/gi;
+  function scrub(o, d) {
+    if (!o || typeof o !== "object" || d > 4) return o;
+    Object.keys(o).forEach(function (k) {
+      if (/e-?mail/i.test(k)) { delete o[k]; return; }
+      var v = o[k];
+      if (typeof v === "string") o[k] = v.replace(EMAIL_RE, "[redacted]");
+      else if (v && typeof v === "object") scrub(v, (d || 0) + 1);
+    });
+    return o;
+  }
+  window.__spawnScrub = scrub;
+
   try {
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
@@ -63,13 +77,14 @@
       person_profiles: "identified_only",
       capture_pageview: true,
       capture_pageleave: true,
+      before_send: function (ev) { try { if (ev) { scrub(ev.properties, 0); scrub(ev.$set, 0); scrub(ev.$set_once, 0); } } catch (_) {} return ev; },
     });
   } catch (_) { /* ignore */ }
 
   window.spawnTrack = function (event, props) {
     try {
       if (window.posthog && typeof window.posthog.capture === "function") {
-        window.posthog.capture(event, props || {});
+        window.posthog.capture(event, scrub(Object.assign({}, props || {}), 0));
       }
     } catch (_) { /* ignore */ }
   };

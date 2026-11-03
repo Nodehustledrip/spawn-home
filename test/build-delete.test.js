@@ -10,3 +10,8 @@ test("wrong or missing token is not admin", () => {
   assert.strictEqual(isAdminReq({ headers: {} }, null), false);
   assert.strictEqual(isAdminReq({ headers: {} }, { email: "random@example.com" }), false);
 });
+test("analytics props never carry emails", () => {
+  const { scrubEmails } = require("../builds");
+  const o = scrubEmails({ email: "a@b.co", userEmail: "x@y.io", note: "hi a@b.co", id: "x1" });
+  assert.deepStrictEqual(o, { note: "hi [redacted]", id: "x1" });
+});

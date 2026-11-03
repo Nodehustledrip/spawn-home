@@ -264,13 +264,23 @@ function wrap(fn) {
   };
 }
 
+/** Analytics never gets email addresses: drop email-ish keys, redact email-shaped strings. */
+function scrubEmails(o) {
+  const re = /[^\s@"'<>]+@[^\s@"'<>]+\.[a-z]{2,}/gi;
+  Object.keys(o).forEach(function (k) {
+    if (/e-?mail/i.test(k)) delete o[k];
+    else if (typeof o[k] === "string") o[k] = o[k].replace(re, "[redacted]");
+  });
+  return o;
+}
+
 function dualWriteBuild(event, props) {
   if (!POSTHOG_KEY) return;
   const body = JSON.stringify({
     api_key: POSTHOG_KEY,
     event: event,
     distinct_id: props.sessionId || props.id || "anon",
-    properties: Object.assign({ $lib: "spawn-home-builds" }, props || {}),
+    properties: scrubEmails(Object.assign({ $lib: "spawn-home-builds" }, props || {})),
   });
   fetch(POSTHOG_HOST.replace(/\/$/, "") + "/capture/", {
     method: "POST",
@@ -820,4 +830,4 @@ function mount(app) {
   });
 }
 
-module.exports = { isAdminReq, fixLegacyCss, fixLegacyCopy, mount, BUILDS_DIR, projectRoot, store };
+module.exports = { isAdminReq, scrubEmails, fixLegacyCss, fixLegacyCopy, mount, BUILDS_DIR, projectRoot, store };

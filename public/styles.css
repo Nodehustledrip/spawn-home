@@ -6242,7 +6242,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
   line-height: 1.5;
   color: var(--text);
 }
-.build-limits strong {
+.build-limits > strong {
   display: block;
   color: var(--accent);
   font-size: 0.78rem;
@@ -6251,6 +6251,7 @@ a.btn-solid:hover { color: var(--accent-ink); }
   margin-bottom: 0.35rem;
 }
 .build-limits p { margin: 0.35rem 0 0; color: var(--muted); }
+.build-limits p strong { display: inline; font: inherit; font-weight: 600; text-transform: none; letter-spacing: normal; color: var(--text); margin: 0; }
 .build-limits a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .build-limits .mono { font-family: var(--mono); font-size: 0.82em; color: var(--text); }
 .build-panel {
