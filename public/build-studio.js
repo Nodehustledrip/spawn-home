@@ -224,7 +224,7 @@
     for (var k = to.attributes.length - 1; k >= 0; k--) { var n = to.attributes[k].name; if (n !== "class" && !from.hasAttribute(n)) to.removeAttribute(n); }
     for (var j = 0; j < from.attributes.length; j++) { var at = from.attributes[j]; if (at.name !== "class") to.setAttribute(at.name, at.value); }
     var keep = to.classList.contains("sp-in");
-    to.className = from.className;
+    var fc = from.getAttribute("class"); if (fc == null) to.removeAttribute("class"); else to.setAttribute("class", fc);
     if (keep) to.classList.add("sp-in");
     if (!from.children.length && to.textContent !== from.textContent) to.textContent = from.textContent;
   }
