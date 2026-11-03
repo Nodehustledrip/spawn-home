@@ -131,6 +131,12 @@ function resolvePath(files, path) {
 async function serveStatic({ env, ctx, app, slug, path, request }) {
   let file = resolvePath(app.files, path);
   let status = 200;
+  if (!file && path === "/favicon.ico") {
+    // Browsers request this on every page; apps without one shouldn't log a 404.
+    const ico = app.files["icons/icon-192.png"] ? "icons/icon-192.png" : app.files["favicon.svg"] ? "favicon.svg" : null;
+    if (ico) return Response.redirect(new URL("/" + ico, request.url).toString(), 302);
+    return new Response('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#222"/></svg>', { status: 200, headers: { "content-type": "image/svg+xml", "cache-control": "public, max-age=86400" } });
+  }
   if (!file) {
     if (app.files["200.html"]) file = "200.html"; // explicit SPA fallback
     else if (app.files["404.html"]) { file = "404.html"; status = 404; }
