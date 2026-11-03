@@ -176,7 +176,7 @@ require("./gallery").mount(app, { isAdmin: function (req) { return checkWaitlist
 app.get("/gallery.html", function (_req, res) { res.redirect(301, "/gallery"); });
 
 /* Clean marketing URLs: /how → how.html; /how.html → 301 /how */
-const CLEAN_PAGES = ["how", "product", "access", "privacy", "pricing", "terms", "refund", "faq", "changelog", "tour", "showcase", "why", "build", "signin", "contact", "404"];
+const CLEAN_PAGES = ["how", "account", "product", "access", "privacy", "pricing", "terms", "refund", "faq", "changelog", "tour", "showcase", "why", "build", "signin", "contact", "404"];
 const CLEAN_SET = new Set(CLEAN_PAGES);
 
 /* Trailing slash → canonical (must run before page routes; Express non-strict

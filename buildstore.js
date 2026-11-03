@@ -79,6 +79,7 @@ function initD1() {
     for (let attempt = 1; attempt <= 5; attempt++) {
       try {
         await pool.batch(d1.SCHEMA.map(function (sql) { return { sql: sql, raw: true }; }));
+        await d1.migrate(pool);
         ready = true;
         console.log("[buildstore] d1 ready");
         return true;
@@ -180,6 +181,8 @@ function init() {
         );
         await pool.query("CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions (user_id)");
         await pool.query("CREATE TABLE IF NOT EXISTS waitlist (email TEXT PRIMARY KEY, source TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now())");
+        /* Tier support: plan is 'free' | 'pro' | 'elite'; plan_price_id records the Stripe price behind it. */
+        await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_price_id TEXT");
         ready = true;
         console.log("[buildstore] postgres ready");
         return true;

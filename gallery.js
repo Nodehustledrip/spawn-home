@@ -69,14 +69,22 @@ function decodeEntities(s) {
   });
 }
 const ACCESS = new Set(["open", "pro"]); // later: "purchase" (uses price_cents)
-/** Can this viewer remix the entry? Premium templates are included with Pro. */
-function canRemix(entry, user, isPro) {
+/** True while a premium template is still in its Elite early-access window. */
+function inEarlyAccess(entry, nowMs) {
+  const t = entry && entry.elite_until ? Date.parse(entry.elite_until) : NaN;
+  return Number.isFinite(t) && t > (nowMs || Date.now());
+}
+/** Can this viewer remix the entry? Premium templates are included with Pro; new ones are
+ * Elite-only until their elite_until date (30-day early access), then open to Pro too. */
+function canRemix(entry, user, isPro, isElite, nowMs) {
   const access = entry && (entry.access || (entry.premium ? "pro" : "open"));
   if (access !== "pro") return { ok: true };
   if (!user) return { ok: false, reason: "signin" };
   if (!isPro(user)) return { ok: false, reason: "pro" };
+  if (inEarlyAccess(entry, nowMs) && !(isElite && isElite(user))) return { ok: false, reason: "elite", until: entry.elite_until };
   return { ok: true };
 }
+const EARLY_DAYS = 30;
 const clean = (s, n) => String(s || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim().slice(0, n);
 
 function metaFromHtml(html) {
@@ -121,6 +129,9 @@ function createStore(getBackend) {
           try { await be().query("ALTER TABLE gallery ADD COLUMN " + ddl, []); }
           catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; }
         }
+        /* 0009: Elite early access — premium templates are Elite-only until elite_until (ISO date). */
+        if (!cols.some((c) => c.name === "elite_until")) try { await be().query("ALTER TABLE gallery ADD COLUMN elite_until TEXT", []); }
+        catch (e) { if (!/duplicate column/i.test(String(e && e.message))) throw e; }
       })().catch((e) => { ready = null; throw e; });
     }
     await ready;
@@ -136,25 +147,28 @@ function createStore(getBackend) {
     /** Insert or update an entry. Only provided fields change. */
     async upsert(slug, owner, f) {
       const cur = (await q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
-      const row = Object.assign({ listed: 0, remixable: 1, hidden: 0, starter: 0, premium: 0, access: "open", price_cents: null, title: null, description: null, category: "other", accent: null, thumb_key: null, listed_at: null }, cur || {});
+      const row = Object.assign({ listed: 0, remixable: 1, hidden: 0, starter: 0, premium: 0, access: "open", price_cents: null, elite_until: null, title: null, description: null, category: "other", accent: null, thumb_key: null, listed_at: null }, cur || {});
       for (const k of ["title", "description", "category", "accent", "thumb_key"]) if (f[k] !== undefined) row[k] = f[k];
       for (const k of ["listed", "remixable", "hidden", "starter", "premium"]) if (f[k] !== undefined) row[k] = f[k] ? 1 : 0;
       if (f.access !== undefined) row.access = ACCESS.has(f.access) ? f.access : "open";
       if (f.price_cents !== undefined) row.price_cents = f.price_cents == null ? null : Math.max(0, Math.round(Number(f.price_cents) || 0));
+      if (f.elite_until !== undefined) row.elite_until = f.elite_until ? new Date(f.elite_until).toISOString() : null;
+      /* A template newly marked premium gets 30 days of Elite early access unless a date was given. */
+      if (f.premium && !(cur && cur.premium) && f.elite_until === undefined) row.elite_until = new Date(Date.now() + EARLY_DAYS * 86400000).toISOString();
       if (row.premium && row.access === "open") row.access = "pro";
       if (row.listed && !row.listed_at) row.listed_at = now();
       if (!CAT_IDS.has(row.category)) row.category = "other";
       if (cur) {
-        await q("UPDATE gallery SET listed=?2, remixable=?3, hidden=?4, title=?5, description=?6, category=?7, accent=?8, thumb_key=?9, listed_at=?10, updated_at=?11, starter=?12, premium=?13, access=?14, price_cents=?15 WHERE slug=?1",
-          [slug, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, now(), row.starter ? 1 : 0, row.premium ? 1 : 0, row.access || "open", row.price_cents == null ? null : row.price_cents]);
+        await q("UPDATE gallery SET listed=?2, remixable=?3, hidden=?4, title=?5, description=?6, category=?7, accent=?8, thumb_key=?9, listed_at=?10, updated_at=?11, starter=?12, premium=?13, access=?14, price_cents=?15, elite_until=?16 WHERE slug=?1",
+          [slug, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, now(), row.starter ? 1 : 0, row.premium ? 1 : 0, row.access || "open", row.price_cents == null ? null : row.price_cents, row.elite_until || null]);
       } else {
-        await q("INSERT INTO gallery (slug, owner, listed, remixable, hidden, title, description, category, accent, thumb_key, listed_at, starter, premium, access, price_cents) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)",
-          [slug, owner, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, row.starter ? 1 : 0, row.premium ? 1 : 0, row.access || "open", row.price_cents == null ? null : row.price_cents]);
+        await q("INSERT INTO gallery (slug, owner, listed, remixable, hidden, title, description, category, accent, thumb_key, listed_at, starter, premium, access, price_cents, elite_until) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",
+          [slug, owner, row.listed, row.remixable, row.hidden, row.title, row.description, row.category, row.accent, row.thumb_key, row.listed_at, row.starter ? 1 : 0, row.premium ? 1 : 0, row.access || "open", row.price_cents == null ? null : row.price_cents, row.elite_until || null]);
       }
       return (await q("SELECT * FROM gallery WHERE slug=?1", [slug]))[0];
     },
     async list() {
-      return q("SELECT g.slug, g.title, g.description, g.category, g.accent, g.remixable, g.starter, g.premium, g.access, g.price_cents, g.thumb_key, g.listed_at, g.updated_at, g.remix_count, a.title AS app_title, a.updated_at AS app_updated, a.runtime " +
+      return q("SELECT g.slug, g.title, g.description, g.category, g.accent, g.remixable, g.starter, g.premium, g.access, g.price_cents, g.elite_until, g.thumb_key, g.listed_at, g.updated_at, g.remix_count, a.title AS app_title, a.updated_at AS app_updated, a.runtime " +
         "FROM gallery g JOIN apps a ON a.slug=g.slug WHERE g.listed=1 AND g.hidden=0 AND a.status='active' AND a.live_version IS NOT NULL ORDER BY g.listed_at DESC LIMIT 300", []);
     },
     async report(slug, reason, note, reporter) {
@@ -212,7 +226,7 @@ function createStore(getBackend) {
         if (Object.keys(files).length >= 200) break;
       }
       if (!files["index.html"]) throw Object.assign(new Error("That app has no index.html to remix."), { status: 400 });
-      return { title: g.title || g.app_title || slug, files, premium: !!g.premium, access: g.access || "open" };
+      return { title: g.title || g.app_title || slug, files, premium: !!g.premium, access: g.access || "open", elite_until: g.elite_until || null };
     },
   };
   return store;
@@ -309,6 +323,7 @@ function entryView(r, apex) {
     starter: !!r.starter,
     premium: !!r.premium,
     access: r.access || (r.premium ? "pro" : "open"),
+    earlyUntil: r.premium && inEarlyAccess(r) ? r.elite_until : null,
     url: "https://" + r.slug + "." + apex + "/",
     host: r.slug + "." + apex,
     thumb: "/gallery/thumb/" + r.slug + ".png?v=" + v,
@@ -326,13 +341,13 @@ function renderCards(entries) {
           <span class="gl-live-pill"><span aria-hidden="true"></span>Live</span>
         </a>
         <div class="gl-body">
-          <div class="gl-tags">${e.premium ? '<span class="gl-tag gl-tag-premium" title="Remix it with a Spawn Pro account — no extra charge">Premium · Included with Pro</span><span class="gl-tag gl-tag-ghost" title="Connect your own Stripe account and paid bookings, orders and memberships confirm themselves">Payments unlock automatically</span>' : ""}${e.starter && !e.premium ? '<span class="gl-tag gl-tag-starter" title="Made by Spawn as a starting point — remix it into your own app">Spawn starter</span>' : ""}<span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable && !e.premium ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
+          <div class="gl-tags">${e.earlyUntil ? `<span class="gl-tag gl-tag-elite" title="New premium template: Elite members can remix it now; it opens to Pro on ${x(String(e.earlyUntil).slice(0, 10))}">Elite early access</span>` : ""}${e.premium ? '<span class="gl-tag gl-tag-premium" title="Remix it with a Spawn Pro account — no extra charge">Premium · Included with Pro</span><span class="gl-tag gl-tag-ghost" title="Connect your own Stripe account and paid bookings, orders and memberships confirm themselves">Payments unlock automatically</span>' : ""}${e.starter && !e.premium ? '<span class="gl-tag gl-tag-starter" title="Made by Spawn as a starting point — remix it into your own app">Spawn starter</span>' : ""}<span class="gl-tag">${x(e.categoryLabel)}</span>${e.remixable && !e.premium ? '<span class="gl-tag gl-tag-ghost">Remixable</span>' : ""}</div>
           <h2 class="gl-title">${x(e.title)}</h2>
           ${e.description ? `<p class="gl-desc">${x(e.description)}</p>` : ""}
           <p class="gl-host mono">${x(e.host)}</p>
           <div class="gl-actions">
             <a class="btn-solid gl-btn" href="${x(e.url)}" target="_blank" rel="noopener" data-gl-open="${x(e.slug)}">Open live <span aria-hidden="true">↗</span></a>
-            ${e.remixable ? `<a class="gl-btn gl-btn-ghost" href="/build?remix=${encodeURIComponent(e.slug)}" data-gl-remix="${x(e.slug)}"${e.premium ? ` data-gl-premium="${x(e.slug)}" data-gl-title="${x(e.title)}"` : ""}>${e.premium ? "Remix with Pro" : "Remix this"}</a>` : `<span class="gl-note">Remix off</span>`}
+            ${e.remixable ? `<a class="gl-btn gl-btn-ghost" href="/build?remix=${encodeURIComponent(e.slug)}" data-gl-remix="${x(e.slug)}"${e.premium ? ` data-gl-premium="${x(e.slug)}" data-gl-title="${x(e.title)}"` : ""}>${e.earlyUntil ? "Remix with Elite" : e.premium ? "Remix with Pro" : "Remix this"}</a>` : `<span class="gl-note">Remix off</span>`}
             <button type="button" class="gl-share" data-gl-share="${x(e.slug)}" data-url="${x(e.url)}" data-title="${x(e.title)}" data-image="${x(e.thumb)}" aria-label="Share ${x(e.title)}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>Share</button>
             <button type="button" class="gl-report" data-gl-report="${x(e.slug)}" aria-label="Report ${x(e.title)}">Report</button>
           </div>
@@ -479,6 +494,7 @@ function mount(app, opts) {
     if (typeof b.premium === "boolean") f.premium = b.premium;
     if (b.access !== undefined) f.access = b.access;
     if (b.price_cents !== undefined) f.price_cents = b.price_cents;
+    if (b.elite_until !== undefined) { if (b.elite_until && !Number.isFinite(Date.parse(b.elite_until))) return res.status(400).json({ ok: false, error: "elite_until must be a date." }); f.elite_until = b.elite_until || null; }
     if (b.title !== undefined) { const e = checkTitle(b.title); if (e) return res.status(400).json({ ok: false, error: e }); f.title = clean(b.title, 80); }
     if (b.description !== undefined) { const e = checkText(b.description); if (e) return res.status(400).json({ ok: false, error: e }); f.description = clean(b.description, 200); }
     if (b.category !== undefined) f.category = CAT_IDS.has(b.category) ? b.category : "other";
@@ -515,4 +531,4 @@ function mount(app, opts) {
   }));
 }
 
-module.exports = { mount, decodeEntities, canRemix, ACCESS, createStore, CATEGORIES, guessCategory, checkTitle, checkText, metaFromHtml, stripForRemix, cardSvg, cardPng, accentFor, catLabel, CAT_IDS };
+module.exports = { mount, decodeEntities, canRemix, inEarlyAccess, EARLY_DAYS, ACCESS, createStore, CATEGORIES, guessCategory, checkTitle, checkText, metaFromHtml, stripForRemix, cardSvg, cardPng, accentFor, catLabel, CAT_IDS };

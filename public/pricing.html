@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Free: AI builds, publishing at yourname.spawnapp.org with a small badge. Pro $12/mo or $120/yr: custom domains, no badge, 25 builds and premium templates." />
+  <meta name="description" content="Free: AI builds and publishing at yourname.spawnapp.org. Pro $12/mo: custom domains, no badge, premium templates. Elite $25/mo: password-protected sites, visitor stats, 50 domains, higher limits." />
     <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#0a0a0b" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta property="og:title" content="Spawn Pricing — Free Website Builder with Hosting, Pro $12" />
-  <meta property="og:description" content="Free: AI builds, publishing at yourname.spawnapp.org with a small badge. Pro $12/mo or $120/yr: custom domains, no badge, 25 builds and premium templates." />
+  <meta property="og:title" content="Spawn Pricing — Free Website Builder, Pro $12, Elite $25" />
+  <meta property="og:description" content="Free: AI builds and publishing at yourname.spawnapp.org. Pro $12/mo: custom domains, no badge, premium templates. Elite $25/mo: password-protected sites, visitor stats, 50 domains, higher limits." />
   <meta property="og:url" content="https://spawnapp.org/pricing" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Spawn" />
   <meta property="og:image" content="https://spawnapp.org/og-pricing.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Spawn Pricing — Free Website Builder with Hosting, Pro $12" />
+  <meta property="og:image:alt" content="Spawn Pricing — Free Website Builder, Pro $12, Elite $25" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Spawn Pricing — Free Website Builder with Hosting, Pro $12" />
-  <meta name="twitter:description" content="Free: AI builds, publishing at yourname.spawnapp.org with a small badge. Pro $12/mo or $120/yr: custom domains, no badge, 25 builds and premium templates." />
+  <meta name="twitter:title" content="Spawn Pricing — Free Website Builder, Pro $12, Elite $25" />
+  <meta name="twitter:description" content="Free: AI builds and publishing at yourname.spawnapp.org. Pro $12/mo: custom domains, no badge, premium templates. Elite $25/mo: password-protected sites, visitor stats, 50 domains, higher limits." />
   <meta name="twitter:image" content="https://spawnapp.org/og-pricing.png" />
-  <title>Spawn Pricing — Free Website Builder with Hosting, Pro $12</title>
+  <title>Spawn Pricing — Free Website Builder, Pro $12, Elite $25</title>
   <link rel="canonical" href="https://spawnapp.org/pricing" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -69,8 +69,8 @@
    "@type": "WebPage",
    "@id": "https://spawnapp.org/pricing#webpage",
    "url": "https://spawnapp.org/pricing",
-   "name": "Spawn Pricing — Free Website Builder with Hosting, Pro $12",
-   "description": "Free: AI builds, publishing at yourname.spawnapp.org with a small badge. Pro $12/mo or $120/yr: custom domains, no badge, 25 builds and premium templates.",
+   "name": "Spawn Pricing — Free Website Builder, Pro $12, Elite $25",
+   "description": "Free: AI builds and publishing at yourname.spawnapp.org. Pro $12/mo: custom domains, no badge, premium templates. Elite $25/mo: password-protected sites, visitor stats, 50 domains, higher limits.",
    "isPartOf": {
     "@id": "https://spawnapp.org/#website"
    },
@@ -156,6 +156,34 @@
       "billingDuration": "P1Y",
       "unitCode": "ANN"
      }
+    },
+    {
+     "@type": "Offer",
+     "name": "Elite (monthly)",
+     "price": "25",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing#elite",
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "25",
+      "priceCurrency": "USD",
+      "billingDuration": "P1M",
+      "unitCode": "MON"
+     }
+    },
+    {
+     "@type": "Offer",
+     "name": "Elite (yearly)",
+     "price": "250",
+     "priceCurrency": "USD",
+     "url": "https://spawnapp.org/pricing#elite",
+     "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "250",
+      "priceCurrency": "USD",
+      "billingDuration": "P1Y",
+      "unitCode": "ANN"
+     }
     }
    ]
   }
@@ -204,27 +232,28 @@
   <main id="main" class="page-privacy page-pricing">
     <header class="privacy-hero">
       <p class="kicker">Pricing</p>
-      <h1>Free to build. Pro when you want to keep it.</h1>
+      <h1>Free to build. Pro to keep it. Elite to run it.</h1>
       <p class="lead">
         Everything on <a href="/build">/build</a> is free. Pro keeps your
-        builds in your account with higher limits. Create an account here on
-        spawnapp.org, then subscribe in a couple of clicks.
+        builds in your account with your own domain. Elite adds private,
+        password-protected sites, visitor stats and the highest limits.
+        Create an account here on spawnapp.org, then subscribe in a couple of clicks.
       </p>
     </header>
 
     <section class="plan-welcome" id="welcome" hidden aria-live="polite">
-      <p class="kicker">Welcome to Pro</p>
+      <p class="kicker" data-welcome-kicker>Welcome to Pro</p>
       <h2>Thank you — you’re in.</h2>
       <p data-welcome-status>Your subscription is confirmed. A receipt from Degen Social is on its way to your email.</p>
-      <ul class="plan-list">
+      <ul class="plan-list" data-welcome-list>
         <li>Your account now keeps up to 25 builds, with undo history, and 300 edits a day.</li>
         <li>Priority email support starts now — just reply to your receipt.</li>
-        <li>Manage or cancel anytime from <strong>Manage billing</strong> on <a href="/build">/build</a> or this page.</li>
+        <li>Manage or cancel anytime from <a href="/account">your account</a>.</li>
       </ul>
       <a class="btn-solid" href="/build">Go to your builds</a>
     </section>
 
-    <div class="plan-grid">
+    <div class="plan-grid plan-grid-3">
       <section class="plan-card" aria-labelledby="plan-free-h">
         <p class="plan-kicker">Free</p>
         <h2 id="plan-free-h" class="plan-price">$0</h2>
@@ -246,29 +275,55 @@
         <h2 id="plan-pro-h" class="plan-price">$12<span>/mo</span></h2>
         <p class="plan-sub">or $120/year — save 2 months</p>
         <ul class="plan-list">
-          <li>Connect your own domain to published apps</li>
+          <li>Connect up to 10 custom domains to published apps</li>
           <li>No “Made with Spawn” badge</li>
           <li>Premium templates: <a href="/gallery#premium">booking with payments, a store, a membership site</a> &mdash; connect your Stripe and payments unlock automatically</li>
           <li>25 saved builds with undo history</li>
           <li>300 edits a day</li>
           <li>Priority email support</li>
         </ul>
-        <div class="plan-buy" data-buy>
-          <button type="button" class="btn-solid btn-wide plan-sub-btn" data-interval="monthly" disabled>Subscribe — $12/month</button>
-          <button type="button" class="btn-ghost-gold btn-wide plan-sub-btn" data-interval="yearly" disabled>Subscribe yearly — $120 <span class="plan-save">save 2 months</span></button>
+        <div class="plan-buy" data-buy="pro">
+          <button type="button" class="btn-solid btn-wide plan-sub-btn" data-tier="pro" data-interval="monthly" disabled>Subscribe — $12/month</button>
+          <button type="button" class="btn-ghost-gold btn-wide plan-sub-btn" data-tier="pro" data-interval="yearly" disabled>Subscribe yearly — $120 <span class="plan-save">save 2 months</span></button>
         </div>
-        <div class="plan-buy" data-pro hidden>
-          <p class="plan-sub" style="margin:0"><strong>You’re on Pro.</strong> <span data-pro-renew></span></p>
+        <div class="plan-buy" data-current="pro" hidden>
+          <p class="plan-sub" style="margin:0"><strong>You’re on Pro.</strong> <span data-renew></span></p>
           <button type="button" class="btn-ghost-gold btn-wide" data-manage>Manage billing</button>
         </div>
-        <p class="plan-note" data-buy-note role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="plan-card plan-card-elite" id="elite" aria-labelledby="plan-elite-h">
+        <span class="plan-flag">Most complete</span>
+        <p class="plan-kicker">Elite</p>
+        <h2 id="plan-elite-h" class="plan-price">$25<span>/mo</span></h2>
+        <p class="plan-sub">or $250/year — save 2 months</p>
+        <p class="plan-everything">Everything in Pro, plus:</p>
+        <ul class="plan-list">
+          <li><strong>Password-protected sites</strong> — share a private app with clients or a team</li>
+          <li><strong>Visitor stats</strong> — views, top pages and referrers, with no cookies or personal data collected</li>
+          <li><strong>Up to 50 custom domains</strong></li>
+          <li><strong>Up to 100 saved builds and 1,000 edits a day</strong>, with your own AI allowance (shared site capacity applies on very busy days)</li>
+          <li><strong>30-day early access</strong> to new premium templates</li>
+          <li>No “Made with Spawn” badge, priority email support</li>
+        </ul>
+        <div class="plan-buy" data-buy="elite">
+          <button type="button" class="btn-elite btn-wide plan-sub-btn" data-tier="elite" data-interval="monthly" disabled>Get Elite — $25/month</button>
+          <button type="button" class="btn-ghost-elite btn-wide plan-sub-btn" data-tier="elite" data-interval="yearly" disabled>Elite yearly — $250 <span class="plan-save">save 2 months</span></button>
+        </div>
+        <div class="plan-buy" data-current="elite" hidden>
+          <p class="plan-sub" style="margin:0"><strong>You’re on Elite.</strong> <span data-renew></span></p>
+          <a class="btn-ghost-elite btn-wide" href="/account">Your account</a>
+        </div>
       </section>
     </div>
+    <p class="plan-note" data-buy-note role="status" aria-live="polite"></p>
 
     <p class="plan-fine">
       Subscribe from your Spawn account. Secure checkout by Stripe; billed by
-      Degen Social. Cancel anytime from Manage billing, and if Pro isn’t for
-      you, ask within 7 days for a full refund. See
+      Degen Social. Already on Pro? Switching to Elite charges only the prorated
+      difference for the rest of your billing period — no second subscription.
+      Cancel anytime from Manage billing, and if a plan isn’t for you, ask
+      within 7 days for a full refund. See
       <a href="/terms">Terms</a> and <a href="/refund">Refunds</a>.
     </p>
 
@@ -301,6 +356,7 @@
     var $ = function (sel) { return document.querySelector(sel); };
     var note = $("[data-buy-note]");
     var btns = document.querySelectorAll(".plan-sub-btn");
+    var NAMES = { pro: "Pro", elite: "Elite" };
     function say(msg, err) { note.textContent = msg; note.style.color = err ? "#f0a08a" : ""; }
     function cap(ev, props) { try { if (window.posthog && posthog.capture) posthog.capture(ev, props || {}); } catch (e) {} }
     function post(url, body) {
@@ -308,25 +364,32 @@
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); });
     }
     function setBusy(b) { btns.forEach(function (x) { x.disabled = b; }); }
-    function checkout(interval) {
+    function checkout(tier, interval) {
       setBusy(true); say("Opening secure checkout…");
-      cap("pro_subscribe_click", { plan: "pro_" + interval }); cap("checkout_started", { plan: "pro_" + interval });
-      return post("/api/billing/checkout", { interval: interval }).then(function (d) {
+      cap(tier + "_subscribe_click", { plan: tier + "_" + interval }); cap("checkout_started", { plan: tier + "_" + interval });
+      if (tier === "elite") cap("elite_checkout_started", { interval: interval });
+      return post("/api/billing/checkout", { interval: interval, tier: tier }).then(function (d) {
         if (d.ok && d.url) { location.assign(d.url); return; }
-        if (d._status === 401) { location.assign("/signin?next=" + encodeURIComponent("/pricing?subscribe=" + interval)); return; }
+        if (d._status === 401) { location.assign("/signin?next=" + encodeURIComponent("/pricing?subscribe=" + interval + "&tier=" + tier)); return; }
+        if (d.change) { location.assign("/account?switch=" + tier + "#plan"); return; }
         setBusy(false); say(d.error || "Checkout is unavailable right now — try again in a minute.", true);
-        if (d.pro) loadState();
       }).catch(function () { setBusy(false); say("Network error — try again.", true); });
     }
-    function manage() {
-      var b = $("[data-manage]"); b.disabled = true;
+    document.querySelectorAll("[data-manage]").forEach(function (b) { b.addEventListener("click", function () {
+      b.disabled = true;
       post("/api/billing/portal", { return: "/pricing" }).then(function (d) {
         if (d.ok && d.url) return location.assign(d.url);
         b.disabled = false; say(d.error || "Billing is unavailable right now.", true);
       }).catch(function () { b.disabled = false; say("Network error — try again.", true); });
+    }); });
+    var wtier = q.get("tier") === "elite" ? "elite" : "pro";
+    if (q.get("welcome") === "1") {
+      $("#welcome").hidden = false; cap(wtier + "_checkout_returned");
+      if (wtier === "elite") {
+        $("[data-welcome-kicker]").textContent = "Welcome to Elite";
+        $("[data-welcome-list]").innerHTML = "<li>Your account now keeps up to 100 builds and up to 1,000 edits a day.</li><li>Turn on a password or open visitor stats for any published app from <a href=\"/cloud/stats\">Stats &amp; privacy</a>.</li><li>Manage or cancel anytime from <a href=\"/account\">your account</a>.</li>";
+      }
     }
-    $("[data-manage]").addEventListener("click", manage);
-    if (q.get("welcome") === "1") { $("#welcome").hidden = false; cap("pro_checkout_returned"); }
     function loadState() {
       return fetch("/api/auth/config", { credentials: "same-origin", cache: "no-store" })
         .then(function (r) { return r.ok ? r.json() : null; })
@@ -338,29 +401,35 @@
           }
           return fetch("/api/me", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (me) {
             var signedIn = !!(me && me.signedIn);
-            if (signedIn && me.plan === "pro") {
-              $("[data-buy]").hidden = true; $("[data-pro]").hidden = false;
-              if (me.periodEnd) $("[data-pro-renew]").textContent = "Current period ends " + new Date(me.periodEnd).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) + ".";
-              say("Thanks for supporting Spawn.");
-              return;
+            var tier = signedIn ? (me.tier || (me.plan === "pro" ? "pro" : "free")) : "free";
+            if (tier === "pro" || tier === "elite") {
+              var box = $("[data-buy=" + tier + "]"); if (box) box.hidden = true;
+              var cur = $("[data-current=" + tier + "]"); cur.hidden = false;
+              if (me.periodEnd) cur.querySelector("[data-renew]").textContent = "Current period ends " + new Date(me.periodEnd).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) + ".";
             }
-            if (signedIn && me.hasBilling) { $("[data-pro]").hidden = false; $("[data-pro]").querySelector("p").hidden = true; }
             btns.forEach(function (x) {
+              var t = x.getAttribute("data-tier"), iv = x.getAttribute("data-interval");
               x.disabled = false; x.removeAttribute("aria-disabled");
+              if (tier !== "free" && t !== tier) {
+                x.textContent = t === "elite" ? "Upgrade to Elite" : "Switch to Pro";
+                if (iv === "yearly") { x.hidden = true; return; }
+                x.onclick = function () { if (t === "elite") cap("elite_upgrade_clicked", { from: tier, where: "pricing" }); location.assign("/account?switch=" + t + "#plan"); };
+                return;
+              }
               x.onclick = function () {
-                var iv = x.getAttribute("data-interval");
-                if (!signedIn) { cap("pro_subscribe_click", { plan: "pro_" + iv, signedIn: false }); location.assign("/signin?next=" + encodeURIComponent("/pricing?subscribe=" + iv)); return; }
-                checkout(iv);
+                if (!signedIn) { cap(t + "_subscribe_click", { plan: t + "_" + iv, signedIn: false }); location.assign("/signin?next=" + encodeURIComponent("/pricing?subscribe=" + iv + "&tier=" + t)); return; }
+                checkout(t, iv);
               };
             });
-            say(signedIn ? "Signed in as " + me.email + ". You’ll pay on Stripe’s secure checkout and come right back here." : "Create a free account (or sign in) first — it takes one email link — then you’ll go straight to checkout.");
-            var sub = q.get("subscribe");
-            if (signedIn && (sub === "monthly" || sub === "yearly") && q.get("welcome") !== "1") {
+            if (tier !== "free") say("You’re on " + NAMES[tier] + ". Thanks for supporting Spawn.");
+            else say(signedIn ? "Signed in as " + me.email + ". You’ll pay on Stripe’s secure checkout and come right back here." : "Create a free account (or sign in) first — it takes one email link — then you’ll go straight to checkout.");
+            var sub = q.get("subscribe"), st = q.get("tier") === "elite" ? "elite" : "pro";
+            if (signedIn && tier === "free" && (sub === "monthly" || sub === "yearly") && q.get("welcome") !== "1") {
               try { history.replaceState(null, "", "/pricing"); } catch (e) {}
-              checkout(sub);
+              checkout(st, sub);
             }
-            if (q.get("welcome") === "1" && !(me.plan === "pro")) {
-              $("[data-welcome-status]").textContent = "Payment received — your Pro plan is being switched on. Refresh in a few seconds if it doesn’t show yet.";
+            if (q.get("welcome") === "1" && tier !== wtier) {
+              $("[data-welcome-status]").textContent = "Payment received — your " + NAMES[wtier] + " plan is being switched on. Refresh in a few seconds if it doesn’t show yet.";
               if ((window._spawnPoll = (window._spawnPoll || 0) + 1) <= 8) setTimeout(loadState, 4000);
             }
           });

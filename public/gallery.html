@@ -87,6 +87,7 @@
     .gl-prem-kicker { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; color: #e3c27a; }
     .gl-card-premium { border-color: rgba(214,178,94,.38) !important; box-shadow: 0 0 0 1px rgba(214,178,94,.08), 0 18px 40px -24px rgba(214,178,94,.45); }
     .gl-tag-premium { color: #1b1404; background: linear-gradient(135deg,#f3d58a,#c9a24a); border-color: transparent; font-weight: 700; }
+    .gl-tag-elite { color: #f5f0ff; background: linear-gradient(135deg,#7c5cff,#c084fc); border-color: transparent; font-weight: 700; }
     .gl-card-premium [data-gl-premium] { border-color: rgba(214,178,94,.55); }
     dialog.gl-up { max-width: 440px; padding: 0; overflow: hidden; }
     .gl-up-top { padding: 1.5rem 1.5rem 1.1rem; background: radial-gradient(120% 120% at 0% 0%, rgba(214,178,94,.22), transparent 60%); border-bottom: 1px solid rgba(255,255,255,.08); }
@@ -292,8 +293,9 @@
         var a = e.target.closest("[data-gl-premium]"); if (!a) return;
         e.preventDefault();
         getMe().then(function (d) {
-          if (d && d.signedIn && d.plan === "pro") { track("gallery_remix_click", { slug: a.dataset.glPremium, premium: true }); location.href = a.getAttribute("href"); return; }
+          if (d && d.signedIn && (d.plan === "elite" || (d.plan === "pro" && !a.closest(".gl-card").querySelector(".gl-tag-elite")))) { track("gallery_remix_click", { slug: a.dataset.glPremium, premium: true }); location.href = a.getAttribute("href"); return; }
           track("premium_remix_blocked", { slug: a.dataset.glPremium, signed_in: !!(d && d.signedIn), where: "gallery" });
+          if (a.closest(".gl-card").querySelector(".gl-tag-elite")) { track("elite_early_access_blocked", { slug: a.dataset.glPremium, plan: (d && d.plan) || "anon" }); location.href = "/pricing?ref=elite-early-access#elite"; return; }
           up.querySelector("[data-gl-up-title]").textContent = a.dataset.glTitle || "this template";
           up.querySelector("[data-gl-up-signin]").hidden = !!(d && d.signedIn);
           if (up.showModal) up.showModal(); else location.href = "/pricing?ref=premium-template";

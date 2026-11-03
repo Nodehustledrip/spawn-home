@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#0a0a0b" />
+  <title>Your account · Spawn</title>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preload" href="/styles.css" as="style" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .acct{max-width:860px}.acct-card{border:1px solid var(--line);border-radius:16px;padding:1.4rem 1.5rem;background:rgba(255,255,255,.02);margin-bottom:1rem}
+    .acct-card h2{margin:0 0 .4rem;font-size:1.15rem}.acct-tier{display:inline-block;font-size:.72rem;font-weight:650;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .6rem;border-radius:999px;border:1px solid var(--line);margin-left:.4rem;vertical-align:middle}
+    .acct-tier.elite{color:#0b0b0e;background:linear-gradient(135deg,#ddd6fe,#a78bfa);border:0}.acct-tier.pro{color:#d4a574;border-color:rgba(212,165,116,.5)}
+    .acct-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;margin:.8rem 0}.acct-stat{border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem}.acct-stat b{display:block;font-size:1.4rem}.acct-stat span{color:var(--muted);font-size:.85rem}
+    .acct-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem}.acct-links a{display:block;padding:.55rem 0;border-top:1px solid var(--line)}.acct-muted{color:var(--muted);font-size:.9rem}
+    .plan-card-elite{border-radius:16px;padding:1.4rem 1.5rem;margin-bottom:1rem}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" data-nav>
+    <a class="mark" href="/" aria-label="Spawn home">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="19" height="19" rx="5.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 11.2l2.8 2.8L15.2 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="mark-word">Spawn</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-link" href="/product">Product</a>
+      <a class="nav-link" href="/tour">Tour</a>
+      <a class="nav-link" href="/gallery">Gallery</a>
+      <a class="nav-link" href="/showcase">Showcase</a>
+      <a class="nav-link" href="/pricing">Pricing</a>
+      <a class="nav-link nav-cta" href="/build">Build</a>
+    </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </header>
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <a href="/product">Product</a>
+    <a href="/tour">Tour</a>
+    <a href="/gallery">Gallery</a>
+    <a href="/showcase">Showcase</a>
+    <a href="/build">Build an app</a>
+    <a href="/pricing">Pricing</a>
+    <span class="mobile-nav-label">More</span>
+    <a href="/why">Why</a>
+    <a href="/how">How it works</a>
+    <a href="/faq">FAQ</a>
+    <a href="/changelog">Changelog</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+
+  <main id="main" class="page-privacy page-pricing acct">
+    <header class="privacy-hero">
+      <p class="kicker">Account</p>
+      <h1 data-title>Your account</h1>
+      <p class="lead" data-lead>Loading…</p>
+    </header>
+    <div data-body hidden>
+      <section class="acct-card" id="plan">
+        <h2>Plan <span class="acct-tier" data-tier>Free</span></h2>
+        <p class="acct-muted" data-plan-note></p>
+        <div class="acct-grid">
+          <div class="acct-stat"><b data-l-builds>–</b><span>saved builds</span></div>
+          <div class="acct-stat"><b data-l-edits>–</b><span>edits a day (up to)</span></div>
+          <div class="acct-stat"><b data-l-domains>–</b><span>custom domains</span></div>
+        </div>
+        <div class="acct-row">
+          <a class="btn-solid" data-go-pricing href="/pricing">See plans</a>
+          <button type="button" class="btn-ghost-gold" data-manage hidden>Manage billing</button>
+        </div>
+        <p class="plan-note" data-note role="status" aria-live="polite"></p>
+      </section>
+      <section class="plan-card-elite" id="elite" data-elite-box hidden>
+        <p class="plan-kicker">Spawn Elite · $25/mo or $250/yr</p>
+        <h2 style="margin:.3rem 0 .5rem">Private sites, visitor stats and the highest limits</h2>
+        <ul class="plan-list">
+          <li>Password-protect any published app</li>
+          <li>Visitor stats: views, top pages and referrers, with no personal data</li>
+          <li>Up to 50 custom domains, up to 100 builds and 1,000 edits a day</li>
+          <li>30-day early access to new premium templates</li>
+        </ul>
+        <p class="acct-muted" data-elite-price></p>
+        <div class="acct-row"><button type="button" class="btn-elite" data-upgrade>Upgrade to Elite</button></div>
+      </section>
+      <section class="acct-card">
+        <h2>Your published apps</h2>
+        <div class="acct-links">
+          <a href="/cloud/stats">Visitor stats &amp; password protection <span class="acct-muted">· Elite</span></a>
+          <a href="/cloud/domains">Custom domains <span class="acct-muted">· Pro and Elite</span></a>
+          <a href="/cloud/payments">Connect Stripe for your app’s payments</a>
+          <a href="/build">Your builds</a>
+        </div>
+      </section>
+      <section class="acct-card" data-downgrade hidden>
+        <h2>Switch to Pro</h2>
+        <p class="acct-muted">Keep Pro features and drop Elite ones. The unused part of this period is credited toward your next renewal. Passwords you set stay on until you remove them; visitor stats stop counting.</p>
+        <div class="acct-row"><button type="button" class="btn-ghost-gold" data-to-pro>Switch to Pro</button></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <span>© <span data-year></span> Spawn</span>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="/product">Product</a>
+      <a href="/tour">Tour</a>
+      <a href="/gallery">Gallery</a>
+      <a href="/showcase">Showcase</a>
+      <a href="/how">How it works</a>
+      <a href="/why">Why</a>
+      <a href="/faq">FAQ</a>
+      <a href="/changelog">Changelog</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/refund">Refunds</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/app.js" defer></script>
+  <script>
+  (function () {
+    var $ = function (s) { return document.querySelector(s); };
+    var q = new URLSearchParams(location.search);
+    function cap(ev, p) { try { if (window.posthog && posthog.capture) posthog.capture(ev, p || {}); } catch (e) {} }
+    function say(m, err) { var n = $("[data-note]"); n.textContent = m; n.style.color = err ? "#f0a08a" : ""; }
+    function post(u, b) { return fetch(u, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b || {}) }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); }); }
+    var money = function (c, cur) { try { return new Intl.NumberFormat(undefined, { style: "currency", currency: (cur || "usd").toUpperCase() }).format(c / 100); } catch (e) { return "$" + (c / 100).toFixed(2); } };
+    var NAMES = { free: "Free", pro: "Pro", elite: "Elite" };
+    function change(tier) {
+      var msg = tier === "elite"
+        ? "Upgrade to Elite now? " + ($("[data-elite-price]").getAttribute("data-amt") ? "You'll be charged " + $("[data-elite-price]").getAttribute("data-amt") + " today (the prorated difference), then the Elite price at renewal." : "You'll be charged the prorated difference today, then the Elite price at renewal.")
+        : "Switch to Pro? The unused part of Elite is credited toward your next renewal.";
+      if (!confirm(msg)) return;
+      cap(tier === "elite" ? "elite_upgrade_confirmed" : "elite_downgrade_confirmed");
+      document.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+      say("Switching your plan…");
+      post("/api/billing/change", { tier: tier }).then(function (d) {
+        if (d.ok) { cap(tier === "elite" ? "elite_upgraded" : "elite_downgraded"); say("Done — you’re on " + NAMES[d.tier || tier] + "."); setTimeout(function () { location.replace("/account"); }, 900); return; }
+        if (d.checkout) { location.assign("/pricing#elite"); return; }
+        document.querySelectorAll("button").forEach(function (b) { b.disabled = false; }); say(d.error || "Couldn’t switch plans right now.", true);
+      }).catch(function () { document.querySelectorAll("button").forEach(function (b) { b.disabled = false; }); say("Network error — try again.", true); });
+    }
+    $("[data-manage]").onclick = function () { var b = this; b.disabled = true; post("/api/billing/portal", { return: "/account" }).then(function (d) { if (d.ok && d.url) return location.assign(d.url); b.disabled = false; say(d.error || "Billing is unavailable right now.", true); }); };
+    fetch("/api/me", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (me) {
+      if (!me || !me.signedIn) { $("[data-lead]").innerHTML = 'Sign in to see your plan. <a href="/signin?next=%2Faccount">Sign in</a>'; return; }
+      var tier = me.tier || me.plan || "free", L = me.limits || {};
+      $("[data-body]").hidden = false;
+      $("[data-lead]").textContent = "Signed in as " + me.email + ".";
+      var t = $("[data-tier]"); t.textContent = NAMES[tier] || tier; t.className = "acct-tier " + tier;
+      $("[data-l-builds]").textContent = L.maxBuilds != null ? L.maxBuilds : "–";
+      $("[data-l-edits]").textContent = L.editsPerDay != null ? Number(L.editsPerDay).toLocaleString() : "–";
+      $("[data-l-domains]").textContent = tier === "elite" ? "50" : tier === "pro" ? "10" : "—";
+      var pe = me.periodEnd ? new Date(me.periodEnd).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
+      $("[data-plan-note]").textContent = tier === "free" ? "You’re on the free plan." : (me.planStatus === "canceling" || me.planStatus === "cancel_at_period_end" ? "Cancels at the end of the period" : "Renews automatically") + (pe ? " · current period ends " + pe : "") + ".";
+      if (me.hasBilling) $("[data-manage]").hidden = false;
+      if (tier === "elite") { $("[data-go-pricing]").textContent = "Compare plans"; $("[data-downgrade]").hidden = false; $("[data-to-pro]").onclick = function () { change("pro"); }; }
+      else {
+        $("[data-elite-box]").hidden = false;
+        if (tier === "pro") {
+          $("[data-upgrade]").onclick = function () { cap("elite_upgrade_clicked", { from: "pro", where: "account" }); change("elite"); };
+          fetch("/api/billing/change/preview?tier=elite", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (p) {
+            if (p && p.amountDue != null) { var a = money(p.amountDue, p.currency); $("[data-elite-price]").textContent = "Upgrading charges " + a + " today — the prorated difference for the rest of this period. No second subscription."; $("[data-elite-price]").setAttribute("data-amt", a); }
+            else $("[data-elite-price]").textContent = "Upgrading charges only the prorated difference for the rest of this period. No second subscription.";
+          }).catch(function () {});
+          if (q.get("switch") === "elite") setTimeout(function () { $("#elite").scrollIntoView({ behavior: "smooth" }); }, 50);
+        } else {
+          $("[data-upgrade]").onclick = function () { cap("elite_upgrade_clicked", { from: "free", where: "account" }); location.assign("/pricing?subscribe=monthly&tier=elite"); };
+        }
+      }
+      if (q.get("switch") === "pro" && tier === "elite") $("[data-downgrade]").scrollIntoView();
+    }).catch(function () { $("[data-lead]").textContent = "Couldn’t load your account. Refresh to try again."; });
+  })();
+  </script>
+</body>
+</html>

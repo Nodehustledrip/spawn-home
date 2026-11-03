@@ -6,6 +6,7 @@ import { handleShared } from "./shared.js";
 import { handleBidboard } from "./bidboard.js";
 import { handleMembers, gateMembersPage, MEMBERS_PREFIX } from "./members.js";
 import { handlePayments } from "./payments.js";
+import { loadElite, gate, countView } from "./elite.js";
 
 const RUNTIMES = { bidboard: handleBidboard };
 const RESERVED = new Set(["www", "api", "app", "apps", "admin", "cloud", "static", "assets", "cdn", "mail", "status"]);
@@ -56,6 +57,11 @@ async function route(request, env, ctx) {
   }
 
   const ctxApp = { env, ctx, app, slug, url, path, request };
+  // Elite: password gate before anything else (pages, files and the app API).
+  if (app.elite && app.elite.protect && path !== "/api/stripe/webhook") {
+    const g = await gate(ctxApp, app.elite.protect);
+    if (g) return g;
+  }
   if (path.startsWith("/api/") || path === "/api" || path.startsWith("/storage/")) {
     const rt = RUNTIMES[app.runtime];
     if (rt) {
@@ -73,7 +79,13 @@ async function route(request, env, ctx) {
     if (r) return r;
   }
   if (request.method !== "GET" && request.method !== "HEAD") return json({ ok: false, error: "Method not allowed" }, 405, { Allow: "GET, HEAD" });
-  return serveStatic(ctxApp);
+  const resp = await serveStatic(ctxApp);
+  if (app.elite && app.elite.protect) { try { resp.headers.set("Cache-Control", "private, no-store"); resp.headers.set("Vary", "Cookie"); } catch (_) {} }
+  if (app.elite && app.elite.stats && request.method === "GET" && (resp.status === 200 || resp.status === 304) && /text\/html/.test(resp.headers.get("content-type") || "")) {
+    const own = [host.replace(/^www\./, ""), slug + "." + apex];
+    ctx.waitUntil(countView(env, slug, request, path, own).catch((e) => console.warn("[spawn-cloud] stats", e && e.message)));
+  }
+  return resp;
 }
 
 async function slugForHost(env, host, apex) {
@@ -113,6 +125,7 @@ async function loadApp(env, slug) {
     try { config = JSON.parse(row.config || "{}"); } catch (_) {}
     app = { slug: row.slug, runtime: row.runtime, status: row.status, live_version: row.live_version, title: row.title, config, files,
       share: { title: row.g_title || row.title || row.slug, description: row.g_desc || "", v: String(row.g_upd || "").replace(/\D/g, "").slice(0, 14) } };
+    app.elite = await loadElite(env, slug);
   }
   appCache.set(slug, { at: Date.now(), app });
   return app;

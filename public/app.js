@@ -493,8 +493,8 @@
       var a = document.createElement("a");
       a.className = "nav-link nav-account";
       if (me.signedIn) {
-        a.href = "/build";
-        a.textContent = me.plan === "pro" ? "Account · Pro" : "Account";
+        a.href = "/account";
+        a.textContent = me.plan === "elite" ? "Account · Elite" : me.plan === "pro" ? "Account · Pro" : "Account";
         a.title = me.email || "";
       } else {
         var here = location.pathname + location.search;

@@ -21,6 +21,22 @@ const PRICES = {
   monthly: function () { return process.env.STRIPE_PRICE_MONTHLY || "price_1UWjMhAykqdxWjUJVQWtVOe5"; },
   yearly: function () { return process.env.STRIPE_PRICE_YEARLY || "price_1UWjMmAykqdxWjUJsjZ0XHs0"; },
 };
+const ELITE_PRICES = {
+  monthly: function () { return process.env.STRIPE_PRICE_ELITE_MONTHLY || "price_1UXWkiAykqdxWjUJ4zQyJCKT"; },
+  yearly: function () { return process.env.STRIPE_PRICE_ELITE_YEARLY || "price_1UXWklAykqdxWjUJNqTufc5Q"; },
+};
+function priceFor(tier, interval) {
+  return (tier === "elite" ? ELITE_PRICES : PRICES)[interval === "yearly" ? "yearly" : "monthly"]();
+}
+/** Paid tier for a Stripe price id. Unknown prices stay "pro" (every subscription before Elite was Pro). */
+function tierForPrice(priceId) {
+  if (priceId && (priceId === ELITE_PRICES.monthly() || priceId === ELITE_PRICES.yearly())) return "elite";
+  return "pro";
+}
+function priceOf(sub) {
+  const it = sub && sub.items && sub.items.data && sub.items.data[0];
+  return it ? idOf(it.price) || (it.plan && it.plan.id) || null : null;
+}
 const PRO_STATUSES = ["active", "trialing", "past_due"];
 
 function siteUrl() {
@@ -107,13 +123,25 @@ async function applySubscription(sub, hintUserId) {
   const status = sub.status || "canceled";
   const pro = PRO_STATUSES.indexOf(status) !== -1;
   const customerId = idOf(sub.customer);
+  const priceId = priceOf(sub);
   const fields = {
-    plan: pro ? "pro" : "free",
+    plan: pro ? tierForPrice(priceId) : "free",
     status: status,
     periodEnd: pro ? periodEndOf(sub) : null,
     customerId: customerId,
     subscriptionId: sub.id,
+    priceId: pro ? priceId : null,
   };
+  /* A different subscription ending (e.g. an old Pro sub after moving to a new Elite one) must not
+   * downgrade the account that is now on another active subscription. */
+  if (!pro && customerId) {
+    const cur = await store.getPool().query("SELECT id, stripe_subscription_id, plan_status FROM users WHERE stripe_customer_id=$1", [customerId]);
+    const u = cur.rows[0];
+    if (u && u.stripe_subscription_id && u.stripe_subscription_id !== sub.id && PRO_STATUSES.indexOf(u.plan_status) !== -1) {
+      console.log("[billing] ignoring ended subscription", sub.id, "— user", u.id, "is on", u.stripe_subscription_id);
+      return u;
+    }
+  }
   let row = null;
   if (customerId) row = await auth.setPlan({ customerId: customerId }, fields);
   const uid = hintUserId || (sub.metadata && sub.metadata.user_id);
@@ -205,16 +233,22 @@ function mount(app) {
     const user = await auth.currentUser(req);
     if (!user) return res.status(401).json({ ok: false, error: "Sign in first.", signin: "/signin?next=/pricing" });
     const interval = (req.body && req.body.interval) === "yearly" ? "yearly" : "monthly";
-    if (auth.isPro(user)) return res.status(409).json({ ok: false, error: "You're already on Pro.", pro: true });
+    const tier = (req.body && req.body.tier) === "elite" ? "elite" : "pro";
+    const current = auth.tierOf(user);
+    if (current === tier) return res.status(409).json({ ok: false, error: "You're already on " + (tier === "elite" ? "Elite" : "Pro") + ".", tier: current, pro: true });
+    if (current !== "free") {
+      /* Already subscribed: switch the existing subscription instead of opening a second one (no double billing). */
+      return res.status(409).json({ ok: false, error: "You already have a subscription — switch plans instead.", tier: current, change: "/api/billing/change" });
+    }
     const params = {
       mode: "subscription",
-      line_items: { 0: { price: PRICES[interval](), quantity: 1 } },
+      line_items: { 0: { price: priceFor(tier, interval), quantity: 1 } },
       client_reference_id: String(user.id),
-      success_url: siteUrl() + "/pricing?welcome=1&session_id={CHECKOUT_SESSION_ID}",
+      success_url: siteUrl() + "/pricing?welcome=1&tier=" + tier + "&session_id={CHECKOUT_SESSION_ID}",
       cancel_url: siteUrl() + "/pricing",
       allow_promotion_codes: "true",
-      metadata: { user_id: String(user.id) },
-      subscription_data: { metadata: { user_id: String(user.id) } },
+      metadata: { user_id: String(user.id), tier: tier },
+      subscription_data: { metadata: { user_id: String(user.id), tier: tier } },
     };
     if (user.stripe_customer_id) params.customer = user.stripe_customer_id;
     else params.customer_email = user.email;
@@ -224,6 +258,67 @@ function mount(app) {
     } catch (err) {
       console.error("[billing] checkout failed", err && err.message);
       return res.status(502).json({ ok: false, error: "Checkout is unavailable right now — try again in a minute." });
+    }
+  });
+
+  /* What switching would cost now (Stripe's own proration preview). Read-only. */
+  app.get("/api/billing/change/preview", async function (req, res) {
+    if (!enabled()) return notFound(res);
+    res.setHeader("Cache-Control", "no-store");
+    const user = await auth.currentUser(req);
+    if (!user) return res.status(401).json({ ok: false, error: "Sign in first." });
+    const tier = req.query.tier === "pro" ? "pro" : "elite";
+    if (auth.tierOf(user) === "free" || !user.stripe_subscription_id) return res.status(400).json({ ok: false, checkout: true });
+    try {
+      const sub = await stripe("GET", "/v1/subscriptions/" + encodeURIComponent(user.stripe_subscription_id));
+      const item = sub.items.data[0];
+      const interval = item.price && item.price.recurring && item.price.recurring.interval === "year" ? "yearly" : "monthly";
+      const inv = await stripe("POST", "/v1/invoices/create_preview", {
+        customer: sub.customer && (sub.customer.id || sub.customer), subscription: sub.id,
+        subscription_details: { items: { 0: { id: item.id, price: priceFor(tier, interval) } }, proration_behavior: "always_invoice" },
+      });
+      return res.json({ ok: true, tier, interval, amountDue: inv.amount_due, currency: inv.currency });
+    } catch (err) {
+      console.error("[billing] preview failed", err && err.message);
+      return res.json({ ok: true, tier, amountDue: null });
+    }
+  });
+
+  /* Pro <-> Elite on the SAME subscription: swap the price with proration. Upgrades invoice the prorated
+   * difference right away (and only apply if that payment succeeds); downgrades credit the unused time. */
+  app.post("/api/billing/change", async function (req, res) {
+    if (!enabled()) return notFound(res);
+    res.setHeader("Cache-Control", "no-store");
+    const user = await auth.currentUser(req);
+    if (!user) return res.status(401).json({ ok: false, error: "Sign in first." });
+    const tier = (req.body && req.body.tier) === "elite" ? "elite" : (req.body && req.body.tier) === "pro" ? "pro" : null;
+    if (!tier) return res.status(400).json({ ok: false, error: "Pick a plan." });
+    const current = auth.tierOf(user);
+    if (current === "free" || !user.stripe_subscription_id) return res.status(400).json({ ok: false, error: "No active subscription — start one from the pricing page.", checkout: true });
+    try {
+      const sub = await stripe("GET", "/v1/subscriptions/" + encodeURIComponent(user.stripe_subscription_id));
+      const item = sub.items && sub.items.data && sub.items.data[0];
+      if (!item) throw new Error("subscription has no items");
+      const curPrice = idOf(item.price);
+      const curInterval = item.price && item.price.recurring && item.price.recurring.interval === "year" ? "yearly" : "monthly";
+      const interval = req.body && (req.body.interval === "yearly" || req.body.interval === "monthly") ? req.body.interval : curInterval;
+      const target = priceFor(tier, interval);
+      if (target === curPrice) return res.status(409).json({ ok: false, error: "You're already on that plan.", tier: current });
+      const upgrade = tier === "elite" && current !== "elite";
+      // pending_if_incomplete only accepts a few params (no metadata / cancel_at_period_end), so those follow separately.
+      let updated = await stripe("POST", "/v1/subscriptions/" + encodeURIComponent(sub.id), upgrade
+        ? { items: { 0: { id: item.id, price: target } }, proration_behavior: "always_invoice", payment_behavior: "pending_if_incomplete" }
+        : { items: { 0: { id: item.id, price: target } }, proration_behavior: "create_prorations", cancel_at_period_end: "false", metadata: { user_id: String(user.id), tier: tier } });
+      if (upgrade && !updated.pending_update) {
+        try { updated = await stripe("POST", "/v1/subscriptions/" + encodeURIComponent(sub.id), { cancel_at_period_end: "false", metadata: { user_id: String(user.id), tier: tier } }); }
+        catch (e) { console.warn("[billing] change: metadata update failed", e && e.message); }
+      }
+      const row = await applySubscription(updated.pending_update ? sub : updated, String(user.id));
+      if (updated.pending_update) return res.status(402).json({ ok: false, error: "The prorated payment didn't go through, so your plan didn't change. Update your card in Manage billing and try again." });
+      return res.json({ ok: true, tier: (row && row.plan) || tier });
+    } catch (err) {
+      console.error("[billing] change failed", err && err.message);
+      return res.status(502).json({ ok: false, error: "Couldn't switch plans right now — try again in a minute." });
     }
   });
 
@@ -252,4 +347,4 @@ function mount(app) {
   });
 }
 
-module.exports = { enabled, mount, mountWebhook, verifySignature, handleEvent, encode };
+module.exports = { enabled, mount, mountWebhook, verifySignature, handleEvent, encode, tierForPrice, priceFor };

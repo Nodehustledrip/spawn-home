@@ -341,12 +341,12 @@
     var saved = recall("spawn_pub_" + state.activeId);
     if (input && !input.value) input.value = saved || slugify(b.name) || "";
     var fine = $("[data-publish-fine]");
-    if (fine) fine.textContent = state.plan === "pro"
+    if (fine) fine.textContent = (state.plan === "pro" || state.plan === "elite")
       ? "Pro: no badge. Connect your own domain anytime from spawnapp.org/cloud/domains."
       : "Free plan: your app shows a small “Made with Spawn” badge. Pro removes it and adds custom domains.";
     setPubNote("");
     var gal = $("[data-publish-gallery]");
-    if (gal) gal.checked = state.plan !== "pro";
+    if (gal) gal.checked = state.plan !== "pro" && state.plan !== "elite";
     var done = $("[data-publish-done]");
     if (done) done.hidden = true;
     var form = $("[data-publish-form]");
@@ -531,8 +531,11 @@
     promptSignin(data);
     if (!node || !data || !data.upgrade) return;
     node.appendChild(document.createTextNode(" "));
-    var a = el("a", "build-upgrade-link", "See Pro");
-    a.href = "/pricing";
+    var elite = data.offer === "elite";
+    var a = el("a", "build-upgrade-link", elite ? "See Elite" : "See Pro");
+    a.href = elite ? "/pricing?ref=limit#elite" : "/pricing?ref=limit";
+    track("upsell_shown", { placement: "limit", offer: elite ? "elite" : "pro", limit: data.limit || null });
+    a.addEventListener("click", function () { track(elite ? "elite_upsell_clicked" : "upsell_clicked", { placement: "limit", limit: data.limit || null }); });
     node.appendChild(a);
   }
 
@@ -920,12 +923,15 @@
     if (signedIn) {
       $("[data-account-email]").textContent = me.email;
       var plan = $("[data-account-plan]");
-      plan.textContent = me.plan === "pro" ? "Pro" : "Free";
+      plan.textContent = me.plan === "elite" ? "Elite" : me.plan === "pro" ? "Pro" : "Free";
       var bill = $("[data-account-billing]");
       if (bill && window._spawnBilling) {
         bill.hidden = false;
-        $("[data-account-upgrade]").hidden = me.plan === "pro";
-        $("[data-account-manage]").hidden = !(me.plan === "pro" || me.hasBilling);
+        var up = $("[data-account-upgrade]");
+        up.hidden = me.plan === "elite";
+        up.textContent = me.plan === "pro" ? "Upgrade to Elite" : "Upgrade";
+        up.href = me.plan === "pro" ? "/account#elite" : "/pricing";
+        $("[data-account-manage]").hidden = !(me.plan === "pro" || me.plan === "elite" || me.hasBilling);
       }
       if (title) title.textContent = "Your builds";
       if (sub) sub.textContent = "Saved to your account — open them from any browser where you sign in.";

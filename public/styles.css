@@ -6669,3 +6669,18 @@ a.btn-solid:hover { color: var(--accent-ink); }
   .build-gen, .build-gen-pulse, .build-gen-sketch > span, .build-gen-sketch i { animation: none; }
   .build-gen-steps li.is-on::before { animation: none; border-right-color: var(--accent); }
 }
+
+/* Pricing — Elite */
+.page-pricing { max-width: 1120px; }
+.plan-grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: stretch; }
+.plan-card-elite { position: relative; border-color: rgba(167,139,250,0.55); background: radial-gradient(120% 80% at 50% 0%, rgba(124,92,255,0.16), transparent 60%), linear-gradient(180deg, rgba(167,139,250,0.07), rgba(255,255,255,0.01)); box-shadow: 0 24px 70px -30px rgba(124,92,255,0.55), inset 0 1px 0 rgba(255,255,255,0.06); }
+.plan-flag { position: absolute; top: -11px; right: 18px; font-size: 0.68rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.28rem 0.65rem; border-radius: 999px; color: #0b0b0e; background: linear-gradient(135deg, #c4b5fd, #a78bfa); }
+.plan-card-elite .plan-kicker { color: #c4b5fd; }
+.plan-card-elite .plan-list li strong { color: #ece8ff; font-weight: 600; }
+.btn-elite { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.85rem 1.1rem; border-radius: 12px; border: 0; color: #0b0b0e; font-weight: 650; cursor: pointer; background: linear-gradient(135deg, #ddd6fe, #a78bfa); transition: transform .15s, filter .15s; font: inherit; font-weight: 650; }
+.btn-elite:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.btn-elite:disabled, .btn-ghost-elite:disabled { opacity: .55; cursor: default; transform: none; }
+.btn-ghost-elite { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.8rem 1.1rem; border-radius: 12px; border: 1px solid rgba(167,139,250,0.55); background: transparent; color: #ddd6fe; font: inherit; font-weight: 600; cursor: pointer; }
+.btn-ghost-elite:hover { background: rgba(167,139,250,0.1); }
+.plan-card-elite .plan-save { background: rgba(167,139,250,0.18); color: #c4b5fd; }
+.plan-everything { margin: 0.2rem 0 0; font-size: 0.88rem; color: #ddd6fe; }

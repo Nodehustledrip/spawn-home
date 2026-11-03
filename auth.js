@@ -27,6 +27,14 @@ function num(name, def) {
 /* Signed-in limits (env-configurable; 0 = no daily cap). Anonymous builds keep
  * the original BUILD_MAX_PER_OWNER / per-IP limits in builds.js. */
 function limitsFor(user) {
+  if (isElite(user)) {
+    return {
+      plan: "elite",
+      maxBuilds: num("AUTH_ELITE_MAX_BUILDS", 100),
+      editsPerDay: num("AUTH_ELITE_EDITS_PER_DAY", 1000),
+      editsPerMinute: num("AUTH_ELITE_EDITS_PER_MIN", 90),
+    };
+  }
   if (isPro(user)) {
     return {
       plan: "pro",
@@ -43,8 +51,22 @@ function limitsFor(user) {
   };
 }
 
+const PAID_TIERS = ["pro", "elite"];
+/** Active paid tier: "elite" | "pro" | "free". Elite includes everything in Pro. */
+function tierOf(user) {
+  if (!user || PAID_TIERS.indexOf(user.plan) === -1) return "free";
+  if (user.plan_status && ["active", "trialing", "past_due"].indexOf(user.plan_status) === -1) return "free";
+  if (user.current_period_end && new Date(user.current_period_end).getTime() < Date.now()) return "free";
+  return user.plan;
+}
+
+function isElite(user) {
+  return tierOf(user) === "elite";
+}
+
+/** True for Pro AND Elite (Elite includes every Pro perk). */
 function isPro(user) {
-  if (!user || user.plan !== "pro") return false;
+  if (!user || PAID_TIERS.indexOf(user.plan) === -1) return false;
   if (user.plan_status && ["active", "trialing", "past_due"].indexOf(user.plan_status) === -1) return false;
   if (user.current_period_end && new Date(user.current_period_end).getTime() < Date.now()) return false;
   return true;
@@ -162,7 +184,8 @@ async function setPlan(match, fields) {
   const key = match.userId || match.email || match.customerId;
   const r = await pool.query(
     "UPDATE users SET plan=COALESCE($2, plan), plan_status=$3, current_period_end=$4," +
-      " stripe_customer_id=COALESCE($5, stripe_customer_id), stripe_subscription_id=COALESCE($6, stripe_subscription_id)" +
+      " stripe_customer_id=COALESCE($5, stripe_customer_id), stripe_subscription_id=COALESCE($6, stripe_subscription_id)," +
+      " plan_price_id=$7" +
       " WHERE " + where + " RETURNING id, email, plan, plan_status, current_period_end",
     [
       key,
@@ -171,6 +194,7 @@ async function setPlan(match, fields) {
       fields.periodEnd ? new Date(fields.periodEnd) : null,
       fields.customerId || null,
       fields.subscriptionId || null,
+      fields.priceId || null,
     ]
   );
   return r.rows[0] || null;
@@ -383,6 +407,7 @@ function mount(app, hooks) {
       signedIn: true,
       email: user.email,
       plan: lim.plan,
+      tier: lim.plan,
       limits: lim,
       planStatus: user.plan_status || null,
       periodEnd: user.current_period_end || null,
@@ -405,4 +430,4 @@ function mount(app, hooks) {
   });
 }
 
-module.exports = { safeNext, mount, enabled, configured, currentUser, userById, ownerFor, limitsFor, isPro, editAllowed, setPlan, emailHtml };
+module.exports = { safeNext, mount, enabled, configured, currentUser, userById, ownerFor, limitsFor, isPro, isElite, tierOf, editAllowed, setPlan, emailHtml };

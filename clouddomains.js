@@ -24,6 +24,10 @@ function zoneOf(host) {
   return p.length < n ? null : p.slice(-n).join(".");
 }
 
+function domainLimitFor(tier) {
+  const v = (k, d) => Number(process.env[k] || d);
+  return tier === "elite" ? v("CLOUD_DOMAINS_PER_ELITE", 50) : v("CLOUD_DOMAINS_PER_USER", 10);
+}
 function cfClient(env) {
   const base = "https://api.cloudflare.com/client/v4";
   return async function cf(method, path, body) {
@@ -85,7 +89,7 @@ function create(opts) {
     return (z && z[0]) || null;
   }
 
-  async function attach(owner, slug, input) {
+  async function attach(owner, slug, input, opts) {
     const host = normalizeHost(input);
     if (!host) throw fail(400, "Enter a domain like example.com or shop.example.com.");
     const zone = zoneOf(host);
@@ -102,7 +106,7 @@ function create(opts) {
     const zoneRows = await query("SELECT owner, zone_id, nameservers FROM custom_domains WHERE zone_name=?1 LIMIT 1", [zone]);
     if (zoneRows[0] && zoneRows[0].owner !== owner) throw fail(409, zone + " is already connected to another Spawn account.");
     const count = await query("SELECT COUNT(DISTINCT zone_name) AS n FROM custom_domains WHERE owner=?1", [owner]);
-    if (Number((count[0] || {}).n || 0) >= Number(env("CLOUD_DOMAINS_PER_USER", "10")) && !zoneRows[0]) throw fail(429, "You've reached the custom domain limit for your account.");
+    if (Number((count[0] || {}).n || 0) >= Number((opts && opts.limit) || env("CLOUD_DOMAINS_PER_USER", "10")) && !zoneRows[0]) throw fail(429, "You've reached the custom domain limit for your account" + ((opts && opts.tier) === "pro" ? " — Elite allows up to " + domainLimitFor("elite") + "." : "."));
     let zoneId = zoneRows[0] && zoneRows[0].zone_id, nameservers = zoneRows[0] ? JSON.parse(zoneRows[0].nameservers || "[]") : null;
     if (!zoneId) {
       let z = await findZone(zone);
@@ -202,4 +206,4 @@ function registrarLinks(name) {
   ];
 }
 
-module.exports = { create, normalizeHost, zoneOf, registrarLinks };
+module.exports = { create, domainLimitFor, normalizeHost, zoneOf, registrarLinks };

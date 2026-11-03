@@ -126,4 +126,15 @@ const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS waitlist (email TEXT PRIMARY KEY, source TEXT, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')))",
 ];
 
-module.exports = { create, translate, SCHEMA };
+/* Idempotent column additions (SQLite has no ADD COLUMN IF NOT EXISTS). plan holds the tier: 'free' | 'pro' | 'elite'. */
+const COLUMNS = [["users", "plan_price_id", "TEXT"]];
+async function migrate(pool) {
+  for (const [table, col, type] of COLUMNS) {
+    const info = await pool.exec("PRAGMA table_info(" + table + ")");
+    if ((info || []).some((c) => c.name === col)) continue;
+    try { await pool.exec("ALTER TABLE " + table + " ADD COLUMN " + col + " " + type); }
+    catch (err) { if (!/duplicate column/i.test(String(err && err.message))) throw err; }
+  }
+}
+
+module.exports = { create, translate, SCHEMA, migrate, COLUMNS };

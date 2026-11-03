@@ -118,7 +118,12 @@ test("premium templates: admin-only flag, Pro access rule, shelf on /gallery", a
   assert.equal(src.premium, true); assert.equal(src.access, "pro");
   assert.deepEqual(gallery.canRemix(src, null, (u) => u.plan === "pro"), { ok: false, reason: "signin" });
   assert.deepEqual(gallery.canRemix(src, users.free, (u) => u.plan === "pro"), { ok: false, reason: "pro" });
-  assert.deepEqual(gallery.canRemix(src, users.pro, (u) => u.plan === "pro"), { ok: true });
+  // newly premium → 30-day Elite early access; Pro waits (or the admin clears the window)
+  assert.equal(gallery.canRemix(src, users.pro, (u) => u.plan === "pro", () => false).reason, "elite");
+  assert.ok(Date.parse(src.elite_until) > Date.now() + 29 * 86400000);
+  assert.deepEqual(gallery.canRemix(src, users.pro, (u) => u.plan === "pro", () => true), { ok: true });
+  x = await call("POST", "/api/admin/gallery/cedar-lawn", null, { elite_until: null }, { "x-admin": "yes" });
+  assert.deepEqual(gallery.canRemix(await gallery.store.remixSource("cedar-lawn"), users.pro, (u) => u.plan === "pro", () => false), { ok: true });
   assert.deepEqual(gallery.canRemix({ access: "open" }, null, () => false), { ok: true });
   const html = await (await fetch(base + "/gallery")).text();
   assert.match(html, /Included with Pro/); assert.match(html, /data-gl-premium="cedar-lawn"/); assert.match(html, /pricing\?ref=premium-template/);

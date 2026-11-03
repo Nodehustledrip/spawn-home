@@ -278,6 +278,8 @@ async function status() {
  *   AI_RPM_CAP      — model calls per minute, whole server (default 8)
  *   AI_IP_DAILY     — model calls per IP per 24h (default 25)
  *   AI_OWNER_DAILY  — model calls per build owner per 24h (default 40)
+ *   AI_ELITE_OWNER_DAILY — per-account cap for Elite accounts (default 100). Elite accounts are
+ *                     counted per account instead of per IP, but still share AI_DAILY_CAP.
  * In-memory (single instance); a restart resets counters, which only errs toward the
  * provider's own 429 — that is handled as a graceful fallback too. */
 function num(name, dflt) {
@@ -288,12 +290,20 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 let dayHits = [];
 const ipDay = new Map();
 const ownerDay = new Map();
+const ownerTier = new Map(); // owner key -> "elite" (set by builds.js for signed-in Elite accounts)
+function setOwnerTier(owner, tier) {
+  if (!owner) return;
+  if (tier === "elite") ownerTier.set(owner, "elite");
+  else ownerTier.delete(owner);
+  if (ownerTier.size > 20000) ownerTier.clear();
+}
 function caps() {
   return {
     daily: num("AI_DAILY_CAP", 200),
     rpm: num("AI_RPM_CAP", 8),
     ipDaily: num("AI_IP_DAILY", 25),
     ownerDaily: num("AI_OWNER_DAILY", 40),
+    eliteOwnerDaily: num("AI_ELITE_OWNER_DAILY", 100),
   };
 }
 function pruned(map, key, windowMs, now) {
@@ -322,10 +332,11 @@ function rateCheck(ip, owner) {
   if (globalHits.length >= Math.min(c.rpm, GLOBAL_MAX)) return "rate_limited";
   const ipMin = pruned(ipHits, ip, IP_WINDOW_MS, now);
   if (ipMin.length >= IP_MAX) return "rate_limited";
+  const elite = !!owner && ownerTier.get(owner) === "elite";
   const ipD = pruned(ipDay, ip, DAY_MS, now);
-  if (ipD.length >= c.ipDaily) return "ip_daily_cap";
+  if (!elite && ipD.length >= c.ipDaily) return "ip_daily_cap";
   const ownD = owner ? pruned(ownerDay, owner, DAY_MS, now) : null;
-  if (ownD && ownD.length >= c.ownerDaily) return "owner_daily_cap";
+  if (ownD && ownD.length >= (elite ? c.eliteOwnerDaily : c.ownerDaily)) return "owner_daily_cap";
   ipMin.push(now);
   ipD.push(now);
   if (ownD) ownD.push(now);
@@ -345,6 +356,7 @@ function _resetLimits() {
   ipHits.clear();
   ipDay.clear();
   ownerDay.clear();
+  ownerTier.clear();
   Object.keys(quotaDead).forEach(function (k) { delete quotaDead[k]; });
   lastFailure = null;
 }
@@ -990,6 +1002,7 @@ async function editElement(outer, context, prompt, ip, owner) {
 
 module.exports = {
   applyAiEdit,
+  setOwnerTier,
   editElement,
   checkElementReplacement,
   riskyIncrease,

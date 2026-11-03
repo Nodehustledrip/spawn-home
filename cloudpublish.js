@@ -502,7 +502,9 @@ function mount(app, opts) {
       e.upgrade = "/pricing"; throw e;
     }
     if (limited("dom:" + u.id, 20, 3600000)) throw fail(429, "Too many domain changes. Try again in an hour.");
-    const d = await dom.attach("u:" + u.id, a.slug, String((req.body && (req.body.hostname || req.body.domain)) || ""));
+    const acct = (auth.userById ? await auth.userById(u.id) : null) || u;
+    const tier = auth.tierOf ? auth.tierOf(acct) : "pro";
+    const d = await dom.attach("u:" + u.id, a.slug, String((req.body && (req.body.hostname || req.body.domain)) || ""), { limit: require("./clouddomains").domainLimitFor(tier), tier });
     res.status(201).json({ ok: true, domain: d });
   }));
   r.post("/apps/:slug/domains/check", wrap(async (req, res) => {
@@ -562,10 +564,12 @@ function mount(app, opts) {
       if (!(await be().head(key))) await be().put(key, buf, mimeFor(p));
     }
     const title = gal().decodeEntities(String((req.body && req.body.title) || (a && a.title) || slug)).trim().slice(0, 80);
+    await elite.onPublish(u, slug).catch((e) => console.warn("[cloud-elite] stats enable failed: " + e.message));
     const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build", access: files.__access, gallery: req.body.gallery, remixable: req.body.remixable, category: req.body.category, galleryDefault: true });
     res.json(out);
   }));
 
+  const elite = require("./cloudelite").mountElite(r, { wrap, fail, anyUser, ownedApp, be, auth });
   require("./cloudstripe").mountStripe(r, { wrap, fail, anyUser, ownedApp, be, encryptSecret, decryptSecret, apex, env, fetch: opts.stripeFetch });
 
   r.get("/my-apps", wrap(async (req, res) => {
@@ -583,6 +587,13 @@ function mount(app, opts) {
     res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Robots-Tag", "noindex");
     if (!enabled()) return res.status(503).type("html").send(page("Custom domains", "<h1>Custom domains</h1><p>Spawn Cloud isn't available right now.</p>"));
     res.type("html").send(page("Custom domains", DOMAINS_HTML, true));
+  });
+
+  // Elite: visitor stats + password protection (signed-in session).
+  app.get("/cloud/stats", (req, res) => {
+    res.setHeader("Cache-Control", "no-store"); res.setHeader("X-Robots-Tag", "noindex");
+    if (!enabled()) return res.status(503).type("html").send(page("Visitor stats", "<h1>Visitor stats</h1><p>Spawn Cloud isn't available right now.</p>"));
+    res.type("html").send(page("Visitor stats", require("./cloudelite").STATS_HTML, true));
   });
 
   // Connect Stripe per app (signed-in session): take real card payments that unlock things automatically.

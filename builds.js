@@ -174,7 +174,9 @@ async function resolveOwner(req, res) {
   const user = await auth.currentUser(req);
   if (user) {
     const lim = auth.limitsFor(user);
-    return { key: auth.ownerFor(user), user: user, maxBuilds: lim.maxBuilds, limits: lim };
+    const key = auth.ownerFor(user);
+    if (buildai.setOwnerTier) buildai.setOwnerTier(key, lim.plan);
+    return { key: key, user: user, maxBuilds: lim.maxBuilds, limits: lim };
   }
   return { key: ownerKey(req, res), user: null, maxBuilds: MAX_BUILDS_PER_OWNER };
 }
@@ -271,9 +273,12 @@ function editGate(req, res, b, ip) {
       res.status(429).json({
         ok: false,
         limit: "edits",
-        upgrade: auth.isPro(b.user) ? undefined : "/pricing",
-        error: auth.isPro(b.user)
-          ? "You've reached today's Pro edit limit. It resets within 24 hours."
+        upgrade: auth.tierOf(b.user) === "elite" ? undefined : "/pricing",
+        offer: auth.tierOf(b.user) === "pro" ? "elite" : auth.tierOf(b.user) === "free" ? "pro" : undefined,
+        error: auth.tierOf(b.user) === "elite"
+          ? "You've reached today's Elite edit limit. It resets within 24 hours."
+          : auth.isPro(b.user)
+          ? "You've reached today's Pro edit limit. It resets within 24 hours — Elite allows up to " + auth.limitsFor({ plan: "elite", plan_status: "active" }).editsPerDay + " edits a day."
           : "You've reached today's edit limit on the Free plan. It resets within 24 hours — Pro allows " + auth.limitsFor({ plan: "pro", plan_status: "active" }).editsPerDay + " edits a day.",
       });
       return false;
@@ -483,10 +488,13 @@ function mount(app) {
       res.status(400).json({
         ok: false,
         limit: "builds",
-        upgrade: who.user && who.limits.plan !== "pro" ? "/pricing" : undefined,
+        upgrade: who.user && who.limits.plan !== "elite" ? "/pricing" : undefined,
+        offer: who.user ? (who.limits.plan === "pro" ? "elite" : who.limits.plan === "free" ? "pro" : undefined) : undefined,
         error: who.user
-          ? who.limits.plan === "pro"
-            ? "You have " + mine + " saved builds — the most Pro keeps. Delete one from Your builds to make room."
+          ? who.limits.plan === "elite"
+            ? "You have " + mine + " saved builds — the most Elite keeps. Delete one from Your builds to make room."
+            : who.limits.plan === "pro"
+            ? "You have " + mine + " saved builds — the most Pro keeps. Delete one to make room, or keep up to " + auth.limitsFor({ plan: "elite", plan_status: "active" }).maxBuilds + " with Elite."
             : "You have " + mine + " saved builds — the most the Free plan keeps. Delete one to make room, or keep up to " + auth.limitsFor({ plan: "pro", plan_status: "active" }).maxBuilds + " with Pro."
           : "You've made " + mine + " builds without an account — the most a browser keeps. Sign in with your email (free, no password) to save up to " + auth.limitsFor({ plan: "free" }).maxBuilds + " builds to your account.",
         signin: !who.user && auth.enabled() ? true : undefined,
@@ -519,13 +527,17 @@ function mount(app) {
     /* Premium templates are included with Pro: enforced here, not only in the gallery UI. */
     if (src.access === "pro" || src.premium) {
       const viewer = await auth.currentUser(req);
-      const gate = gallery.canRemix(src, viewer, auth.isPro);
+      const gate = gallery.canRemix(src, viewer, auth.isPro, auth.isElite);
       if (!gate.ok) {
         dualWriteBuild("premium_remix_blocked", { sessionId: "premium-gate", source_slug: slug, reason: gate.reason });
         return res.status(gate.reason === "signin" ? 401 : 403).json({
           ok: false, premium: true, reason: gate.reason, upgrade: "/pricing?ref=premium-template",
           signin: gate.reason === "signin" ? true : undefined,
-          error: gate.reason === "signin"
+          offer: gate.reason === "elite" ? "elite" : undefined,
+          until: gate.until || undefined,
+          error: gate.reason === "elite"
+            ? "This new premium template is in Elite early access until " + String(gate.until).slice(0, 10) + ". Upgrade to Elite to remix it now — it opens to Pro after that."
+            : gate.reason === "signin"
             ? "Premium templates are included with Spawn Pro. Sign in with a Pro account to remix this one."
             : "Premium templates are included with Spawn Pro. Upgrade to remix this one.",
         });
