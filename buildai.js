@@ -78,7 +78,7 @@ function configuredProviders() {
       label: "Cloud AI",
       kind: "gemini",
       paid: false,
-      base: "https://generativelanguage.googleapis.com/v1beta",
+      base: env("GEMINI_BASE") || "https://generativelanguage.googleapis.com/v1beta",
       model: env("GEMINI_MODEL") || "gemini-3-flash-preview",
       fallbackModel: env("GEMINI_FALLBACK_MODEL") || "",
       key: function () {
@@ -456,7 +456,7 @@ const GEN_SCHEMA = {
   type: "OBJECT",
   properties: { reply: { type: "STRING" }, html: { type: "STRING" }, css: { type: "STRING" } },
   required: ["reply", "html", "css"],
-  propertyOrdering: ["reply", "html", "css"],
+  propertyOrdering: ["reply", "css", "html"],
 };
 const EDIT_SCHEMA = {
   type: "OBJECT",
@@ -484,7 +484,7 @@ function geminiBody(system, userText, maxTokens, model, temperature) {
     temperature: temperature == null ? 0.4 : temperature,
     maxOutputTokens: maxTokens,
     responseMimeType: "application/json",
-    responseSchema: system === GEN_SYSTEM ? GEN_SCHEMA : EDIT_SCHEMA,
+    responseSchema: system === GEN_SYSTEM ? GEN_SCHEMA : system === ELEMENT_SYSTEM ? ELEMENT_SCHEMA : EDIT_SCHEMA,
   };
   if (/^gemini-3/i.test(model)) gen.thinkingConfig = { thinkingLevel: env("GEMINI_THINKING") || "low" };
   return {
@@ -535,8 +535,85 @@ async function geminiOnce(p, model, system, userText, maxTokens, timeoutMs, temp
   }
 }
 
+/* Streaming variant (SSE). onText(chunk) gets visible text as it arrives; resolves to the same
+ * parsed JSON a non-streamed call returns, so the final build is identical either way. */
+async function geminiStreamOnce(p, model, system, userText, maxTokens, timeoutMs, temperature, onText) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(function () { ctrl.abort(); }, timeoutMs || TIMEOUT_MS);
+  try {
+    const res = await fetch(p.base + "/models/" + encodeURIComponent(model) + ":streamGenerateContent?alt=sse", {
+      method: "POST",
+      headers: { "x-goog-api-key": p.key(), "Content-Type": "application/json" },
+      body: JSON.stringify(geminiBody(system, userText, maxTokens, model, temperature)),
+      signal: ctrl.signal,
+    });
+    if (!res.ok || !res.body) {
+      const code = await errorCode(res);
+      const e = new Error(p.id + " HTTP " + res.status + " (" + code + ")");
+      e.httpStatus = res.status;
+      e.code = res.status === 429 ? "resource_exhausted" : code;
+      throw e;
+    }
+    const dec = new TextDecoder();
+    let buf = "";
+    let content = "";
+    let finish = null;
+    function line(l) {
+      if (l.indexOf("data:") !== 0) return;
+      const raw = l.slice(5).trim();
+      if (!raw || raw === "[DONE]") return;
+      let data;
+      try { data = JSON.parse(raw); } catch (_) { return; }
+      const cand = data && data.candidates && data.candidates[0];
+      if (cand && cand.finishReason) finish = cand.finishReason;
+      const parts = (cand && cand.content && cand.content.parts) || [];
+      parts.forEach(function (x) {
+        if (x && typeof x.text === "string" && !x.thought && x.text) {
+          content += x.text;
+          try { onText && onText(x.text); } catch (_) {}
+        }
+      });
+    }
+    for await (const chunk of res.body) {
+      buf += dec.decode(chunk, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) !== -1) {
+        line(buf.slice(0, i).replace(/\r$/, ""));
+        buf = buf.slice(i + 1);
+      }
+    }
+    if (buf) line(buf);
+    if (!content) {
+      const e = new Error("Empty model response (" + (finish || "none") + ")");
+      e.code = "empty_" + String(finish || "none").toLowerCase();
+      throw e;
+    }
+    return extractJson(content);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /* Primary model, then (on 5xx overload/timeout only) the optional fallback model. */
-async function callGemini(p, system, userText, maxTokens, timeoutMs, temperature) {
+async function callGemini(p, system, userText, maxTokens, timeoutMs, temperature, onText) {
+  if (onText) {
+    let streamed = false;
+    try {
+      return await geminiStreamOnce(p, p.model, system, userText, maxTokens, timeoutMs, temperature, function (t) {
+        streamed = true;
+        onText(t);
+      });
+    } catch (err) {
+      /* 4xx (incl. quota 429): the same model would answer the same — only the fallback model is worth a call. */
+      if (err && err.httpStatus && err.httpStatus < 500) {
+        if (err.httpStatus !== 429 || !p.fallbackModel || p.fallbackModel === p.model) throw err;
+        try { onText(null, { reset: true, streamed: streamed }); } catch (_) {}
+        return geminiOnce(p, p.fallbackModel, system, userText, maxTokens, timeoutMs, temperature);
+      }
+      console.error("[build-ai] stream failed (" + ((err && err.code) || "error") + "), retrying without streaming");
+      try { onText(null, { reset: true, streamed: streamed }); } catch (_) {}
+    }
+  }
   try {
     return await geminiOnce(p, p.model, system, userText, maxTokens, timeoutMs, temperature);
   } catch (err) {
@@ -778,7 +855,7 @@ const UI_RUNTIME = [
 const GEN_SYSTEM = [
   "You are a senior product designer and front-end engineer. Write a complete, production-quality one-page website for the business or app the user describes.",
   "The result must be clearly and specifically about the user's prompt: their services, place, audience and tone. Never generic filler.",
-  "Respond with ONLY a JSON object: {\"reply\":\"one sentence summary\",\"html\":\"full public/index.html\",\"css\":\"full public/styles.css\"}",
+  "Respond with ONLY a JSON object: {\"reply\":\"one sentence summary\",\"css\":\"full public/styles.css\",\"html\":\"full public/index.html\"} (write css first, then html)",
   "Design bar (premium): bold confident typography (system font stacks or a tasteful stack, no external font links), strong hero with a clear value proposition and primary call to action, rich sections (e.g. services/offer with specifics, how it works, service area or details, pricing or packages if natural, FAQ via <details>, contact). Generous spacing, modern cards, gradients or subtle patterns, inline SVG icons, hover/focus states, smooth transitions, CSS-only art instead of images.",
   "Mobile-first and responsive (looks great at 360px and 1440px). Accessible: semantic landmarks, labels, contrast, visible focus.",
   "Theming: style dark by default via :root variables and provide a light palette under :root[data-theme=\"light\"]. Both must look good.",
@@ -822,7 +899,7 @@ function finalizeSite(out) {
  * Replace a freshly scaffolded build's public/index.html + styles.css with a model-written site.
  * Resolves { ok:true, provider, model, reply } or { ok:false, reason } (scaffold left untouched).
  */
-async function generateSite(root, info, ip, owner) {
+async function generateSite(root, info, ip, owner, onText) {
   const p = activeProviders().find(function (x) {
     return x.kind === "gemini";
   });
@@ -838,7 +915,7 @@ async function generateSite(root, info, ip, owner) {
     "\nAccent colour to build the palette around: " + String((info && info.accent) || "#5eead4") +
     "\nCurrent year: " + new Date().getFullYear();
   try {
-    const out = await callGemini(p, GEN_SYSTEM, user, 32000, num("AI_GENERATE_TIMEOUT_MS", 110000), 0.7);
+    const out = await callGemini(p, GEN_SYSTEM, user, 32000, num("AI_GENERATE_TIMEOUT_MS", 110000), 0.7, onText);
     const site = finalizeSite(out);
     if (lastFailure && lastFailure.provider === p.id) lastFailure = null;
     const pub = path.join(root, "public");
@@ -855,8 +932,67 @@ async function generateSite(root, info, ip, owner) {
   }
 }
 
+/* ---------- Click-to-edit: rewrite ONE element ---------- */
+const ELEMENT_SYSTEM = [
+  "You edit exactly one HTML element of an existing website. You get the element's current outer HTML, a little surrounding context, and the owner's instruction.",
+  "Return ONLY JSON {\"reply\":\"short summary\",\"html\":\"replacement outer HTML\"}. The replacement must be a single element with the same tag name, keeping existing classes, ids and data- attributes unless the instruction asks otherwise, so the page's CSS still applies.",
+  "You may use inline style attributes for visual changes (weight, size, colour, spacing). No <script>, no <style>, no inline event handlers, no javascript: URLs, no iframes. No external images, fonts or CDNs: for a picture, use an inline SVG illustration or a CSS gradient (style attribute) instead.",
+  "Honesty: never invent testimonials, ratings, statistics, phone numbers, emails or addresses. Never mention AI or any vendor.",
+].join("\n");
+const ELEMENT_SCHEMA = {
+  type: "OBJECT",
+  properties: { reply: { type: "STRING" }, html: { type: "STRING" } },
+  required: ["reply", "html"],
+  propertyOrdering: ["reply", "html"],
+};
+
+function tagOf(h) {
+  const m = /^\s*<([a-z][a-z0-9-]*)/i.exec(String(h || ""));
+  return m ? m[1].toLowerCase() : "";
+}
+
+/** Validate a single-element replacement. Returns cleaned html or throws {code}. */
+function checkElementReplacement(before, after) {
+  const out = String(after || "").trim();
+  if (!out || out.length > 40000) throw Object.assign(new Error("bad size"), { code: "invalid_html" });
+  const bt = tagOf(before);
+  const at = tagOf(out);
+  const swappable = { img: 1, svg: 1, picture: 1, figure: 1, div: 1, span: 1 };
+  if (!at || (at !== bt && !(swappable[bt] && swappable[at]))) throw Object.assign(new Error("tag changed"), { code: "tag_changed" });
+  if (/<style\b|<\/style/i.test(out) || riskyIncrease(before, out) || /<script\b/i.test(out)) {
+    throw Object.assign(new Error("unsafe"), { code: "unsafe_output" });
+  }
+  if (/lorem ipsum/i.test(out)) throw Object.assign(new Error("placeholder"), { code: "placeholder" });
+  return out.replace(/(<img\b[^>]*\ssrc=["'])https?:[^"']*(["'])/gi, "$1$2");
+}
+
+async function editElement(outer, context, prompt, ip, owner) {
+  const p = activeProviders().find(function (x) { return x.kind === "gemini"; });
+  if (!p) return { ok: false, reason: configuredProviders().length ? "quota" : "not_configured" };
+  const limited = rateCheck(ip || "unknown", owner);
+  if (limited) return { ok: false, reason: limited };
+  const user =
+    "Instruction: " + String(prompt || "").slice(0, 500) +
+    "\n\nSurrounding section (context only, do not return it):\n" + truncate(String(context || ""), 4000) +
+    "\n\nElement to replace (return its replacement):\n" + String(outer || "").slice(0, 16000);
+  try {
+    const out = await callGemini(p, ELEMENT_SYSTEM, user, 12000, 45000, 0.4);
+    const html = checkElementReplacement(outer, out && out.html);
+    return { ok: true, html: html, reply: String((out && out.reply) || "Updated.").slice(0, 200), provider: p.id, model: p.model };
+  } catch (err) {
+    const code = (err && err.code) || (err && err.name === "AbortError" ? "timeout" : "model_error");
+    console.error("[build-ai] element edit failed:", code);
+    const quota = err && (err.httpStatus === 429 || QUOTA_CODES.test(code));
+    if (quota) quotaDead[p.id] = Date.now();
+    return { ok: false, reason: quota ? "quota" : code };
+  }
+}
+
 module.exports = {
   applyAiEdit,
+  editElement,
+  checkElementReplacement,
+  riskyIncrease,
   generateSite,
   status,
   isConfigured,

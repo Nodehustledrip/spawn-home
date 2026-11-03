@@ -17,6 +17,8 @@ const webedit = require("./webedit");
 const webfree = require("./webfree");
 const buildai = require("./buildai");
 const history = require("./buildhistory");
+const versions = require("./buildversions");
+const presets = require("./buildpresets");
 const store = require("./buildstore");
 const buildzip = require("./buildzip");
 const auth = require("./auth");
@@ -253,12 +255,41 @@ async function previewBadgeExempt(id, root) {
   }
 }
 
+/* Daily edit allowance (anon 20 / free / Pro via auth.js). Every AI action — chat edits and
+ * click-to-edit rewrites — counts as an edit. Returns false after sending a 429. */
+function editGate(req, res, b, ip) {
+    if (!b.user && ANON_EDITS_PER_DAY && !hit("ead", ip, { windowMs: 24 * 60 * 60 * 1000, max: ANON_EDITS_PER_DAY })) {
+      res.status(429).json({
+        ok: false,
+        limit: "edits",
+        signin: auth.enabled() ? true : undefined,
+        error: "You've used today's " + ANON_EDITS_PER_DAY + " edits without an account. Sign in with your email (free) for " + auth.limitsFor({ plan: "free" }).editsPerDay + " a day, or go Pro for " + auth.limitsFor({ plan: "pro", plan_status: "active" }).editsPerDay + ".",
+      });
+      return false;
+    }
+    if (b.user && !auth.editAllowed(b.user)) {
+      res.status(429).json({
+        ok: false,
+        limit: "edits",
+        upgrade: auth.isPro(b.user) ? undefined : "/pricing",
+        error: auth.isPro(b.user)
+          ? "You've reached today's Pro edit limit. It resets within 24 hours."
+          : "You've reached today's edit limit on the Free plan. It resets within 24 hours — Pro allows " + auth.limitsFor({ plan: "pro", plan_status: "active" }).editsPerDay + " edits a day.",
+      });
+      return false;
+    }
+    return true;
+}
+
 function wrap(fn) {
   return function (req, res, next) {
     Promise.resolve(fn(req, res, next)).catch(function (err) {
       const status = err.status || 500;
       console.error("[builds]", req.method, req.path, "failed:", (err && err.message) || err);
-      if (res.headersSent) return;
+      if (res.headersSent) {
+        try { res.end(); } catch (_) {}
+        return;
+      }
       res.status(status).json({ ok: false, error: status < 500 ? err.message : "Something went wrong — try again." });
     });
   };
@@ -551,6 +582,45 @@ function mount(app) {
       { name: name, template: body.template, description: description, accent: accent },
       BUILDS_DIR
     );
+    /* Live build preview: body.stream → NDJSON events ({type:start|delta|reset|done}) so the
+     * client can render sections as the model writes them. The finished build is produced by
+     * the exact same path as a non-streamed create. */
+    const streaming = body.stream === true;
+    let onText = null;
+    if (streaming) {
+      res.status(200);
+      res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+      res.setHeader("Cache-Control", "no-store, no-transform");
+      res.setHeader("X-Accel-Buffering", "no");
+      const emit = function (o) {
+        try {
+          res.write(JSON.stringify(o) + "\n");
+          if (typeof res.flush === "function") res.flush();
+        } catch (_) {}
+      };
+      res._spawnEmit = emit;
+      emit({ type: "start", id: result.id, previewPath: "/preview/" + result.id + "/", ai: !(body.ai === false) && buildai.isConfigured() });
+      let pending = "";
+      let last = 0;
+      onText = function (t, info) {
+        if (t === null) {
+          pending = "";
+          emit({ type: "reset", streamed: !!(info && info.streamed) });
+          return;
+        }
+        pending += t;
+        const now = Date.now();
+        if (now - last >= 120) {
+          emit({ type: "delta", text: pending });
+          pending = "";
+          last = now;
+        }
+      };
+      onText.flush = function () {
+        if (pending) emit({ type: "delta", text: pending });
+        pending = "";
+      };
+    }
     /* Cloud AI writes a site that matches the prompt; on any limit/failure the
      * template scaffold stays and the response says so honestly. */
     let gen = null;
@@ -561,18 +631,25 @@ function mount(app) {
           result.path,
           { name: name, description: description, template: result.template || body.template, accent: accent },
           ip,
-          me
+          me,
+          onText
         );
+        if (onText) onText.flush();
       } catch (err) {
         console.error("[builds] ai generate crashed:", (err && err.message) || "error");
         gen = { ok: false, reason: "crash" };
       }
       console.log("[builds] generate", gen.ok ? "ok" : "fallback:" + gen.reason, Date.now() - t0 + "ms");
     }
+    versions.record(result.path, gen && gen.ok ? "Created — " + (description || name) : "Created from template", "create");
     try {
       await store.save(result.id, me, result.path);
     } catch (err) {
       fs.rmSync(result.path, { recursive: true, force: true });
+      if (streaming) {
+        res._spawnEmit({ type: "done", status: err.status || 500, data: { ok: false, error: err.status === 413 ? err.message : "Could not save the build." } });
+        return res.end();
+      }
       throw err;
     }
     dualWriteBuild("build_created", {
@@ -585,7 +662,7 @@ function mount(app) {
       createdAt: new Date().toISOString(),
     });
     console.log("[builds] created", result.id, result.template, "store=" + store.mode());
-    return res.status(201).json({
+    const payload = {
       ok: true,
       build: summarizeBuild(result.id),
       saved: store.savedFor(me),
@@ -597,7 +674,13 @@ function mount(app) {
           ? "Written for your description — refine it in Build chat."
           : aiFallbackNote(gen.reason, "create")
         : undefined,
-    });
+    };
+    if (streaming) {
+      if (gen && gen.ok) dualWriteBuild("build_stream_completed", { sessionId: me, id: result.id });
+      res._spawnEmit({ type: "done", status: 201, data: payload });
+      return res.end();
+    }
+    return res.status(201).json(payload);
   }));
 
   app.get("/api/builds/:id", wrap(async function (req, res) {
@@ -664,24 +747,7 @@ function mount(app) {
     if (message.length > 2000) return res.status(400).json({ ok: false, error: "Message too long" });
     const b = await loadOwned(req, res);
     if (!b) return;
-    if (!b.user && ANON_EDITS_PER_DAY && !hit("ead", ip, { windowMs: 24 * 60 * 60 * 1000, max: ANON_EDITS_PER_DAY })) {
-      return res.status(429).json({
-        ok: false,
-        limit: "edits",
-        signin: auth.enabled() ? true : undefined,
-        error: "You've used today's " + ANON_EDITS_PER_DAY + " edits without an account. Sign in with your email (free) for " + auth.limitsFor({ plan: "free" }).editsPerDay + " a day, or go Pro for " + auth.limitsFor({ plan: "pro", plan_status: "active" }).editsPerDay + ".",
-      });
-    }
-    if (b.user && !auth.editAllowed(b.user)) {
-      return res.status(429).json({
-        ok: false,
-        limit: "edits",
-        upgrade: auth.isPro(b.user) ? undefined : "/pricing",
-        error: auth.isPro(b.user)
-          ? "You've reached today's Pro edit limit. It resets within 24 hours."
-          : "You've reached today's edit limit on the Free plan. It resets within 24 hours — Pro allows " + auth.limitsFor({ plan: "pro", plan_status: "active" }).editsPerDay + " edits a day.",
-      });
-    }
+    if (!editGate(req, res, b, ip)) return;
     const id = b.id;
     const root = b.root;
     /* Prefer a model when one is usable (paid with credits, or free Groq/OpenRouter);
@@ -695,6 +761,7 @@ function mount(app) {
       if (/^\s*(undo|revert|go back|undo (?:that|last(?: change| edit)?))\s*[.!]?\s*$/i.test(message)) {
         const restored = history.restore(root);
         if (restored) {
+          versions.record(root, "Undo", "undo");
           touchMeta(root);
           await store.save(id, b.owner, root, { edited: true });
         }
@@ -743,6 +810,7 @@ function mount(app) {
         return res.status(413).json({ ok: false, error: "That change would make the site too large for on-site Build. Try a smaller edit." });
       }
       if (real.length) {
+        versions.record(root, message, "edit");
         touchMeta(root);
         await store.save(id, b.owner, root, { edited: true });
       }
@@ -768,6 +836,172 @@ function mount(app) {
       });
     } finally {
       editing.delete(id);
+    }
+  }));
+
+  /* ---------- Studio: source, apply, click-to-edit, versions, presets ---------- */
+  function studioReply(res, b, extra) {
+    return res.json(Object.assign({
+      ok: true,
+      previewPath: "/preview/" + b.id + "/",
+      saved: store.savedFor(b.owner),
+      temporary: store.savedFor(b.owner) === "temporary",
+      versions: versions.list(b.root),
+      build: summarizeBuild(b.id),
+    }, extra || {}));
+  }
+  function readPub(root, f) {
+    try { return fs.readFileSync(path.join(root, "public", f), "utf8"); } catch (_) { return ""; }
+  }
+  /** Write new public files as one undoable, versioned change. */
+  async function commitChange(b, writes, label, kind) {
+    history.snapshot(b.root);
+    Object.keys(writes).forEach(function (f) { fs.writeFileSync(path.join(b.root, "public", f), writes[f]); });
+    if (store.publicBytes(b.root) > MAX_PUBLIC_BYTES) {
+      history.restore(b.root);
+      throw Object.assign(new Error("That change would make the site too large for on-site Build."), { status: 413 });
+    }
+    const v = versions.record(b.root, label, kind);
+    touchMeta(b.root);
+    await store.save(b.id, b.owner, b.root, { edited: true });
+    return v;
+  }
+
+  /* Raw site source (no preview badge) for the editor. */
+  app.get("/api/builds/:id/source", wrap(async function (req, res) {
+    res.setHeader("Cache-Control", "no-store");
+    await store.init();
+    const b = await loadOwned(req, res);
+    if (!b) return;
+    const css = readPub(b.root, "styles.css");
+    return res.json({ ok: true, html: readPub(b.root, "index.html"), css: css, preset: presets.current(css), presets: presets.list() });
+  }));
+
+  /* Direct edits from the preview (inline text, image upload, an accepted element rewrite).
+   * No model call. Same safety checks as AI output: no new scripts, handlers, frames or base. */
+  app.post("/api/builds/:id/apply", wrap(async function (req, res) {
+    const ip = clientIp(req);
+    if (!rateOk(ip)) return res.status(429).json({ ok: false, error: "Too many requests. Try again shortly." });
+    await store.init();
+    const body = req.body || {};
+    const html = typeof body.html === "string" ? body.html : "";
+    if (!/<body[\s>]/i.test(html) || !/<\/body>/i.test(html) || html.length > 400 * 1024) {
+      return res.status(400).json({ ok: false, error: "That page couldn't be saved." });
+    }
+    const b = await loadOwned(req, res);
+    if (!b) return;
+    if (editing.has(b.id)) return res.status(409).json({ ok: false, error: "An edit is already running — one moment." });
+    const before = readPub(b.root, "index.html");
+    const clean = html.split(badge.BADGE_HTML).join("");
+    if (buildai.riskyIncrease(before, clean) || /<style\b/i.test(clean) && !/<style\b/i.test(before)) {
+      return res.status(400).json({ ok: false, error: "That change includes code that isn't allowed in a build." });
+    }
+    if (clean === before) return studioReply(res, b, { changed: false });
+    editing.add(b.id);
+    try {
+      const kind = /^(text|image|element)$/.test(String(body.kind)) ? String(body.kind) : "edit";
+      const v = await commitChange(b, { "index.html": clean }, body.label || "Edited in preview", kind);
+      dualWriteBuild("build_preview_edit_applied", { sessionId: b.owner, id: b.id, kind: kind });
+      return studioReply(res, b, { changed: true, version: v });
+    } finally {
+      editing.delete(b.id);
+    }
+  }));
+
+  /* Click to edit: the model rewrites ONE element. Nothing is saved here — the client splices
+   * the replacement into the page and saves through /apply, so the preview updates in place. */
+  app.post("/api/builds/:id/element", wrap(async function (req, res) {
+    const ip = clientIp(req);
+    if (!rateOk(ip)) return res.status(429).json({ ok: false, error: "Too many requests. Try again shortly." });
+    await store.init();
+    const body = req.body || {};
+    const outer = String(body.outer || "");
+    const prompt = String(body.prompt || "").trim();
+    if (!prompt || prompt.length > 500) return res.status(400).json({ ok: false, error: "Describe the change in a few words." });
+    if (!outer || outer.length > 16000) return res.status(400).json({ ok: false, error: "That element is too large to edit on its own — pick a smaller part, or use Build chat." });
+    const b = await loadOwned(req, res);
+    if (!b) return;
+    if (!buildai.isConfigured()) return res.status(503).json({ ok: false, error: "Element rewrites need the cloud writer, which is offline right now. You can still edit text directly." });
+    if (!editGate(req, res, b, ip)) return;
+    let out;
+    try {
+      out = await buildai.editElement(outer, String(body.context || "").slice(0, 4000), prompt, ip, b.owner);
+    } catch (_) {
+      out = { ok: false, reason: "crash" };
+    }
+    dualWriteBuild("build_element_edit", { sessionId: b.owner, id: b.id, ok: !!out.ok, reason: out.ok ? null : out.reason, tag: (/^\s*<([a-z0-9-]+)/i.exec(outer) || [])[1] || null });
+    if (!out.ok) {
+      const msg = out.reason === "daily_cap" || out.reason === "quota" || out.reason === "rpm" || out.reason === "ip_daily" || out.reason === "owner_daily"
+        ? "The writer is at its limit for now. " + aiFallbackNote(out.reason, "edit").replace(/used free offline rules instead\.?/, "Try again later, or edit the text directly.")
+        : "Couldn't rewrite that element — try different wording, or edit the text directly.";
+      return res.status(out.reason === "tag_changed" || out.reason === "unsafe_output" ? 422 : 503).json({ ok: false, reason: out.reason, error: msg });
+    }
+    return res.json({ ok: true, html: out.html, reply: out.reply, mode: "ai" });
+  }));
+
+  app.get("/api/builds/:id/versions", wrap(async function (req, res) {
+    res.setHeader("Cache-Control", "no-store");
+    await store.init();
+    const b = await loadOwned(req, res);
+    if (!b) return;
+    let list = versions.list(b.root);
+    if (!list.length && readPub(b.root, "index.html")) {
+      /* Builds from before the timeline: start it from what's live now. */
+      versions.record(b.root, "Current version", "create");
+      list = versions.list(b.root);
+    }
+    return res.json({ ok: true, versions: list });
+  }));
+
+  app.get("/api/builds/:id/versions/:n", wrap(async function (req, res) {
+    res.setHeader("Cache-Control", "private, max-age=300");
+    await store.init();
+    const b = await loadOwned(req, res);
+    if (!b) return;
+    const v = versions.get(b.root, req.params.n);
+    if (!v) return res.status(404).json({ ok: false, error: "That version is no longer kept." });
+    return res.json({ ok: true, version: v.meta, html: v.files["index.html"] || "", css: v.files["styles.css"] || "" });
+  }));
+
+  app.post("/api/builds/:id/versions/:n/restore", wrap(async function (req, res) {
+    if (!rateOk(clientIp(req))) return res.status(429).json({ ok: false, error: "Too many requests. Try again shortly." });
+    await store.init();
+    const b = await loadOwned(req, res);
+    if (!b) return;
+    if (editing.has(b.id)) return res.status(409).json({ ok: false, error: "An edit is already running — one moment." });
+    const v = versions.get(b.root, req.params.n);
+    if (!v) return res.status(404).json({ ok: false, error: "That version is no longer kept." });
+    editing.add(b.id);
+    try {
+      const rec = await commitChange(b, v.files, "Restored v" + v.meta.n + " · " + v.meta.label, "restore");
+      dualWriteBuild("build_version_restored", { sessionId: b.owner, id: b.id, from: v.meta.n });
+      return studioReply(res, b, { restored: v.meta.n, version: rec });
+    } finally {
+      editing.delete(b.id);
+    }
+  }));
+
+  /* One-tap restyle: deterministic theme layer, no model call, saved as a version. */
+  app.post("/api/builds/:id/preset", wrap(async function (req, res) {
+    if (!rateOk(clientIp(req))) return res.status(429).json({ ok: false, error: "Too many requests. Try again shortly." });
+    await store.init();
+    const id = String((req.body && req.body.preset) || "");
+    if (id !== "original" && !presets.PRESETS[id]) return res.status(400).json({ ok: false, error: "Unknown style." });
+    const b = await loadOwned(req, res);
+    if (!b) return;
+    if (editing.has(b.id)) return res.status(409).json({ ok: false, error: "An edit is already running — one moment." });
+    const css = readPub(b.root, "styles.css");
+    if (!css) return res.status(400).json({ ok: false, error: "This build has no stylesheet to restyle." });
+    const next = presets.apply(css, id);
+    if (next === css) return studioReply(res, b, { preset: presets.current(css), changed: false });
+    editing.add(b.id);
+    try {
+      const label = id === "original" ? "Original style" : presets.PRESETS[id].label + " style";
+      const v = await commitChange(b, { "styles.css": next }, label, "preset");
+      dualWriteBuild("build_preset_applied", { sessionId: b.owner, id: b.id, preset: id });
+      return studioReply(res, b, { preset: id === "original" ? null : id, changed: true, version: v });
+    } finally {
+      editing.delete(b.id);
     }
   }));
 

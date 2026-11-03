@@ -69,7 +69,11 @@
     .gl-btn-ghost { display: inline-flex; align-items: center; color: #f2f0eb; text-decoration: none; border: 1px solid rgba(255,255,255,.16); border-radius: 10px; transition: border-color .25s, background .25s; }
     .gl-btn-ghost:hover { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 10%, transparent); }
     .gl-note { font-size: .82rem; color: #7f7b73; }
-    .gl-report { margin-left: auto; font: inherit; font-size: .78rem; color: #7f7b73; background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .gl-share { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; height: 34px; padding: 0 .75rem; border-radius: 9px; font: inherit; font-size: .8rem; font-weight: 600; color: #d8d4cc; background: transparent; border: 1px solid rgba(255,255,255,.12); cursor: pointer; transition: border-color .18s, color .18s, transform .12s; }
+    .gl-share:hover { color: #f2f0eb; border-color: rgba(255,255,255,.26); }
+    .gl-share:active { transform: scale(.97); }
+    .gl-share:focus-visible { outline: 2px solid rgba(212,165,116,.7); outline-offset: 2px; }
+    .gl-report { font: inherit; font-size: .78rem; color: #7f7b73; background: none; border: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
     .gl-report:hover { color: #cfcac0; }
     .gl-empty { text-align: center; padding: 4rem 1rem; border: 1px dashed rgba(255,255,255,.14); border-radius: 18px; color: var(--muted, #a8a49c); }
     .gl-cta { margin: 4.5rem 0 0; padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(212,165,116,.25); background: radial-gradient(600px 200px at 10% 0%, rgba(212,165,116,.12), transparent), rgba(255,255,255,.02); }
@@ -103,6 +107,7 @@
   </style>
   <link rel="preload" href="/styles.css" as="style" />
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/studio.css?v=20261102a" />
   <script type="application/ld+json">/*GL_LD*/</script>
 </head>
 <body>
@@ -271,7 +276,7 @@
     grid.addEventListener("click", function (e) {
       var r = e.target.closest("[data-gl-remix]"); if (r) track("gallery_remix_click", { slug: r.dataset.glRemix });
       var o = e.target.closest("[data-gl-open]"); if (o) track("gallery_open_live", { slug: o.dataset.glOpen });
-      var rep = e.target.closest("[data-gl-report]"); if (rep) openReport(rep.dataset.glReport);
+      var rep = e.target.closest("[data-gl-report]"); if (rep) openReport(rep.dataset.glReport); var sh = e.target.closest("[data-gl-share]"); if (sh && window.SpawnShare) window.SpawnShare.open({ url: sh.dataset.url, title: sh.dataset.title, image: sh.dataset.image, kicker: "Share this app", placement: "gallery" });
     });
     track("gallery_viewed", { entries: cards.length, ref: params.get("ref") || undefined });
 
@@ -283,7 +288,7 @@
       if ("IntersectionObserver" in window) { var io = new IntersectionObserver(function (en) { if (en.some(function (x) { return x.isIntersecting; })) { vis(); io.disconnect(); } }); io.observe(prem); } else vis();
       prem.addEventListener("click", function (e) {
         var o = e.target.closest("[data-gl-open]"); if (o) track("gallery_open_live", { slug: o.dataset.glOpen, premium: true });
-        var rep = e.target.closest("[data-gl-report]"); if (rep) openReport(rep.dataset.glReport);
+        var rep = e.target.closest("[data-gl-report]"); if (rep) openReport(rep.dataset.glReport); var sh = e.target.closest("[data-gl-share]"); if (sh && window.SpawnShare) window.SpawnShare.open({ url: sh.dataset.url, title: sh.dataset.title, image: sh.dataset.image, kicker: "Share this app", placement: "gallery" });
         var a = e.target.closest("[data-gl-premium]"); if (!a) return;
         e.preventDefault();
         getMe().then(function (d) {
@@ -335,6 +340,8 @@
     </nav>
   </footer>
 
+  <script src="/vendor/qrcode.js?v=1.4.4" defer></script>
+  <script src="/share.js?v=20261102a" defer></script>
   <script src="/analytics.js" defer></script>
   <script src="/app.js" defer></script>
 </body>

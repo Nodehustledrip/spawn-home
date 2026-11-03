@@ -310,6 +310,10 @@
     if (dl) dl.hidden = false;
     var pubBtn = $("[data-publish]");
     if (pubBtn) pubBtn.hidden = !state.cloudOn;
+    emit("spawn:preview", { id: state.activeId, path: path });
+  }
+  function emit(name, detail) {
+    try { document.dispatchEvent(new CustomEvent(name, { detail: detail || {} })); } catch (_) {}
   }
 
   /* ---- Publish to Spawn Cloud (signed-in accounts) ---- */
@@ -434,6 +438,7 @@
     if (form) form.hidden = true;
     done.hidden = false;
     state.lastPublished = d.url;
+    emit("spawn:published", { url: d.url, version: d.version });
   }
   function bindPublishDone() {
     var copy = $("[data-publish-copy]");
@@ -644,6 +649,7 @@
     }
     tick();
     gen.timer = setInterval(tick, 250);
+    if (window.SpawnLive && ai) window.SpawnLive.begin(name);
     var stage = document.querySelector(".build-stage");
     if (stage && window.matchMedia && window.matchMedia("(max-width: 960px)").matches) {
       var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -651,6 +657,7 @@
     }
   }
   function stopGen() {
+    if (window.SpawnLive) window.SpawnLive.end();
     if (gen.timer) clearInterval(gen.timer);
     gen.timer = null;
     var el = $("[data-gen]");
@@ -658,6 +665,51 @@
     var iframe = $("[data-preview]");
     var empty = $("[data-preview-empty]");
     if (empty && iframe && iframe.hidden) empty.hidden = false;
+  }
+
+  /* Create, streamed when the cloud writer is on: NDJSON events feed the live preview
+   * (window.SpawnLive) while the model writes; any failure degrades to the plain JSON reply. */
+  function createRequest(body, aiOn) {
+    var canStream = aiOn && window.SpawnLive && window.ReadableStream && window.TextDecoder;
+    var payload = Object.assign({}, body, canStream ? { stream: true } : {});
+    return api("/api/builds", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).then(function (r) {
+      var ct = r.headers.get("content-type") || "";
+      if (!canStream || ct.indexOf("ndjson") === -1 || !r.body || !r.body.getReader) {
+        return r.json().then(function (data) { return { status: r.status, data: data }; });
+      }
+      var reader = r.body.getReader();
+      var dec = new TextDecoder();
+      var buf = "";
+      var final = null;
+      function handle(line) {
+        if (!line) return;
+        var ev;
+        try { ev = JSON.parse(line); } catch (_) { return; }
+        if (ev.type === "done") final = { status: ev.status, data: ev.data };
+        else window.SpawnLive.event(ev);
+      }
+      function pump() {
+        return reader.read().then(function (x) {
+          if (x.done) {
+            handle(buf.trim());
+            if (!final) throw new Error("stream ended early");
+            return final;
+          }
+          buf += dec.decode(x.value, { stream: true });
+          var i;
+          while ((i = buf.indexOf("\n")) !== -1) {
+            handle(buf.slice(0, i));
+            buf = buf.slice(i + 1);
+          }
+          return pump();
+        });
+      }
+      return pump();
+    });
   }
 
   function onCreate(e) {
@@ -679,21 +731,12 @@
     setNote("");
     startGen(name, aiOn);
 
-    api("/api/builds", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: name,
-        description: desc,
-        template: state.selectedTemplate,
-        company: company,
-      }),
-    })
-      .then(function (r) {
-        return r.json().then(function (data) {
-          return { status: r.status, data: data };
-        });
-      })
+    createRequest({
+      name: name,
+      description: desc,
+      template: state.selectedTemplate,
+      company: company,
+    }, aiOn)
       .then(function (res) {
         if (!res.data || !res.data.ok || !res.data.build) {
           setNote((res.data && res.data.error) || "Could not create.", true);
@@ -761,6 +804,7 @@
         appendChat("build", (res.data.mode === "ai" || res.data.mode === "free-cloud" ? "✦ " : "") + (res.data.reply || "Done."));
         var path = res.data.previewPath || "/preview/" + state.activeId + "/";
         showPreview(path);
+        emit("spawn:changed", { id: state.activeId, reason: "chat" });
         if ((res.data.changes || []).length) flashSaved("Updated");
         if (res.data.build) {
           state.builds = state.builds.map(function (b) {
@@ -1008,6 +1052,25 @@
         return false;
       });
   }
+
+  window.SpawnBuild = {
+    api: api,
+    activeId: function () { return state.activeId; },
+    activeBuild: function () { return state.builds.filter(function (x) { return x.id === state.activeId; })[0] || null; },
+    showPreview: showPreview,
+    flashSaved: flashSaved,
+    appendChat: appendChat,
+    upgradeLink: upgradeLink,
+    track: function (ev, props) { track(ev, props); },
+    aiReady: function () { return !!(state.aiReady && state.buildMode !== "offline"); },
+    sendChat: function (msg) {
+      var input = $("[data-chat-input]");
+      var form = $("[data-chat-form]");
+      if (!input || !form) return;
+      input.value = msg;
+      if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event("submit", { cancelable: true }));
+    },
+  };
 
   function init() {
     loadAiStatus();

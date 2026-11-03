@@ -333,6 +333,7 @@ function renderCards(entries) {
           <div class="gl-actions">
             <a class="btn-solid gl-btn" href="${x(e.url)}" target="_blank" rel="noopener" data-gl-open="${x(e.slug)}">Open live <span aria-hidden="true">↗</span></a>
             ${e.remixable ? `<a class="gl-btn gl-btn-ghost" href="/build?remix=${encodeURIComponent(e.slug)}" data-gl-remix="${x(e.slug)}"${e.premium ? ` data-gl-premium="${x(e.slug)}" data-gl-title="${x(e.title)}"` : ""}>${e.premium ? "Remix with Pro" : "Remix this"}</a>` : `<span class="gl-note">Remix off</span>`}
+            <button type="button" class="gl-share" data-gl-share="${x(e.slug)}" data-url="${x(e.url)}" data-title="${x(e.title)}" data-image="${x(e.thumb)}" aria-label="Share ${x(e.title)}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>Share</button>
             <button type="button" class="gl-report" data-gl-report="${x(e.slug)}" aria-label="Report ${x(e.title)}">Report</button>
           </div>
         </div>

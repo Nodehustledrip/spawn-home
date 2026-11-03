@@ -138,7 +138,13 @@ app.use(compression());
 billing.mountWebhook(app); /* raw body — before express.json */
 require("./cloudpublish").mount(app);
 /* Spawn Cloud publish API — dormant (503) until CLOUD_PUBLISH_ENABLED + Cloudflare env exist */
-app.use(express.json({ limit: "32kb" }));
+const jsonSmall = express.json({ limit: "32kb" });
+const jsonStudio = express.json({ limit: "420kb" });
+/* Preview edits post the whole page (or one element) — larger bodies on those two routes only. */
+app.use(function (req, res, next) {
+  if (req.method === "POST" && /^\/api\/builds\/[A-Za-z0-9_-]+\/(apply|element)$/.test(req.path)) return jsonStudio(req, res, next);
+  return jsonSmall(req, res, next);
+});
 app.use(function (_req, res, next) {
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   res.setHeader("X-Content-Type-Options", "nosniff");
