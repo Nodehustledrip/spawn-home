@@ -33,6 +33,12 @@ function durable(owner) {
   return ready && isAccount(owner);
 }
 
+/* Honest storage label for one build: account builds are durable when a store
+ * is ready; builds made without an account are temporary (disk cache only). */
+function savedFor(owner) {
+  return durable(owner) ? backend : "temporary";
+}
+
 function mode() {
   return ready ? backend : "disk";
 }
@@ -482,6 +488,8 @@ async function health() {
 module.exports = {
   init,
   mode,
+  savedFor,
+  isAccount,
   save,
   hydrate,
   listByOwner,

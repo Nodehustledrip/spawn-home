@@ -702,11 +702,14 @@
         }
         track("build_created", { template: res.data.build.template || state.selectedTemplate || null, signed_in: !!state.signedIn });
         setNote(
-          res.data.generated === "ai"
+          (res.data.generated === "ai"
             ? "Created — written for your description. Refine it in Build chat, or download the zip."
             : res.data.note
             ? "Created from a template. " + res.data.note
-            : "Created — preview on the right. Download the zip to keep it."
+            : "Created — preview on the right. Download the zip to keep it.") +
+            (res.data.temporary || (!state.signedIn && res.data.saved !== "postgres" && res.data.saved !== "d1")
+              ? " Temporary build — it can disappear when Spawn updates. Sign in free to keep your builds."
+              : "")
         );
         state.builds = [res.data.build].concat(
           state.builds.filter(function (b) {
@@ -857,6 +860,8 @@
     $("[data-account-out]").hidden = signedIn;
     var teaser = $("[data-account-teaser]");
     if (teaser) teaser.hidden = signedIn;
+    var tempNote = $("[data-temp-note]");
+    if (tempNote) tempNote.hidden = signedIn;
     if (!signedIn && !box.classList.contains("is-asking") && !/signin=/.test(location.search)) box.classList.add("is-compact");
     var opener = $("[data-account-open]");
     if (opener && !opener._bound) {

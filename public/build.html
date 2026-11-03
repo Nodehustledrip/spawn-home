@@ -190,12 +190,12 @@
       <div class="build-side-head">
         <p class="kicker">On-site Build</p>
         <h1>Build an app</h1>
-        <p class="build-lead">Name it, pick a template, preview live, then change it in plain words. Same starter templates as Spawn desktop. Builds last for your session — download the zip to keep one. Free Build — no API credits needed.</p>
+        <p class="build-lead">Name it, pick a template, preview live, then change it in plain words. Same starter templates as Spawn desktop. Without an account, builds are temporary — sign in free to keep them, or download the zip. Free Build — no API credits needed.</p>
       </div>
 
       <div class="build-limits" role="note">
         <strong>Honest limits</strong>
-        <p>Create, edit, preview and download here. Without an account, builds live in this browser — download the zip anytime. Sign in (free, email link) to save builds to your account and <strong>Publish</strong> to a real <span class="mono">yourname.spawnapp.org</span> link that stays up 24/7. Free apps show a small “Made with Spawn” badge; <a href="/pricing">Pro</a> removes it and adds custom domains.</p>
+        <p>Create, edit, preview and download here. Builds made without an account are temporary and can disappear when Spawn updates — download the zip anytime. <a href="/signin?next=/build">Sign in free</a> (email link) to keep builds in your account and <strong>Publish</strong> to a real <span class="mono">yourname.spawnapp.org</span> link that stays up 24/7. Free apps show a small “Made with Spawn” badge; <a href="/pricing">Pro</a> removes it and adds custom domains.</p>
       </div>
 
       <section class="build-panel build-account" data-account hidden aria-label="Account">
@@ -245,6 +245,7 @@
           <button type="submit" class="btn-solid build-submit" data-create-submit>
             <span data-create-label>Create &amp; preview</span>
           </button>
+          <p class="build-form-note build-temp-note" data-temp-note hidden>Signed out: this build is temporary and can disappear when Spawn updates. <a href="/signin?next=/build">Sign in free</a> to keep it.</p>
           <p class="build-form-note" data-create-note role="status" aria-live="polite"></p>
         </form>
       </section>

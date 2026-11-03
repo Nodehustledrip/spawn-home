@@ -48,6 +48,28 @@ const POSTHOG_HOST = process.env.POSTHOG_HOST || "https://us.i.posthog.com";
 const buckets = new Map();
 const editing = new Set();
 
+/* Friendly page for a preview whose build no longer exists. Builds made without
+ * an account live on temporary disk and are cleared when Spawn updates. */
+function previewNotFound(res) {
+  res.setHeader("X-Robots-Tag", "noindex, nofollow");
+  res.setHeader("Cache-Control", "no-store");
+  return res
+    .status(404)
+    .type("html")
+    .send(
+      '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+        '<meta name="robots" content="noindex"><title>Build not found — Spawn</title><style>' +
+        "body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0b0f;color:#ececf1;font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;box-sizing:border-box}" +
+        ".c{max-width:460px;text-align:center}.k{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#9a9aa8;margin:0 0 10px}" +
+        "h1{font-size:26px;margin:0 0 12px;letter-spacing:-.01em}p{color:#b8b8c4;margin:0 0 22px}" +
+        ".a{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}a{display:inline-block;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:600;font-size:15px}" +
+        ".p{background:#fff;color:#0b0b0f}.s{border:1px solid #3a3a46;color:#ececf1}a:focus-visible{outline:2px solid #8b8bff;outline-offset:2px}" +
+        '</style></head><body><main class="c"><p class="k">Build not found</p><h1>This build is no longer here</h1>' +
+        "<p>Builds made without an account are temporary and are cleared when Spawn updates. Start a new one in seconds, or sign in free so your next builds are kept in your account.</p>" +
+        '<div class="a"><a class="p" href="/build" target="_top">Start a new build</a><a class="s" href="/signin?next=/build" target="_top">Sign in free</a></div></main></body></html>'
+    );
+}
+
 function ensureDir() {
   try {
     fs.mkdirSync(BUILDS_DIR, { recursive: true });
@@ -186,7 +208,15 @@ function touchMeta(root) {
  * cache from Postgres if needed, and checks ownership.
  * Returns { id, root, owner, source } or sends an error response and returns null.
  */
-async function loadOwned(req, res) {
+/** Admin override: WAITLIST_ADMIN_TOKEN header, or the signed-in site owner account. */
+function isAdminReq(req, user) {
+  const tok = process.env.WAITLIST_ADMIN_TOKEN || "";
+  const h = req.headers && req.headers["x-waitlist-token"];
+  if (tok && typeof h === "string" && h.length > 0 && h === tok) return true;
+  try { return !!user && require("./badge").isOwner(user); } catch (_) { return false; }
+}
+
+async function loadOwned(req, res, opts) {
   const id = String(req.params.id || "");
   const root = projectRoot(id);
   if (!root) {
@@ -201,6 +231,9 @@ async function loadOwned(req, res) {
     return null;
   }
   const owner = await store.ownerOf(id, root);
+  if (opts && opts.admin && isAdminReq(req, who.user)) {
+    return { id: id, root: root, owner: owner, source: source, user: who.user, admin: true };
+  }
   if (!owner || owner !== me) {
     res.status(403).json({ ok: false, error: "This build belongs to another browser. Open it from the browser you made it in." });
     return null;
@@ -545,6 +578,8 @@ function mount(app) {
     return res.status(201).json({
       ok: true,
       build: summarizeBuild(result.id),
+      saved: store.savedFor(me),
+      temporary: store.savedFor(me) === "temporary",
       generated: gen ? (gen.ok ? "ai" : "template") : "template",
       aiFallback: gen && !gen.ok ? gen.reason : undefined,
       note: gen
@@ -571,6 +606,8 @@ function mount(app) {
       build: summarizeBuild(b.id),
       files: files,
       storage: store.mode(),
+      saved: store.savedFor(b.owner),
+      temporary: store.savedFor(b.owner) === "temporary",
       limits: { previewOnly: true, note: "Preview at /preview/" + b.id + "/ — lasting public URL needs Spawn desktop." },
     });
   }));
@@ -580,7 +617,7 @@ function mount(app) {
       return res.status(429).json({ ok: false, error: "Too many requests. Try again shortly." });
     }
     await store.init();
-    const b = await loadOwned(req, res);
+    const b = await loadOwned(req, res, { admin: true });
     if (!b) return;
     if (editing.has(b.id)) return res.status(409).json({ ok: false, error: "An edit is running — try again in a moment." });
     await store.remove(b.id, b.root);
@@ -656,7 +693,8 @@ function mount(app) {
           reply: restored ? "Undid the last edit." : "Nothing to undo yet.",
           changes: restored ? [{ action: "undo", detail: "Restored previous version" }] : [],
           mode: "offline",
-          saved: store.mode(),
+          saved: store.savedFor(b.owner),
+          temporary: store.savedFor(b.owner) === "temporary",
           previewPath: "/preview/" + id + "/",
           build: summarizeBuild(id),
         });
@@ -713,7 +751,8 @@ function mount(app) {
         mode: out.mode || "offline",
         provider: out.provider || undefined,
         aiFallback: out.aiFallback || undefined,
-        saved: store.mode(),
+        saved: store.savedFor(b.owner),
+          temporary: store.savedFor(b.owner) === "temporary",
         previewPath: "/preview/" + id + "/",
         build: summarizeBuild(id),
       });
@@ -736,14 +775,14 @@ function mount(app) {
   app.use("/preview/:id", function (req, res, next) {
     const id = String(req.params.id || "");
     const root = projectRoot(id);
-    if (!root) return res.status(404).type("text").send("Preview not found");
+    if (!root) return previewNotFound(res);
     store
       .init()
       .then(function () {
         return store.hydrate(id, root);
       })
       .then(function (source) {
-        if (!source) return res.status(404).type("text").send("Preview not found");
+        if (!source) return previewNotFound(res);
         fixLegacyCss(root);
         if (req.path === "/" || req.path === "" || /\.html$/i.test(req.path)) fixLegacyCopy(root);
         const pub = path.join(root, "public");
@@ -781,4 +820,4 @@ function mount(app) {
   });
 }
 
-module.exports = { fixLegacyCss, fixLegacyCopy, mount, BUILDS_DIR, projectRoot, store };
+module.exports = { isAdminReq, fixLegacyCss, fixLegacyCopy, mount, BUILDS_DIR, projectRoot, store };

@@ -124,6 +124,8 @@ test("d1 backend: sign-in, session cache, plan change, builds, tokens, sign-out"
 
   r = await call("POST", "/api/builds", { cookie, body: { name: "D1 Build", template: "local-service" } });
   assert.equal(r.status, 201, JSON.stringify(r.json));
+  assert.equal(r.json.saved, "d1", "account builds report the durable store");
+  assert.equal(r.json.temporary, false);
   const id = r.json.build.id;
   r = await call("GET", "/api/builds", { cookie });
   assert.ok(r.json.builds.some((b) => b.id === id));
@@ -156,4 +158,18 @@ test("d1 backend: sign-in, session cache, plan change, builds, tokens, sign-out"
   r = await call("POST", "/api/auth/logout", { cookie });
   r = await call("GET", "/api/me", { cookie });
   assert.equal(r.json.signedIn, false, "sign-out applies immediately");
+});
+
+test("anonymous builds honestly report temporary storage; missing preview explains why", async () => {
+  let r = await call("POST", "/api/builds", { body: { name: "Anon Build", template: "local-service" } });
+  assert.equal(r.status, 201, JSON.stringify(r.json));
+  assert.equal(r.json.saved, "temporary");
+  assert.equal(r.json.temporary, true);
+  assert.equal(db.prepare("SELECT count(*) n FROM build_chunks WHERE id=?").get(r.json.build.id).n, 0, "anonymous builds are not written to D1");
+  const p = await realFetch(base + "/preview/b-doesnotexist123/");
+  assert.equal(p.status, 404);
+  const html = await p.text();
+  assert.match(html, /temporary/);
+  assert.match(html, /Start a new build/);
+  assert.match(html, /Sign in free/);
 });
