@@ -6684,3 +6684,4 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .btn-ghost-elite:hover { background: rgba(167,139,250,0.1); }
 .plan-card-elite .plan-save { background: rgba(167,139,250,0.18); color: #c4b5fd; }
 .plan-everything { margin: 0.2rem 0 0; font-size: 0.88rem; color: #ddd6fe; }
+.plan-buy[hidden], .plan-card [hidden] { display: none !important; }

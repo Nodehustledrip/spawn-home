@@ -358,8 +358,10 @@ function mount(app, opts) {
   }));
   /* Shared by desktop (token) and web (session) publishing. Free-plan apps get the "Made with Spawn" badge in their
    * HTML at publish time; Pro and owner-exempt accounts don't. Existing versions are never rewritten. */
+  let elite = null;
   async function finishPublish(u, slug, a, manifest, body) {
     const account = (auth.userById ? await auth.userById(u.id) : null) || u;
+    if (elite) await elite.onPublish(account, slug).catch((e) => console.warn("[cloud-elite] stats enable failed: " + e.message));
     const withBadge = !badge.exempt(account);
     const vr = await be().query("SELECT COALESCE(MAX(version),0) AS v FROM versions WHERE slug=?1", [slug]);
     const version = Number(vr[0].v) + 1;
@@ -564,12 +566,11 @@ function mount(app, opts) {
       if (!(await be().head(key))) await be().put(key, buf, mimeFor(p));
     }
     const title = gal().decodeEntities(String((req.body && req.body.title) || (a && a.title) || slug)).trim().slice(0, 80);
-    await elite.onPublish(u, slug).catch((e) => console.warn("[cloud-elite] stats enable failed: " + e.message));
     const out = await finishPublish(u, slug, a, manifest, { title, note: "Published from spawnapp.org/build", access: files.__access, gallery: req.body.gallery, remixable: req.body.remixable, category: req.body.category, galleryDefault: true });
     res.json(out);
   }));
 
-  const elite = require("./cloudelite").mountElite(r, { wrap, fail, anyUser, ownedApp, be, auth });
+  elite = require("./cloudelite").mountElite(r, { wrap, fail, anyUser, ownedApp, be, auth });
   require("./cloudstripe").mountStripe(r, { wrap, fail, anyUser, ownedApp, be, encryptSecret, decryptSecret, apex, env, fetch: opts.stripeFetch });
 
   r.get("/my-apps", wrap(async (req, res) => {
