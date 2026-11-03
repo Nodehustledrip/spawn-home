@@ -599,7 +599,7 @@
       track("version_restored", { from: n });
       reloadPreview();
       B().flashSaved("Restored v" + n);
-      toast("Restored v" + n + " — saved as a new version, so nothing is lost.");
+      toast("Restored v" + n + " as a new version — undo it anytime from History.");
       if (S.panel === "history") renderHistory();
     }).catch(function () { toast("Network error — try again.", "error"); }).finally(function () { S.busy = false; });
   }

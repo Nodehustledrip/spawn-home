@@ -92,7 +92,7 @@
 </style>
   <link rel="preload" href="/styles.css?v=20261102" as="style" />
   <link rel="stylesheet" href="/styles.css?v=20261102" />
-  <link rel="stylesheet" href="/studio.css?v=20261102e" />
+  <link rel="stylesheet" href="/studio.css?v=20261103a" />
   <script type="application/ld+json">
 {
  "@context": "https://schema.org",
@@ -246,7 +246,7 @@
           <button type="submit" class="btn-solid build-submit" data-create-submit>
             <span data-create-label>Create &amp; preview</span>
           </button>
-          <p class="build-form-note build-temp-note" data-temp-note hidden>Signed out: this build is temporary and can disappear when Spawn updates. <a href="/signin?next=/build">Sign in free</a> to keep it.</p>
+          <p class="build-form-note build-temp-note" data-temp-note hidden>Not signed in — this draft is temporary and can be cleared when Spawn updates. <a href="/signin?next=/build" data-signin-keep>Sign in to keep it.</a></p>
           <p class="build-form-note" data-create-note role="status" aria-live="polite"></p>
         </form>
       </section>
@@ -256,7 +256,7 @@
           <h2 class="build-h2" data-list-title>This session</h2>
           <span class="build-count mono" data-build-count hidden></span>
         </div>
-        <p class="build-muted" data-list-sub>Builds last for your session. Download the zip to keep one.</p>
+        <p class="build-muted" data-list-sub>Drafts made without an account are temporary and can be cleared when Spawn updates. Sign in to keep them, or download the zip.</p>
         <ul class="build-list" data-build-list></ul>
         <p class="build-empty" data-build-empty hidden>No builds yet — create one above.</p>
       </section>
@@ -272,6 +272,11 @@
         </div>
         <div class="build-stage-actions">
           <span class="build-saved" data-saved hidden>Updated</span>
+          <span class="build-store" data-store hidden role="status" aria-live="polite">
+            <span class="build-store-dot" aria-hidden="true"></span>
+            <span class="build-store-text" data-store-text>Temporary draft</span>
+            <a class="build-store-link" data-store-signin data-signin-keep href="/signin?next=/build">Sign in to keep</a>
+          </span>
           <button type="button" class="build-dl-btn" data-download title="Download a static zip that opens from your computer" hidden>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5v7.25M4.75 6.75 8 10l3.25-3.25M3 12.75h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span data-download-label>Download zip</span>
@@ -383,9 +388,9 @@
 
   <script src="/analytics.js" defer></script>
   <script src="/app.js" defer></script>
-  <script src="/build-app.js?v=20261102e" defer></script>
+  <script src="/build-app.js?v=20261103a" defer></script>
   <script src="/vendor/qrcode.js?v=1.4.4" defer></script>
   <script src="/share.js?v=20261102e" defer></script>
-  <script src="/build-studio.js?v=20261102e" defer></script>
+  <script src="/build-studio.js?v=20261103a" defer></script>
 </body>
 </html>

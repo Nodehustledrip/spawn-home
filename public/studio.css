@@ -284,3 +284,15 @@
   .sp-version, .build-gen.is-streaming .build-gen-card, .sp-compare-bar { animation: none !important; }
   .sp-live-dot, .sp-thumb-skel { animation: none !important; }
 }
+
+/* Storage state — honest: signed-out drafts are temporary, account builds are saved. */
+.build-store { display: inline-flex; align-items: center; gap: .45rem; min-height: 32px; padding: 0 .2rem 0 .65rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--muted); font-size: .76rem; font-weight: 500; white-space: nowrap; }
+.build-store[hidden] { display: none; }
+.build-store-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.build-store.is-saved { padding-right: .65rem; }
+.build-store.is-saved .build-store-dot { background: var(--ok); }
+.build-store.is-saved .build-store-link { display: none; }
+.build-store-link { display: inline-flex; align-items: center; min-height: 44px; margin: -6px 0; padding: 0 .5rem; color: var(--accent); font-weight: 600; text-decoration: none; border-radius: 6px; }
+.build-store-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.build-store-link:focus-visible { outline: 2px solid rgba(212,165,116,.7); outline-offset: -4px; }
+@media (max-width: 640px) { .build-store { order: -1; } }

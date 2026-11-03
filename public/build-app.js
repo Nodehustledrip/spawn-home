@@ -20,6 +20,9 @@
    * returns just the builds made with it ("My builds"). */
   var OWNER_KEY = "spawn-build-owner";
   var LAST_KEY = "spawn-build-last";
+  /* ?b=<id> from a sign-in return link, captured before the URL is tidied. */
+  var INITIAL_B = null;
+  try { INITIAL_B = new URLSearchParams(location.search).get("b"); } catch (_) {}
   var memOwner = null;
   function randomToken() {
     var bytes = new Uint8Array(24);
@@ -220,9 +223,35 @@
     if (pathEl) pathEl.textContent = "";
   }
 
+  /* Where the open build actually lives: signed-out drafts are temporary (cleared when
+   * Spawn updates); account builds are saved to the account. */
+  function keepHref() {
+    return "/signin?next=" + encodeURIComponent(state.activeId ? "/build?b=" + state.activeId : "/build");
+  }
+  function renderStore() {
+    var href = keepHref();
+    Array.prototype.forEach.call(document.querySelectorAll("[data-signin-keep]"), function (a) { a.href = href; });
+    var box = $("[data-store]");
+    if (!box) return;
+    if (!state.activeId) { box.hidden = true; return; }
+    var saved = !!state.signedIn && state.activeTemp !== true;
+    box.hidden = false;
+    box.classList.toggle("is-saved", saved);
+    var t = $("[data-store-text]");
+    if (t) t.textContent = saved ? "Saved to your account" : "Temporary draft";
+    box.title = saved
+      ? "Saved to your account — open it from any browser where you sign in."
+      : "Not signed in — this draft is temporary and can be cleared when Spawn updates. Sign in to keep it.";
+  }
+  function noteStorage(data) {
+    if (data && typeof data.temporary === "boolean") state.activeTemp = data.temporary;
+    renderStore();
+  }
+
   function flashSaved(text) {
     var n = $("[data-saved]");
     if (!n) return;
+    if (!state.signedIn && text === "Saved") text = "Updated";
     n.textContent = text || "Updated";
     n.hidden = false;
     n.classList.remove("is-flash");
@@ -553,7 +582,9 @@
 
   function openBuild(id) {
     state.activeId = id;
+    state.activeTemp = null;
     store(LAST_KEY, id);
+    renderStore();
     renderList();
     var pp = $("[data-publish-panel]");
     if (pp) pp.hidden = true;
@@ -587,8 +618,10 @@
         renderList();
         var want = null;
         try {
-          want = new URLSearchParams(location.search).get("b");
-        } catch (_) {}
+          want = new URLSearchParams(location.search).get("b") || INITIAL_B;
+        } catch (_) {
+          want = INITIAL_B;
+        }
         want = state.activeId || want || recall(LAST_KEY);
         if (want && !state.activeId) {
           var still = state.builds.some(function (b) {
@@ -754,7 +787,7 @@
             ? "Created from a template. " + res.data.note
             : "Created — preview on the right. Download the zip to keep it.") +
             (res.data.temporary || (!state.signedIn && res.data.saved !== "postgres" && res.data.saved !== "d1")
-              ? " Temporary build — it can disappear when Spawn updates. Sign in free to keep your builds."
+              ? " Not signed in — this draft is temporary and can be cleared when Spawn updates. Sign in to keep it."
               : "")
         );
         state.builds = [res.data.build].concat(
@@ -764,6 +797,7 @@
         );
         renderList();
         openBuild(res.data.build.id);
+        noteStorage(res.data);
         if (form.elements.name) form.elements.name.value = "";
         if (form.elements.description) form.elements.description.value = "";
       })
@@ -804,6 +838,7 @@
           return;
         }
         track("build_edited", { mode: res.data.mode || null, changes: (res.data.changes || []).length, signed_in: !!state.signedIn });
+        noteStorage(res.data);
         appendChat("build", (res.data.mode === "ai" || res.data.mode === "free-cloud" ? "✦ " : "") + (res.data.reply || "Done."));
         var path = res.data.previewPath || "/preview/" + state.activeId + "/";
         showPreview(path);
@@ -909,6 +944,7 @@
     if (teaser) teaser.hidden = signedIn;
     var tempNote = $("[data-temp-note]");
     if (tempNote) tempNote.hidden = signedIn;
+    renderStore();
     if (!signedIn && !box.classList.contains("is-asking") && !/signin=/.test(location.search)) box.classList.add("is-compact");
     var opener = $("[data-account-open]");
     if (opener && !opener._bound) {
@@ -937,7 +973,7 @@
       if (sub) sub.textContent = "Saved to your account — open them from any browser where you sign in.";
     } else {
       if (title) title.textContent = "This session";
-      if (sub) sub.textContent = "Builds last for your session. Download the zip to keep one.";
+      if (sub) sub.textContent = "Not signed in — drafts here are temporary and can be cleared when Spawn updates. Sign in to keep them, or download the zip.";
     }
   }
 
@@ -956,7 +992,7 @@
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email }),
+      body: JSON.stringify({ email: email, next: state.activeId ? "/build?b=" + state.activeId : undefined }),
     })
       .then(function (r) {
         return r.json();
@@ -1065,6 +1101,7 @@
     activeBuild: function () { return state.builds.filter(function (x) { return x.id === state.activeId; })[0] || null; },
     showPreview: showPreview,
     flashSaved: flashSaved,
+    noteStorage: noteStorage,
     appendChat: appendChat,
     upgradeLink: upgradeLink,
     track: function (ev, props) { track(ev, props); },

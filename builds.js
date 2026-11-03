@@ -571,7 +571,7 @@ function mount(app) {
     dualWriteBuild("remix_created", { sessionId: g.me, id: result.id, source_slug: slug, files: Object.keys(src.files).length, storage: store.mode() });
     if (src.premium) dualWriteBuild("premium_remix_created", { sessionId: g.me, id: result.id, source_slug: slug });
     console.log("[builds] remixed", slug, "->", result.id);
-    return res.status(201).json({ ok: true, build: summarizeBuild(result.id), remixedFrom: { slug: slug, title: src.title }, files: Object.keys(src.files).length });
+    return res.status(201).json({ ok: true, build: summarizeBuild(result.id), saved: store.savedFor(g.me), temporary: store.savedFor(g.me) === "temporary", remixedFrom: { slug: slug, title: src.title }, files: Object.keys(src.files).length });
   }));
 
   app.post("/api/builds", wrap(async function (req, res) {
