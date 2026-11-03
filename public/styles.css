@@ -3212,7 +3212,8 @@ a.btn-solid:hover { color: var(--accent-ink); }
 }
 .link-quiet:hover { color: var(--accent); }
 .link-quiet::after {
-  content: " →";
+  content: "→";
+  margin-left: 0.3em;
   letter-spacing: -0.04em;
 }
 
@@ -6323,7 +6324,8 @@ a.btn-solid:hover { color: var(--accent-ink); }
   border-color: rgba(212, 165, 116, 0.55);
   background: rgba(212, 165, 116, 0.08);
 }
-.build-template input { margin-top: 0.2rem; accent-color: var(--accent); }
+.build-template { min-height: 44px; cursor: pointer; }
+.build-template input { width: 1.1rem; height: 1.1rem; flex-shrink: 0; margin-top: 0.15rem; accent-color: var(--accent); }
 .build-template-body { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
 .build-template-body strong { font-size: 0.9rem; }
 .build-template-body span { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
@@ -6688,3 +6690,6 @@ a.btn-solid:hover { color: var(--accent-ink); }
 button.btn-ghost-gold { background: transparent; font: inherit; font-weight: 600; cursor: pointer; }
 button.btn-ghost-gold:disabled { opacity: .55; cursor: default; transform: none; }
 .btn-solid[hidden], .btn-ghost-gold[hidden], .btn-elite[hidden], .btn-ghost-elite[hidden] { display: none !important; }
+
+/* Inline text links in build intro: 44px tap target without shifting layout */
+.build-intro-link { display: inline-block; padding: 0.7rem 0.15rem; margin: -0.7rem -0.15rem; }
