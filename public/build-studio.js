@@ -919,13 +919,14 @@
     if (!/^image\//.test(file.type)) return status("That isn't an image file.", "error");
     status("Preparing photo…");
     var img = new Image();
-    var url = URL.createObjectURL(file);
+    var fr = new FileReader();
+    fr.onerror = function () { status("Couldn't read that photo.", "error"); };
+    fr.onload = function () { img.src = fr.result; };
     img.onload = function () {
       var max = 1400, w = img.naturalWidth, hh = img.naturalHeight, k = Math.min(1, max / Math.max(w, hh));
       var c = document.createElement("canvas");
       c.width = Math.round(w * k); c.height = Math.round(hh * k);
       c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url);
       var q = 0.82, data = c.toDataURL("image/jpeg", q);
       while (data.length > 190000 && q > 0.4) { q -= 0.12; data = c.toDataURL("image/jpeg", q); }
       if (data.length > 260000) return status("That photo is too detailed to keep in the page — try a smaller one.", "error");
@@ -950,7 +951,7 @@
       }).catch(function (err) { status(err && err.shown ? err.message : "Couldn't use that photo — try again.", "error"); });
     };
     img.onerror = function () { status("Couldn't read that image.", "error"); };
-    img.src = url;
+    fr.readAsDataURL(file);
   }
 
   /* ================= Wiring ================= */
