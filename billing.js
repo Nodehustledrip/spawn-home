@@ -148,6 +148,7 @@ async function applySubscription(sub, hintUserId) {
   if (!row && uid && /^\d+$/.test(String(uid))) row = await auth.setPlan({ userId: String(uid) }, fields);
   if (!row) console.warn("[billing] no user for subscription", sub.id);
   else console.log("[billing] user", row.id, "plan", row.plan, "status", row.plan_status);
+  if (row) { try { await require("./cloudelite").onTierChange(row.id, auth.tierOf(row)); } catch (e) { console.warn("[billing] elite tier sync failed", e && e.message); } }
   return row;
 }
 

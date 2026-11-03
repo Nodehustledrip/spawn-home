@@ -6685,3 +6685,6 @@ a.btn-solid:hover { color: var(--accent-ink); }
 .plan-card-elite .plan-save { background: rgba(167,139,250,0.18); color: #c4b5fd; }
 .plan-everything { margin: 0.2rem 0 0; font-size: 0.88rem; color: #ddd6fe; }
 .plan-buy[hidden], .plan-card [hidden] { display: none !important; }
+button.btn-ghost-gold { background: transparent; font: inherit; font-weight: 600; cursor: pointer; }
+button.btn-ghost-gold:disabled { opacity: .55; cursor: default; transform: none; }
+.btn-solid[hidden], .btn-ghost-gold[hidden], .btn-elite[hidden], .btn-ghost-elite[hidden] { display: none !important; }

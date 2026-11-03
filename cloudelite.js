@@ -13,6 +13,9 @@ function hashPassword(pw, saltHex, iter) {
   return crypto.pbkdf2Sync(String(pw), Buffer.from(saltHex, "hex"), iter || ITER, 32, "sha256").toString("hex");
 }
 
+let tierHook = null;
+/** Called by billing when an account's tier changes: stats follow Elite on/off. Passwords stay until the owner removes them. */
+async function onTierChange(userId, t) { if (tierHook && userId != null) await tierHook(String(userId), t); }
 function mountElite(r, h) {
   const { wrap, fail, anyUser, ownedApp, be, auth } = h;
   let ready = null;
@@ -64,6 +67,12 @@ function mountElite(r, h) {
     const top = (o) => Object.entries(o).sort((p, q) => q[1] - p[1]).slice(0, 10).map(([k, n]) => ({ k, n }));
     res.json({ ok: true, slug: a.slug, days, total, series, pages: top(pages), referrers: top(refs) });
   }));
+  tierHook = async (userId, t) => {
+    await ensure();
+    const owned = "SELECT slug FROM apps WHERE owner=?1";
+    if (t === "elite") await be().query("INSERT INTO app_features (slug, stats) SELECT slug, 1 FROM apps WHERE owner=?1 ON CONFLICT(slug) DO UPDATE SET stats=1, updated_at=CURRENT_TIMESTAMP", ["u:" + userId]);
+    else await be().query("UPDATE app_features SET stats=0, updated_at=CURRENT_TIMESTAMP WHERE slug IN (" + owned + ")", ["u:" + userId]);
+  };
   return { onPublish: async (u, slug) => { if ((await tier(u)) === "elite") await setStats(slug, true); } };
 }
 
@@ -95,4 +104,4 @@ async function render(d,a){const s=await J("/api/cloud/apps/"+a.slug+"/stats?day
 load();
 </script>`;
 
-module.exports = { mountElite, hashPassword, ITER, DDL, STATS_HTML };
+module.exports = { mountElite, onTierChange, hashPassword, ITER, DDL, STATS_HTML };
