@@ -124,6 +124,9 @@ const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS cloud_device_codes (device_hash TEXT PRIMARY KEY, user_code TEXT UNIQUE NOT NULL, user_id TEXT, name TEXT, expires_at TEXT NOT NULL, used INTEGER DEFAULT 0, email TEXT)",
   /* Waitlist / updates sign-ups (previously only a disk JSON + PostHog copy). */
   "CREATE TABLE IF NOT EXISTS waitlist (email TEXT PRIMARY KEY, source TEXT, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')))",
+  /* Daily HTML document loads by host (America/Chicago day). Batched UPSERTs from pageloads.js. */
+  "CREATE TABLE IF NOT EXISTS page_loads (day TEXT NOT NULL, host TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, host))",
+  "CREATE INDEX IF NOT EXISTS page_loads_day_idx ON page_loads (day)",
 ];
 
 /* Idempotent column additions (SQLite has no ADD COLUMN IF NOT EXISTS). plan holds the tier: 'free' | 'pro' | 'elite'. */

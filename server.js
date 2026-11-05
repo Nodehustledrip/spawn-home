@@ -7,6 +7,7 @@ const app = express();
 const ai = require("./ai");
 const builds = require("./builds");
 const billing = require("./billing");
+const pageloads = require("./pageloads").create({ getPool: function () { return builds.store.getPool(); } });
 const PORT = process.env.PORT || 3000;
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
@@ -134,6 +135,7 @@ app.use(function (req, res, next) {
   }
   next();
 });
+pageloads.mount(app); /* daily HTML document loads — finish hook, batched D1 flush */
 app.use(compression());
 billing.mountWebhook(app); /* raw body — before express.json */
 require("./cloudpublish").mount(app);

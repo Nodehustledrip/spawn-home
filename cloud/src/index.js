@@ -7,6 +7,7 @@ import { handleBidboard } from "./bidboard.js";
 import { handleMembers, gateMembersPage, MEMBERS_PREFIX } from "./members.js";
 import { handlePayments } from "./payments.js";
 import { loadElite, gate, countView } from "./elite.js";
+import { maybeCount } from "./pageloads.js";
 
 const RUNTIMES = { bidboard: handleBidboard };
 const RESERVED = new Set(["www", "api", "app", "apps", "admin", "cloud", "static", "assets", "cdn", "mail", "status"]);
@@ -85,6 +86,7 @@ async function route(request, env, ctx) {
     const own = [host.replace(/^www\./, ""), slug + "." + apex];
     ctx.waitUntil(countView(env, slug, request, path, own).catch((e) => console.warn("[spawn-cloud] stats", e && e.message)));
   }
+  maybeCount(ctx, env, request, resp, host);
   return resp;
 }
 
