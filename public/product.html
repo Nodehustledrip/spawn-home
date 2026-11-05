@@ -203,17 +203,18 @@
   <main id="main" class="page-product">
     <header class="product-hero">
       <p class="kicker">Product</p>
-      <h1>A private builder. Every surface to ship.</h1>
+      <h1>Build in your browser. Ship from Spawn.</h1>
       <p class="lead">
-        Spawn is an app builder that runs on your machine — real files, live preview,
-        chat to change them — then a public URL when you’re ready. Domains, secrets,
-        plugins, and account stay inside the same product.
+        Describe an app at spawnapp.org/build, watch a live preview, edit it in
+        Build chat, then publish to Spawn Cloud for a public URL. Domains, secrets,
+        plugins, and account stay in the same product — desktop is optional when
+        you want files on disk.
       </p>
       <ul class="product-proof" aria-label="What Spawn is">
-        <li>Private machine</li>
+        <li>Browser</li>
+        <li>Free to start</li>
         <li>Public URL</li>
         <li>Eight builder surfaces</li>
-        <li>Free to start</li>
       </ul>
       <div class="product-hero-links">
         <a class="btn-solid" href="/build">Start building</a>
@@ -235,19 +236,20 @@
 
     <section class="product-bridge" aria-labelledby="bridge-heading">
       <div class="product-bridge-copy">
-        <h2 id="bridge-heading">Private machine → public URL</h2>
+        <h2 id="bridge-heading">Browser draft → public URL</h2>
         <p>
-          Everything starts local. Source, secrets, and uncommitted work stay on
-          your machine until you press Go Live. Publish to Spawn Cloud for a
-          live &lt;name&gt;.spawnapp.org URL that stays up 24/7 with your PC
-          off — without leaving Spawn.
+          Start in the browser: a temporary draft, or a build saved to your account
+          when you sign in. Publish to Spawn Cloud for a live
+          &lt;name&gt;.spawnapp.org URL that stays up 24/7 — without leaving Spawn.
+          Prefer working with files on disk? The desktop app is an optional power
+          path for the same loop.
         </p>
       </div>
       <div class="product-bridge-flow" aria-hidden="true">
         <div class="pbf-card pbf-private">
-          <span class="pbf-tag">Private</span>
-          <strong>localhost</strong>
-          <em>Files · preview · chat</em>
+          <span class="pbf-tag">Draft</span>
+          <strong>/build</strong>
+          <em>Preview · chat · edits</em>
         </div>
         <span class="pbf-arrow" aria-hidden="true">→</span>
         <div class="pbf-card pbf-public">
@@ -277,21 +279,23 @@
           <span class="feature-tag">Create</span>
           <h3>Start a real app</h3>
           <p>
-            Describe what you’re building or open files already on disk.
-            Spawn scaffolds a project on your machine — not a throwaway sandbox.
+            Describe what you’re building in the browser at /build — Spawn scaffolds
+            a working app with a live preview. Prefer files already on disk? Open
+            them in the optional desktop app.
           </p>
         </li>
         <li class="feature-card" id="run">
           <div class="fc-chrome" aria-hidden="true">
             <div class="fc-dots"><i></i><i></i><i></i></div>
-            <span class="fc-title">localhost:5173</span>
-            <span class="fc-badge fc-badge-ok">Running</span>
+            <span class="fc-title">/build · preview</span>
+            <span class="fc-badge fc-badge-ok">Live</span>
           </div>
           <span class="feature-tag">Run</span>
-          <h3>Local preview</h3>
+          <h3>Live preview</h3>
           <p>
-            Hit Run and see the app live on localhost. Same process you’ll ship —
-            no deploy required to try a change.
+            See the app update in the /build preview pane as you create and chat —
+            no deploy required to try a change. On desktop, Run can also open a
+            localhost preview against files on disk.
           </p>
         </li>
         <li class="feature-card" id="build">
@@ -303,8 +307,9 @@
           <span class="feature-tag">Build chat</span>
           <h3>Change it in English</h3>
           <p>
-            Ask for a pricing table, auth flow, or layout fix. Spawn edits the files,
-            shows the diff, and refreshes the preview — with your keys, on your project.
+            Ask for a pricing table, auth flow, or layout fix in Build chat. Spawn
+            edits the project, shows the diff, and refreshes the preview — right in
+            the browser.
           </p>
         </li>
         <li class="feature-card" id="live">
@@ -381,7 +386,7 @@
             <span class="fc-badge">Pro soon</span>
           </div>
           <span class="feature-tag">Account</span>
-          <h3>Your seat, your machine</h3>
+          <h3>Your seat, your builds</h3>
           <p>
             Free today with no account — builds made without an account are temporary and can disappear when Spawn updates. Sign in free to keep them, or download the zip.
             Pro adds email sign-in and builds saved to your account.
@@ -420,7 +425,7 @@
         </a>
         <a class="product-explore-card" href="/how">
           <strong>How it works</strong>
-          <span>The loop and private vs public</span>
+          <span>The loop from draft to public URL</span>
         </a>
         <a class="product-explore-card" href="/pricing">
           <strong>Pricing</strong>
